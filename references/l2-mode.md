@@ -12,6 +12,57 @@ Activate when any of the following:
 
 Confirm activation once per book; persist as `l2_mode: on` in book metadata. Do not re-prompt on every chapter — once a book is L2, every chapter inherits.
 
+## Vocabulary coverage tiers (95% / 98% two-tier)
+
+The first decision in L2 mode is **what tier the user is at for this specific book**, because that drives whether scaffolding is mandatory, optional, or off. The two thresholds (Laufer & Ravenhorst-Kalovski two-tier) are operational, not absolute cliffs — replication work shows the variance explained is smaller than the original single-source figure suggested. Treat these as defaults that the skill applies; surface to the user on activation.
+
+| Coverage estimate | Tier | Policy |
+|---|---|---|
+| **< 95%** | **must-scaffold** | glossary obligatory; L1 (Korean) paraphrase allowed and recommended; intensity capped at **light**; `narrow_reading_mode` strongly recommended (see below); attempting the full chapter at this tier is effortful and produces measurable retention loss |
+| **95% – 98%** | **assisted** | glossary optional; intensity capped at **standard**; `narrow_reading_mode` recommended for the *first* book on a topic to push coverage toward 98% on later books |
+| **≥ 98%** | **flow** | glossary off (lookup only on user request); intensity any; standard L2 paragraph loop applies |
+
+### Estimating coverage at plan time
+
+At plan phase for a new L2 book, ask the user one quick estimation question:
+
+> "이 책 첫 페이지에서 — 모르거나 명확치 않은 단어가 대략 몇 % 정도? (몇 단어 모름 / 페이지 단어 수 합계가 가장 정확하지만, 빠른 self-estimate라도 OK.)"
+
+Convert to coverage = 100% − unknown%. Persist in `books.yml`:
+
+```yaml
+<book-slug>:
+  language: en
+  l2_coverage_estimate: 92    # %
+  l2_tier: must-scaffold       # auto-derived from estimate
+```
+
+If the user's estimate is at the boundary (94%, 97%), prompt for one more page sample. If `l2_tier` changes during the book (chapters get easier as topic vocabulary repeats), the user can update — log the transition.
+
+### narrow_reading_mode (sub-mode)
+
+When the user is in `must-scaffold` (or in `assisted` and starting their first book on a topic), offer narrow reading: read 2-3 short adjacent texts (Wikipedia article, blog post, short paper) on the same topic *first*, accumulating a vocabulary across them. Topic vocabulary repeats 2-10× across narrow-related texts, so the user typically reaches 96-98% coverage on the target book by the time they return to it. The skill's role:
+
+- help user select 2-3 adjacent texts (preferring Wikipedia + 1-2 longer-form on the same topic)
+- light-intensity reading on each (no Phase 3 required)
+- accumulate a cross-text vocabulary note: each new word appears once, not re-glossed across the texts
+
+Persist:
+
+```yaml
+narrow_reading_mode:
+  active: true
+  parent_book: <slug>
+  texts: [<url-or-locator>, <url-or-locator>, <url-or-locator>]
+  vocabulary_accumulated: [...]
+```
+
+When the user returns to the parent book, re-estimate coverage; expect a tier upgrade.
+
+### Extensive reading (separate from study sessions)
+
+Serious L2 learners benefit from a separate extensive reading (ER) block — light-intensity, fluency-prioritized, no Phase 3 protocol. ER is logged with `er_session: true` and does not contribute to chapter_metrics. ~30% of total L2 reading time as ER is a reasonable default for learners aiming to push coverage upward; the skill suggests this when the user has been in `must-scaffold` for ≥ 3 books.
+
 ## Core principles
 
 1. The goal is the book's concepts, not English endurance.
@@ -125,7 +176,13 @@ Apply `references/citation-format.md` `quote_id` discipline to L2 quotes the sam
 
 ## Interaction with Session Intensity
 
-L2 mode caps maximum intensity at **standard** on first-pass reading. **Deep** intensity (60–90 min, ARQ Level 3, transfer attempt, detailed note) is **not** run on a first-pass L2 reading — language barrier already adds load; stacking deep method on top is the predictable form-fatigue collapse.
+L2 mode caps maximum intensity by tier:
+
+- `must-scaffold` (< 95% coverage) → **light** only on first pass
+- `assisted` (95-98%) → **standard** maximum on first pass
+- `flow` (≥ 98%) → any intensity on first pass
+
+**Deep** intensity (60–90 min, ARQ Level 3, transfer attempt, detailed note) is **not** run on a first-pass L2 reading at any tier — language barrier already adds load; stacking deep method on top is the predictable form-fatigue collapse.
 
 **If the user explicitly requests deep on a re-read** (second pass after a first-pass L2 read), allow it — second pass means the language load is already discounted. Log `l2_pass: 2` for that chapter.
 

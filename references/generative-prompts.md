@@ -44,6 +44,18 @@ Each prompt has:
 
 ## Phase 2 — During-reading
 
+### chunk_size + interim_recall (mandatory at intensity ≥ standard)
+
+- **Purpose**: prevent fluency-illusion accumulation across long unbroken reads; create forward-effect cueing for the next chunk.
+- **Spec**:
+  - default chunk_size = **5-10 min** of reading, broken at the nearest natural section boundary
+  - 30-min unbroken reading blocks are auto-rejected at intensity ≥ standard (light may extend to 15 min)
+  - at every chunk boundary: 30-60s **closed-book free recall** of what the chunk just said, *before* turning the page or scrolling forward
+- **Verbatim** (instruction to user, at chunk boundary): "잠깐 멈춤 — 책 닫고 30초: 방금 읽은 내용 핵심을 입으로/머리로 다시 말해봐. 못 떠오르는 부분 있으면 그게 다음 chunk에서 다시 마주칠 portion."
+- **Trigger**: every 5-10 min during reading; never skipped at standard or deep intensity.
+- **Why this is non-negotiable**: chunk-boundary recall improves the *next* chunk's acquisition substantially, not just the current chunk's retention (forward effect). Skipping it loses not only the recall but also the next chunk's encoding boost.
+- **Avoid**: silent re-reading at the chunk boundary instead of recall — this is the fluency-illusion failure mode the rule exists to prevent. The book stays closed during the 30-60s.
+
 ### concept_define
 
 - **Purpose**: targeted self-explanation in own words; high-leverage retention move
@@ -71,13 +83,29 @@ Each prompt has:
 - **Trigger**: every 2-3 paragraphs; when user has been quiet for 5+ min
 - **Avoid**: "Are you following?" (yes-bias)
 
-### selective_annotation
+### paragraph_capture (selective, with genre cap)
 
-- **Purpose**: capture 1-2 highest-leverage claims per page; do NOT highlight more (Dunlosky 2013)
-- **Verbatim** (instruction to user): "Mark the 1-2 claims on this page that, if removed, would break the chapter's argument. Not 5. Not 10."
-- **Korean**: "이 페이지에서 빠지면 챕터 논증이 무너지는 핵심 주장 1-2개만 표시. 5개도 10개도 아닌."
-- **Trigger**: each page with annotatable content
-- **Avoid**: highlighting whole sentences; highlighting more than 2 per page (inference accuracy drops per Dunlosky)
+- **Purpose**: capture a short row when one of four triggers fires — new concept introduced / argument transition / confusion / counterexample. Default cap: 5-10 captures per chapter; hard ceiling 15.
+- **Genre cap (narrative chapters)**: a narrative-leaning chapter (chapter classified narrative on the orthogonal axis — see `references/book-types.md`) reduces the cap to **2-3 captures per chapter**. Detail fixation hurts narrative comprehension; theme + character/causal-chain tracking is the work, not micro-capture.
+- **Genre cap (expository chapters)**: standard 5-10, hard ceiling 15.
+- **Trigger**: only when one of the four triggers fires. Without an active trigger, do not record.
+- **Avoid**: capturing on every paragraph (this is the form-fatigue failure mode); applying expository cap to narrative chapters.
+
+### graphic_organizer_required (intensity ≥ standard)
+
+- **Purpose**: integrate the chapter's local PIMEQ notes into one cross-chunk relational structure. Constructed organizers outperform consumed ones; the structure must come from the user.
+- **Verbatim** (instruction to user): "Build one mind map / matrix / hierarchy / comparison table / sequence diagram for this chapter. 3-9 nodes. Edges have labeled relationships. Include at least one cross-reference to a prior chapter or concept."
+- **Trigger**: chapter end, before chapter complete, on standard or deep intensity sessions. Light intensity may skip — in that case `chapter_complete` is restricted to `phase-3-textbase-only`.
+- **Spec details**: see `references/annotation-typology.md` § "Graphic organizer requirement".
+- **Avoid**: skill generates the organizer for the user (loses the construction effect); >9 nodes (over-decomposition).
+
+### selective_annotation (PIMEQ — bare highlights are deprecated)
+
+- **Purpose**: capture 1-2 *constructive* margin notes per page tagged with one of the five PIMEQ prefixes (Predict / Infer / Monitor / Evaluate / Question). Bare highlights — selecting passages without an accompanying generative move — do not improve comprehension and are deprecated as a default; if used, they must be converted at chapter end.
+- **Verbatim** (instruction to user): "Mark up to 2 places on this page with a PIMEQ prefix — P (predict what comes next), I (infer the implication), M (monitor your confusion), E (evaluate / object), Q (question). Each note has the prefix and one short sentence. Bare highlights without text don't count."
+- **Korean**: "이 페이지에서 PIMEQ prefix 붙인 마진노트 최대 2개 — P(다음 예측) / I(함의 추론) / M(모르겠음 표시) / E(평가·반박) / Q(질문). prefix + 한 문장. 그냥 색칠은 카운트 안 함."
+- **Trigger**: at the chunk boundary, **after** the closed-book recall, never before. See `references/annotation-typology.md` for the order rule + per-prefix examples + the chapter-end conversion contract.
+- **Avoid**: bare highlights as final state; annotating before recall (this is the dominant fluency-illusion pattern); more than 2 PIMEQ notes per page (signal of either over-dense chunk or revert to highlight-everything mode).
 
 ---
 

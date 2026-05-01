@@ -3,14 +3,18 @@ title: ARQ Ch.4 — Are There Rival Causes?
 book: arq
 chapter: 4
 type: methodology
-status: phase-2-complete
+status: phase-3-pending
 sessions: 1
 created: 2026-04-26
 last_session: 2026-04-26
+phase_2_ended_at: 2026-04-26T18:30:00+09:00
 hint_levels: [0, 1, 1, 0]
 avg_hint_level: 0.5
 avg_answer_length: 38
-closed_book_coverage: null
+textbase_recall_coverage: null
+situation_model_transfer_score: null
+situation_model_transfer_questions_count: 0
+chapter_complete: false
 confidence_self_report: null
 confidence_accuracy_gap: null
 session_health:

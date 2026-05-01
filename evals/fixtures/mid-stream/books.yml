@@ -13,7 +13,7 @@ books:
       1: complete
       2: complete
       3: complete
-      4: phase-2-complete
+      4: phase-3-pending
     chapter_metrics:
       1:
         closed_book_coverage: 0.70

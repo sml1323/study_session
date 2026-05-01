@@ -144,7 +144,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 **Mitigation**:
 - **Force opposing-view steelman** before chapter is marked complete on argument-driven type. Wording: "Argue against your own conclusion at full strength. Find one premise of the author's argument you'd actually attack. Not a strawman — the strongest opponent's strongest move."
 - **Position update log**: capture "before" position (Phase 1) and "after" position (Phase 3). Mark whether the change is supported by the chapter's evidence or by AI agreement.
-- **Flag agreement-without-engagement**: if user agrees + skips steelman, the chapter is `phase-3-incomplete`.
+- **Flag agreement-without-engagement**: if user agrees + skips steelman, the chapter stays at `phase-3-pending` (not `phase-3-complete`); log `echo: true` in `session_health`.
 - **AI confidence flag**: when you (the AI) make a claim, label it: "This is a high-confidence claim from the source. Check it." For low-confidence claims: "I'm uncertain about this — verify with the chapter."
 
 ---
