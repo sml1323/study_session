@@ -136,6 +136,27 @@ learner_profile:
                                    #  go under `other` with a free-text description until R11 expands the enum.)
   transfer_hypothesis_flag: true   # true if recommendations to this learner are transfer-hypothesis
                                    # rather than directly evidenced for the population
+
+# Reading-mode declaration (R11 v4) — picks linear vs non-linear protocol at plan time
+reading_mode_declaration: linear-deep   # linear-deep | non-linear (code/proof/dense-paper) | triage-then-deep | lookup
+                                        # non-linear invokes references/methods/code-reading.md 5-stage protocol
+
+# AI policy (R11 v4) — see references/ai-policy.md; immutable after Phase 2 starts
+ai_policy:
+  mode: strict-no-ai               # strict-no-ai | triage-only | scaffolded-only
+  allowed_in_phases: []            # auto-derived from mode
+  declared_at: 2026-05-03T10:00:00+09:00
+  rationale: "high-stakes mock exam prep — Newport mode"  # optional one-line user reason
+
+# AI usage summary (R11 v4) — per-turn log lives in body Phase 2; this is the chapter aggregate
+ai_use_summary:
+  ai_turns_count: 0                # total AI turns this chapter
+  scaffolded_ratio: 1.0            # scaffolded-template turns / total AI turns; <1.0 = free-chat or violations
+  free_chat_count: 0
+  strict_violations: 0             # AI turns when ai_policy.mode = strict-no-ai
+  ioed_gap_max: null               # largest |sm_score_no_ai - sm_score_with_ai| × 100 across Step 2b retry
+  ioed_gap_avg: null
+  ioed_diagnosis: null             # low | borderline | high (per references/ai-policy.md placeholder bands)
 ---
 ```
 
@@ -148,6 +169,16 @@ learner_profile:
 - **PKA dump**: <user's pre-reading dump>
 - **Prediction**: <user's prediction>
 - **Goal question**: <user's specific question>
+- **Reading-mode declaration**: linear-deep | non-linear | triage-then-deep | lookup
+- **AI policy**: strict-no-ai | triage-only | scaffolded-only — chosen at plan time, immutable for chapter
+- **Medium recommendation**: recommended | allowed-with-caveat | triage-only — from `references/medium-policy.md` 4-cell matrix on (pagination_mode × device_class)
+
+### Orientation pass (only for non-linear chapters — `references/methods/code-reading.md` Stage 1)
+- 1) What is this trying to achieve? (purpose, not mechanism)
+- 2) Where does data / dependency / proof-flow come from and go?
+- 3) What are the invariants?
+- 4) What changed recently? (or for papers: which earlier paper does this build on / refute?)
+- 5) Who knows more than me? (the social layer)
 
 ### Expectations (skill-generated)
 - ...
@@ -214,6 +245,47 @@ polya_logs:
 
 (append-only; new session here, do not edit Session 1)
 
+#### Analytical loop (only for non-linear chapters — `references/methods/code-reading.md` Stage 3)
+
+```yaml
+analytical_loop:
+  - turn: 3
+    sub_mode: understanding | assessing | simulating | navigating
+    target: "lemma 4.2 statement"
+    note: "..."
+```
+
+#### Failure triggers + Tao moves (`references/methods/math-text-reading.md` Tao section + `references/methods/code-reading.md` Stage 4)
+
+```yaml
+failure_triggers:
+  - { turn: 7, shape: "next step doesn't follow", switch_to: "read ahead", outcome: "resolved at line N+2" }
+tao_moves:
+  - { turn: 7, failure_shape: "...", move_picked: 1, outcome: "..." }
+```
+
+#### Next-action queue (`references/methods/code-reading.md` Stage 5)
+
+```yaml
+next_actions:
+  - "Verify lemma 4.2 holds for X = 0 edge case"
+  - "Re-check whether convergence proof uses dominated convergence or Fatou"
+```
+
+#### AI usage log (per turn — `references/ai-policy.md`)
+
+```yaml
+ai_use_log:
+  - turn: 5
+    timestamp: 2026-05-03T10:23:00+09:00
+    tool: notebooklm | chatgpt | claude | gemini | perplexity | custom-gpt | claude-project | other
+    mode_compliance: triage | scaffolded-prompting | free-chat | strict-violation
+    query_summary: "..."
+    ai_followup_question_attempted: true | false | n/a
+    ai_followup_correct: true | false | n/a
+    ioed_amplified: true | false | n/a
+```
+
 ---
 
 ## Phase 3 — Calibrate (opening warmup of next session, by default)
@@ -252,6 +324,14 @@ polya_logs:
 - Categorization shift (Phase 1 → Phase 3): surface → principle ✓ (schema-formation signal)
 - Cross-chapter trend (last 4 chapters' abs_gap): 22 → 14 → 8 → 5 (improving)
 
+### IOED counter (R11 v4 — only when ai_use_log is non-empty)
+Per `references/ai-policy.md` § "IOED counter gate". Step 2b runs twice on the same transfer question:
+- Pass 1 (no AI): sm_score_no_ai = 0.7
+- Pass 2 (with AI as normally used): sm_score_with_ai = 0.95
+- ioed_gap_pp = |0.7 − 0.95| × 100 = 25
+- ioed_diagnosis: borderline (≤10 low, 11-30 borderline, >30 high)
+- if `high`: next chapter recommended `ai_policy.mode: strict-no-ai`
+
 ### Feynman explanation
 <user's explain-to-beginner attempt>
 - *Feedback*: <jargon flagged, gap notes>
@@ -286,6 +366,14 @@ polya_logs:
 ## Open threads
 - <thing still unclear>
 - <topic to follow up>
+
+## Post-chapter reflection (R11 v4 — Konik / Newport / Appleton common pattern)
+
+Social-media-length post-chapter summary in the user's own words, written within 30 minutes of session close. ~200 chars. Forced reflection function — not a narrative summary, not a "what I learned." A single sentence the user would say to a peer if asked "what was that chapter about?"
+
+```yaml
+post_chapter_reflection: "..."
+```
 
 ## Cross-chapter notes
 - Connects to Ch.3 because: ...
@@ -322,16 +410,19 @@ When compose mode runs (end of session or end of phase):
 3. Compute derived fields:
    - `avg_hint_level` from `hint_levels`
    - `avg_answer_length` from session response lengths
-   - `actual_score` from `textbase_recall_coverage*50 + situation_model_transfer_score*50`
+   - `actual_score` from `textbase_recall_coverage * w_t + situation_model_transfer_score * w_s` (R10 v3; weights per book type or user override)
    - `score_prediction_gap`, `abs_gap`, `calibration_diagnosis` from Step 1 + Step 4a
    - `confidence_accuracy_gap` from `confidence_self_report` + SM transfer (legacy trend)
    - `session_health.illusion` ← true if `abs_gap > 20`
    - `session_health.*` other flags from detection rules in `references/failure-modes.md`
    - `daily_floor.status` from `retrievals_executed` (behavior-counted) vs `target_distinct_days` × `retrievals_per_day_min`
    - `exam_wrapper_trace` block (always — ritual, not optional; Hodges 2020 dose-response)
+   - **R11 v4**: `ai_use_summary` (ai_turns_count / scaffolded_ratio / free_chat_count / strict_violations / ioed_gap_max / ioed_gap_avg / ioed_diagnosis) from per-turn `ai_use_log`
+   - **R11 v4**: `medium.recommendation` cell label from `(pagination_mode × device_class)` per `references/medium-policy.md` 4-cell matrix
+   - **R11 v4**: prompt the user for `post_chapter_reflection` (~200 char) before closing the chapter — this is not derived, it is captured
 4. Update `last_session`, increment `sessions`
 5. Write file (overwrite if exists for the same date — multiple sessions same day are concatenated within the existing entry block)
-6. Update `~/study-journal/books.yml` `chapter_metrics` and `calibration_history`
+6. Update `~/study-journal/books.yml` `chapter_metrics` and `calibration_history`; **R11 v4 also append `medium_used` × `actual_score` row to long-term medium-effect cross-tab**
 7. If chapter is at +1m or external_deadline.date arrived (whichever first): compute and append `self_diagnostic` block (FCI/BEMA-style normalized_gain vs expected band)
 
 ## Reading the note for resume

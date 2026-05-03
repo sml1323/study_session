@@ -71,6 +71,46 @@ diagram_passes:
     pass_2_done: true
 ```
 
+## Tao 7 moves — compilation-error meta-trigger (R11 v4)
+
+Tao's "On Compilation Errors in Mathematical Reading" (2017) frames the strategy-switch protocol for proof reading: even strong mathematicians, on first read of a hard paper, "lose their higher reading skills and revert to a more formal, tedious line-by-line interpretation." The move is not to push harder; it is to **switch strategies**.
+
+The 7 moves below run inside the analytical-loop stage (per `references/methods/code-reading.md` Stage 3). Each is a behavioral verb the reader executes when a specific failure shape appears. Pick 1-2 per "stop-compile" event, never all.
+
+| # | Move | When | What the reader does |
+|---|---|---|---|
+| 1 | **Read ahead** | line N "doesn't follow" | jump to line N+1 or N+2; most "compilation errors" resolve in the next 1-2 lines (the dependency was forward-referenced) |
+| 2 | **Suspect typo before yourself** | derivation produces wrong-looking step | if you can derive B' instead of B, the paper is wrong, not you. Try deriving the conclusion that follows from your B'; if it is consistent, the source has a typo |
+| 3 | **Examine missing keywords** | conclusion seems to derive from elsewhere | the absence of "thus" / "therefore" / "by" is itself a signal — the conclusion was derived earlier and is now being recalled. Search backwards for the actual derivation |
+| 4 | **Return to cryptic comments** | a step uses a hypothesis you don't see in the current page | passages skipped on first pass often contain the load-bearing hypothesis; return there before pushing forward |
+| 5 | **Strategic simplification** | symbol-density too high to simulate | specialize to lower dimensions, ignore error terms, focus on the near-counterexample case. Solve the easier instance, then re-read the general statement |
+| 6 | **Blackboard logical mapping** | proof depends on multiple lemmas | diagram dependencies between lemmas / theorems on a separate sheet. The dependency structure is itself the load-bearing object, not the lines |
+| 7 | **Author intent** | a statement seems pointless | try to understand the *purpose* behind each statement — what is the author warning against / pointing toward / preparing to use? |
+
+### "Compilation error" as the meta-trigger
+
+The 7 moves all share a precondition: **the reader noticed that reading stopped compiling**. That noticing is itself the metacognitive trigger and is more important than which specific move you pick. Hardcoded rule:
+
+- **stop-compile (you've re-read the same lines, you can't simulate, the next step doesn't follow) → switch strategies (one of the 7 moves above), do not push harder.**
+
+Push-harder is the dominant failure mode in formal-text reading; the 7 moves are operational alternatives.
+
+Capture into the chapter note Phase 2 alongside `failure_triggers` (per `references/methods/code-reading.md` Stage 4):
+
+```yaml
+tao_moves:
+  - turn: 7
+    failure_shape: "next step doesn't follow"
+    move_picked: 1   # read ahead
+    outcome: "resolved at line N+2 (forward-referenced lemma)"
+  - turn: 12
+    failure_shape: "symbol-density too high to simulate"
+    move_picked: 5   # strategic simplification
+    outcome: "specialized to dim 2; saw the symmetry; re-read general"
+```
+
+> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11)**: the 7 moves are direct citations from Tao 2017. The pick-1-2-per-event rule and the "stop-compile" hardcoded trigger are **operational placeholders** chosen to make the protocol actionable; Tao's original essay does not enumerate per-event move counts. Replace with R12-validated structure if RCT becomes available.
+
 ## Diagram-purpose tracking (Kohl & Finkelstein 2006)
 
 When the user *draws* a diagram (during problem solving, derivation, or note-taking), the diagram serves one of two purposes; the user must label which:
@@ -125,6 +165,7 @@ These are the load-bearing learning behaviors; cutting them produces prose-skip 
 
 ## Cross-references
 
+- `references/methods/code-reading.md` — 5-stage non-linear protocol; Stage 3 (analytical loop) is where micro-tasks and Tao moves run; Stage 4 (failure-as-trigger) is where the "stop-compile" detection lives
 - `references/methods/backward-fading.md` — what to do after a worked example
 - `references/methods/polya.md` — Polya 4-step is the outer loop for problem chapters; micro-tasks here run inside the Understand and Carry Out steps
 - `references/methods/proof-comprehension.md` — Mejía-Ramos 7-facet proof comprehension framework (this file is the per-line micro-task layer; that file is the per-proof comprehension assessment layer)

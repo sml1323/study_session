@@ -1,6 +1,8 @@
-# Medium Policy — 4-axis decision tree
+# Medium Policy — 4-axis decision tree + 4-cell pagination × device-class matrix
 
 When invoked: at plan phase, decide what reading medium the user should default to for this chapter. Medium effects on comprehension are real but not "screen bad" simple — the variance is captured by 4 axes, and the decision-tree below makes the right tradeoff visible.
+
+The R10 v3 patch (and earlier rounds) framed medium choice as a 4-axis decision. The R11 v4 patch sharpens this: Clinton-Lisell & Litzinger 2025 (network meta n=56 / 79 effect sizes) localizes the screen-vs-paper effect to **scrolling specifically**, with paginated digital reading dropping to g = 0.03–0.12 vs paper (no reliable difference). Frontiers 2025 distractions meta (n=32 studies / 124 experiments) shows distraction interference is medium-invariant once a distractor is present (Hedges' g = −0.64) — the e-ink advantage is upstream from display physics, in **distraction availability**. The v4 reframing is therefore: collapse the messy device taxonomy into a **2-axis (pagination_mode × device_class) 4-cell matrix** and surface the cell label (recommended / allowed / triage-only) at plan time.
 
 This file is referenced from `SKILL.md` § "The PDP master loop" (PLAN PHASE) and from `references/pdp-loop.md`.
 
@@ -37,6 +39,30 @@ Pick the first row that matches:
 | Narrative chapter (novel, essay, memoir, biography) | **medium-neutral** — pick whatever the user prefers | Genre cap on `paragraph_capture` already applies (see `references/generative-prompts.md`); medium friction does not need to be added |
 | Preview, capture, search, low-stakes browsing | **phone / laptop OK** | Not the deep comprehension pass; if the chapter later reaches deep mode, switch medium |
 
+## The 4-cell matrix (R11 v4 — load-bearing summary)
+
+The decision-tree above is still correct; this matrix is the v4 simplification that should run **first**. The 4 axes collapse to 2 load-bearing axes when you compress device-class (paper / e-ink / tablet / laptop / phone) into "single-purpose" vs "multi-purpose" and navigation into "paginated" vs "scrolling".
+
+| | **single-purpose device** (Kindle, reMarkable, Supernote, Boox-strict, paper book) | **multi-purpose device** (laptop with apps, tablet with apps, phone, Boox-with-apps installed) |
+|---|---|---|
+| **paginated** | **RECOMMENDED** for high-stakes long-form. Within ~0.03–0.12 SD of paper (Clinton-Lisell 2025 network meta, scrolling-removed condition). Distraction-availability also blocked (Frontiers 2025 upstream mechanism). | **ALLOWED with caveat**. Pagination preserves comprehension; distraction-availability survives. Surface to user: "close other tabs / put phone away for the chunk." Activate `force_chunk_boundary_recall: true`. |
+| **scrolling** | **ALLOWED with caveat**. Scrolling is the dominant interface-side culprit but single-purpose blocks distraction. Useful for narrative or low-stakes chapters where scrolling is unavoidable (e.g., a Kindle PDF that doesn't paginate well). Activate `force_chunk_boundary_recall: true`. | **TRIAGE-ONLY**. paper-vs-digital effect ~0.35–0.48 SD (Clinton-Lisell 2025 scrolling condition) AND distraction availability uncapped. Use only for orientation / search / preview; switch medium before deep-reading entry. Block deep-mode chunk start until medium changes; offer reMarkable / Kindle / paper / paginated PDF as alternatives. |
+
+Capture both axes into chapter note frontmatter (`medium.pagination_mode`, `medium.device_class`). The **cell label** itself (recommended / allowed-with-caveat / triage-only) goes into `medium.recommendation` so the long-term `medium_used × actual_score` cross-tab can be computed by compose mode.
+
+> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11)**: Clinton-Lisell 2025's g 0.03–0.12 (paginated) and 0.35–0.48 (scrolling) bands are direct citations. Frontiers 2025 g = −0.64 (distraction) is a direct citation. The cell labels (recommended / allowed-with-caveat / triage-only) are **operational placeholders** chosen to make the matrix actionable — they reflect the skill's risk tolerance, not a published threshold. Replace with R12-validated thresholds when available.
+
+### Writable e-ink caveat (reMarkable / Boox Note Air / Kindle Scribe)
+
+Writable e-ink devices are the most-asked-about subcategory. **No comprehension or retention RCT exists for writable e-ink as of R11.** Meta-analyses (Clinton-Lisell 2025; JEdPsych 2024) pre-date the writable-e-ink generation. Practitioner ethnographies (Gupta 2021 reMarkable, Ilyankou 2024 Boox + Zotero) are positive but anecdotal:
+
+- reMarkable strengths: PDF grading, distraction-free academic reading, longhand drafting; Marker stylus muscle memory matches paper; ~2 weeks battery; single-purpose hardware enforces single-purpose attention.
+- reMarkable weaknesses: cannot read Kindle books (PDF/ePUB only); $400-600 base + subscription; reMarkable 2 has no backlight.
+- Boox + Zotero strengths: only writable e-ink that runs full Android with Zotero clients; better PDF rendering for two-column papers via Xodo.
+- Boox + Zotero weaknesses: bidirectional Zotero v6+ sync broken (annotations stored externally, not in PDF); Android openness re-introduces distraction-availability the matrix's "single-purpose" cell is supposed to block — only single-purpose if you self-discipline app installs.
+
+The skill treats writable e-ink as **single-purpose if app installs are restricted**, multi-purpose otherwise. The user declares this at plan time as `medium.device_class_attestation: single-purpose-restricted | multi-purpose`.
+
 ## Specific rules
 
 - **Scrolling PDFs are deprecated** as a default for deep comprehension. If the user is on a scrolling-PDF reader for an expository chapter, surface the option to switch to paginated mode (most modern PDF readers have a setting). If they decline, force chunk size to 5 minutes and require chunk-boundary recall.
@@ -57,15 +83,20 @@ The chapter note records the medium decision:
 ```yaml
 medium:
   device: paper | e-ink | tablet | laptop | phone
-  navigation: paginated | scrolling
+  pagination_mode: paginated | scrolling                          # v4 axis (Clinton-Lisell 2025 mechanism)
+  device_class: single-purpose | multi-purpose                    # v4 axis (Frontiers 2025 mechanism)
+  device_class_attestation: single-purpose-restricted | multi-purpose | n/a   # for writable e-ink with optional app installs
+  navigation: paginated | scrolling                                # legacy alias for pagination_mode
   content_type: expository | narrative | reference
   pacing: self-paced | time-pressured
-  force_chunk_boundary_recall: true | false   # auto-true on screen + time-pressured
+  recommendation: recommended | allowed-with-caveat | triage-only  # cell label from the v4 matrix
+  force_chunk_boundary_recall: true | false                        # auto-true on screen + time-pressured OR allowed-with-caveat cell
 ```
 
 ## Cross-references
 
 - `references/generative-prompts.md` — `interim_recall` (chunk-boundary recall, mandatory at intensity ≥ standard)
-- `references/calibration.md` — situation-model transfer scoring; the gate that screen-reading self-reports cannot substitute for
+- `references/calibration.md` — situation-model transfer scoring; the gate that screen-reading self-reports cannot substitute for; v4 adds `medium_used × actual_score` cross-tab to long-term metrics
 - `references/book-types.md` — narrative ↔ expository orthogonal axis (used to fill `content_type` here)
 - `references/l2-mode.md` — L2 medium policy intersects with vocabulary scaffolding (separate decision)
+- `references/ai-policy.md` — AI usage and medium choice are independent axes; both captured at plan

@@ -10,6 +10,45 @@ The skill's stance is:
 - **Do not refuse the user** when they are already invested in one of these systems.
 - **Reframe** their existing practice in mechanism terms, so the parts that produce learning are kept and the ritual overhead is dropped.
 - **Recommend** only the moves with direct evidence.
+- **Do not adopt a single default workflow.** R11 ethnography of 6 first-party power-user voices found load-bearing disagreements on highlighting, organization, AI use, and even on whether the apparatus is the problem. The defensible recommendations are *operations*, not tool stacks. See "The 6 power-user voices" below.
+
+## The 6 power-user voices (R11 power-user-ethnography-extended)
+
+The convergence Round 9 reported on PKM workflow shape is **shallower than it appears**. Round 11 widened the sample to 6 first-party voices that disagree with each other on load-bearing questions:
+
+| Voice | Capture stance | Highlight stance | Organization | AI use |
+|---|---|---|---|---|
+| **Sönke Ahrens** | pen-paper while reading | reject — no marking books | atomic permanent notes (Zettels), sentence-embedded links | none named |
+| **Maggie Appleton** | mobile inbox → Craft/Obsidian → public garden | implicit (notes carry stage markers) | stage (seedling / budding / evergreen) + content-type stratification | none named |
+| **Linus Lee** | Pico (ephemeral) + Ligature (long-term) | build-your-own AI overlay on the reading surface | collapse task/notes binary — unit is "thing-I-might-act-on" | self-built (Notation, Monocle, Reverie) |
+| **Cal Newport** | minimal — monthly reading-list reflection | reject — book in your hand is the system | none — depth-first cognitive practice | **anti-AI-summary on principle** |
+| **Steph Ango (Obsidian CEO)** | unique-note hotkey, timestamped | implicit | self vs other (vault root vs References vs Clippings) — anti-PARA | none named |
+| **Eleanor Konik** | Readwise Reader as universal funnel | embrace, tagged with action-tags at capture | LLM converts highlights → claim statements → Obsidian atomic notes | LLM as middle layer; Version History Diff for verification |
+
+### Where they agree (the operations)
+
+- **Capture surface must be one place.** Multi-app capture loses material. The specific app does not matter; the *one place* property does.
+- **Source notes and personal-thought notes must be separable**, regardless of which split semantics you use.
+- **Review is required.** None treat highlights or saved articles as the final state.
+
+### Where they disagree (the disagreements are the point — do not paper over)
+
+- **Highlighting**: Ahrens and Newport reject outright. Forte (R9), Konik, Readwise users embrace. Half the canonical voices reject the "highlight everything then process" pattern.
+- **Organization**: PARA, Zettelkasten ID schemes, self-vs-other, stage-based, action-readiness, and "no system / just deep work" all coexist among practitioners with strong outcomes. Wiki's prior implication that "MOC + tag + project structure" is the convergent answer is **overstated**.
+- **AI**: Konik integrates LLMs as a middle layer with explicit verification. Lee builds his own AI-overlay reading interface. **Newport treats AI summaries as actively harmful** to the cognitive rewards of slow reading. The "AI co-reader is inevitable" stance has at least one strong dissenter.
+- **The system itself**: Newport is the strongest contrarian. He uses almost no PKM apparatus and asserts that the dominant tooling **may itself substitute for the deep work it claims to support**. Round 9's silence on this critique was a gap.
+
+### The Newport critique (quote when the user wants to add tools)
+
+> Power users frequently report that the apparatus they built to support their reading has become the work itself — they spend more time tending the system than reading. The Newport position is that this is not a bug; it is the central failure mode of the entire PKM category. When the skill is asked to recommend "what tool should I add," the honest answer often is "none."
+
+Surface this critique once per session when the user asks the skill to recommend a new tool / system / workflow layer. Do not lecture; one short paraphrase is enough.
+
+### Implications for skill recommendations
+
+- The skill **does not recommend a single default workflow**. The defensible recommendations are the *operations* (atomic rewriting, reflection forcing function, single capture surface, anti-throughput) — not specific tool stacks.
+- The skill **respects strict-no-PKM as a first-class choice** (Newport mode), not a fallback.
+- Highlighting-first workflows carry an empirical caveat: popular but annotation alone is null on comprehension without layered mechanisms (see `references/annotation-typology.md`).
 
 ## Refusal list — systems the skill will not recommend
 
@@ -81,3 +120,5 @@ The single recommendation with direct Korean STEM evidence is: **mock exams as t
 - `references/methods/backward-fading.md` — what to do after a worked example
 - `references/calibration.md` — retrieval practice as the load-bearing learning move
 - `references/methods/refutation-text.md` — when refutation reading is invoked
+- `references/ai-policy.md` — Konik's LLM middle layer (one of the 6 voices) is reframed as `scaffolded-only` AI use, not as note-taking-system endorsement
+- wiki concept `power-user-ethnography-extended` — the source for the 6-voice table
