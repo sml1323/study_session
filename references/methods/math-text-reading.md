@@ -88,18 +88,22 @@ After computation, if the user did not redraw, prompt:
 
 ## Productive Failure entry guard for math/proof chapters
 
-Productive failure (Sinha & Kapur 2021) — letting the user struggle on a problem before any scaffold — is a real effect, but it is not a default. Activate PF mode only when **all six fidelity conditions** hold:
+Productive failure (Sinha & Kapur 2021) — letting the user struggle on a problem before any scaffold — is a real effect, but it is not a default.
 
-1. **Adult learner** (PF effect is conditional; child / undergrad reading literature is mixed)
-2. **Conceptual problem** (not a procedural drill; PF needs a problem with a deep structure to discover)
-3. **The user has the prerequisite knowledge** to attempt the problem at all
-4. **The problem has a generative-solution structure** (multiple plausible attempts, each of which exposes a piece of the deep structure)
-5. **The user has explicit time budget** for the struggle (15-30 min unguarded)
-6. **A worked example or expert explanation will follow** the struggle (PF without consolidation is just struggle)
+> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) requires "성인 학습자 + 개념 문제 + 6 충실도 조건 충족 가능 → PF 모드", but does NOT enumerate the specific 6 fidelity conditions.** The list below is an operational placeholder reconstructed from typical Sinha & Kapur 2021 protocol descriptions; the exact six items in the source patch are unverified. Treat as a checklist to discuss with the user, not as canon. Replace with the verified list when R11 nails them down.
+
+Activate PF mode only when the conditions below all hold (placeholder list):
+
+1. **Adult learner** — PF effect is conditional; younger-learner literature is mixed (this and #2 are the two patch-named conditions)
+2. **Conceptual problem** — not a procedural drill; PF needs a problem with a deep structure to discover (this and #1 are the two patch-named conditions)
+3. *(placeholder)* The user has the prerequisite knowledge to attempt the problem at all
+4. *(placeholder)* The problem has a generative-solution structure (multiple plausible attempts, each exposing a piece of the deep structure)
+5. *(placeholder)* The user has explicit time budget for the struggle (15-30 min unguarded)
+6. *(placeholder)* A worked example or expert explanation will follow the struggle (PF without consolidation is just struggle)
 
 Without all six, default to **worked-example-first** (study the example, then run backward-fading per `references/methods/backward-fading.md`).
 
-PF is event-triggered, not time-triggered: do not set a clock and force struggle. The trigger is a problem the chapter presents that meets the six conditions.
+PF is event-triggered, not time-triggered: do not set a clock and force struggle. The trigger is a problem the chapter presents that meets the conditions.
 
 ## What never scales down on math/proof chapters
 

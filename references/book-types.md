@@ -52,16 +52,18 @@ genre_lean: narrative       # narrative | expository | mixed
 **What learning looks like**: problem-solving is the work. Reading is preparation; solving is learning.
 
 **Default pattern (40-60 min)**:
-- Phase 1 (5 min): problem-type prediction; which schemas/tools you have for this category
-- Phase 2 (35-45 min): **productive failure first** — give the user 15-30 min on a problem before any hint. Then worked example if needed. Then a faded-scaffolding follow-up problem.
+- Phase 1 (5 min): problem-type prediction; which schemas/tools you have for this category; **check Productive Failure entry guard** (see `references/methods/math-text-reading.md` § "Productive Failure entry guard") before deciding the Phase 2 sequence
+- Phase 2 (35-45 min): **PF-first if entry guard passes** (give the user 15-30 min on a problem before any hint, then worked example if needed, then backward-fading per `references/methods/backward-fading.md`); **worked-example-first → backward-fading if entry guard fails** (any of the conditions miss — child learner, procedural drill, no prerequisite, no time budget, etc.). PF is not the unconditional default — the guard decides.
 - Phase 3 (10-15 min, delayed): closed-book problem variant generation; Schoenfeld 3-question reflection on what worked; Newman analysis if the problem was failed
 
 **Method invocations**:
 - Polya → primary loop, every problem
 - Schoenfeld 3-question → at every transition inside Polya execute
 - Newman → if problem was wrong on first attempt
+- backward-fading → after any worked example (whether shown by chapter or by hint level 3); always runs before unguided variant
+- math-text-reading PF entry guard → at Phase 1, decides whether Phase 2 enters PF mode
 
-**Special rule**: hints inside the productive failure window (first 15-30 min) require explicit user override. Auto-hint is disabled. The struggle is the desirable difficulty.
+**Special rule (PF window when entry guard passes)**: hints inside the productive failure window (first 15-30 min) require explicit user override. Auto-hint is disabled. The struggle is the desirable difficulty. When entry guard fails, this special rule does not apply — the chapter goes worked-example-first instead and there is no PF window to protect.
 
 ### 3. conceptual (textbook)
 
@@ -207,7 +209,7 @@ User can override the default pattern for any session:
 | Type | Phase 1 | Phase 2 | Phase 3 (delayed) | Phase 4 | Method default |
 |------|---------|---------|------------------|--------|----------------|
 | methodology | PKA + prediction + external example pick | Read + step trace + mental rehearsal | Method recall + apply to example | Formalize ARQ/Polya on example | per-chapter content |
-| problem-driven | Type prediction + tool review | **Productive failure** → worked example → backward-fading → unguided | Variant generation + Schoenfeld + Newman | Cross-problem schema check | Polya always; backward-fading after every worked example |
+| problem-driven | Type prediction + tool review + **PF entry-guard check** | **PF-first → worked example → backward-fading → unguided** *if guard passes*; **worked-example-first → backward-fading → unguided** *if guard fails* | Variant generation + Schoenfeld + Newman | Cross-problem schema check | Polya always; backward-fading after every worked example; PF gated on entry guard |
 | math-proof-heavy | Identify proof structures + PKA | Per-proof micro-tasks (1-2/proof); two-pass diagrams; diagram-purpose label | Proof-structure recall + transfer to new proof in same family | Cross-chapter proof-technique retrieval | math-text-reading always; Polya on exercises |
 | conceptual | PKA + advance organizer + derivation prediction | Trace single-line, concept_define, next_predict | Free recall + Feynman + concept map | Cross-chapter retrieval | Polya on exercises |
 | argument-driven | PKA + prior position | Read + ARQ always-on + Optional triggers | Steelman opposite + position update | Transfer to different case | ARQ always |

@@ -131,7 +131,9 @@ learner_profile:
   ui_language: ko                  # ko | en | other
   textbook_origin: translated      # original | translated | bilingual | mixed
   school_context: med-school       # med-school | engineering | hs-csat | hs-peet | grad | none | other
-  exam_target: KMLE                # KMLE | PEET | CSAT | NCS | self-set | none | other
+  exam_target: KMLE                # KMLE | PEET | CSAT | self-set | none | other
+                                   # (Patch v3 names KMLE/PEET/CSAT only; other Korean STEM exams
+                                   #  go under `other` with a free-text description until R11 expands the enum.)
   transfer_hypothesis_flag: true   # true if recommendations to this learner are transfer-hypothesis
                                    # rather than directly evidenced for the population
 ---

@@ -100,12 +100,23 @@ Compute **both** gaps; they answer different questions.
 #### Step 4a — score_prediction_gap (the ±10pt calibration gate)
 
 ```
-actual_score = (textbase_recall_coverage * 50) + (situation_model_transfer_score * 50)   # 0-100 composite
-score_prediction_gap = score_prediction - actual_score                                    # signed
+actual_score = (textbase_recall_coverage * w_t) + (situation_model_transfer_score * w_s)   # 0-100 composite, w_t + w_s = 100
+score_prediction_gap = score_prediction - actual_score                                     # signed
 abs_gap = |score_prediction_gap|
 ```
 
-The composite weighting (50/50 textbase+SM) is the skill's operational definition of "what a final exam would measure" — a textbook exam asks both. Adjust the split per book type only if explicitly noted (problem-driven leans 30/70 textbase/SM since exam mostly tests application).
+> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the ±10pt calibration gate (Ratnayake 2023) but does NOT specify how to compute `actual_score` from textbase + SM scores.** The composite weighting below is a conservative first-cut, not RCT-validated. Per-book-type splits await R11.
+
+| Book type | `w_t` (textbase weight) | `w_s` (SM weight) | Rationale (placeholder) |
+|---|---|---|---|
+| methodology | 50 | 50 | balanced; methodology exams test both recall and application |
+| conceptual | 50 | 50 | balanced |
+| argument-driven | 50 | 50 | balanced; steelman tests both |
+| problem-driven | 30 | 70 | exam dominantly tests application |
+| math-proof-heavy | 30 | 70 | exam dominantly tests proof transfer |
+| reference | n/a | n/a | PDP not enforced |
+
+When operating: if the user objects to the split (e.g., "my actual exam is 80% recall"), accept their override on a per-chapter basis and store as `actual_score_weights: { textbase: <int>, sm: <int> }` in the chapter note frontmatter. Do not treat the table as authoritative.
 
 | `abs_gap` | Diagnosis | Surfacing |
 |---|---|---|

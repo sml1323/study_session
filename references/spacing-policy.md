@@ -25,15 +25,20 @@ daily_floor:
   status: active                     # active | met | missed
 ```
 
-The numbers (`target_distinct_days`, `retrievals_per_day_min`, `window_end`) are computed from the chapter's classification:
+The numbers (`target_distinct_days`, `retrievals_per_day_min`, `window_end`) are agreed with the user at plan mode and stored on the chapter, not computed from a hard-coded table.
 
-| Book type | distinct days | retrievals/day min | window |
+> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the daily-floor commitment device but does NOT specify per-book-type cadence numbers.** The defaults below are conservative placeholders pending Round 11 RCT-grounded values. When operating, surface the placeholder to the user and let them set their own floor against their `external_deadline` instead of treating the defaults as authoritative.
+
+| Book type | distinct days (placeholder) | retrievals/day min (placeholder) | window (placeholder) |
 |---|---|---|---|
 | methodology | 5 | 2 | 14 days |
 | problem-driven | 7 | 3 | 21 days |
 | conceptual | 5 | 2 | 14 days |
 | argument-driven | 4 | 2 | 14 days |
+| math-proof-heavy | 7 | 2 | 21 days |
 | reference | n/a | n/a | n/a (lookup mode skips) |
+
+These placeholders trace to no published cadence study; they are first-cut conservative numbers chosen so the floor is non-trivial without being punishing. **Replace with the user's own commitment** or with R11-validated cadence whichever lands first.
 
 Surface the commitment to the user at chapter close, in user language:
 
