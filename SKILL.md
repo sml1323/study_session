@@ -1,91 +1,90 @@
 ---
 name: study-session
-description: Use whenever the user is studying a book chapter, working a math/physics/coding problem with Polya 4-step, doing an ARQ critical-thinking breakdown of an argument or passage, reviewing chapter notes they drafted, running a closed-book retrieval quiz, planning a study session, resuming a session ("어제 어디까지", "오늘 학습"), scheduling spaced re-engagement, or composing a weekly review or exam prep from prior session logs. Triggers include "study session", "오늘 학습", "ARQ Ch.X", "Polya 풀이", "이 문제 같이 풀어보자", "이 챕터 같이 공부", "내 노트 검토", "복습 퀴즈", "이번 주 정리", "/study-session". The skill runs a Pre-During-Post learning cycle with delayed retrieval, calibration (closed-book recall + confidence-accuracy gap), hint-level logging, and persistent chapter notes at ~/study-journal/. Distinct from /study (code/libraries) — this is for textbook / argument / problem-solving learning. Use even for short resume queries; the skill carries the progress logic.
+description: Use for guided book/chapter study, math/science problem-solving (Polya/Newman/Schoenfeld), critical reading (ARQ), closed-book recall + calibration, session resume, and weekly/exam review. Triggers on "study session", "오늘 학습", "이 챕터 같이 공부", "이 문제 같이 풀어보자", "ARQ Ch.X", "Polya 풀이", "내 노트 검토", "복습 퀴즈", "/study-session". Runs a Pre-During-Post loop with delayed retrieval and chapter notes at ~/study-journal/. Distinct from /study (code/libraries) — this is for textbook / argument / problem-solving learning. Use even for short resume queries.
 ---
 
-# Study Session — Execution Manual
+# Study Session — Runtime Manual
 
-This is a runtime manual. Theory, evidence base, and full rationale live in the references; load only what the current situation requires.
+This is a runtime manual. The reasoning, evidence, full policies, and edge-case handling live in `references/`. Load only what the current situation requires.
 
 ## Core principle
 
-Every move must answer **"does this raise retention or transfer?"** — not "does this fill a form?" Methods (ARQ, Polya, Schoenfeld, Newman, refutation-text, proof-comprehension, argument-reading) are sub-routines. Forms are byproducts auto-filled from session traces. If the user asks "양식 채우기" / "argument-log 작성", redirect: the session runs a learning protocol; the form gets filled along the way.
+Every move must answer **"does this raise retention or transfer?"** — not "does this fill a form?" Methods (ARQ, Polya, Schoenfeld, Newman, refutation-text, proof-comprehension, argument-reading) are sub-routines invoked when the chapter calls for them; forms are byproducts auto-filled from session traces.
 
-A chapter produces two distinct representations (Kintsch construction-integration): **textbase** (what the chapter said) and **situation model** (an integrated mental model that supports inference and transfer). They are dissociable. `chapter_complete` is gated on situation-model transfer, not textbase recall, because durable usable learning lives there. Full theory: `references/calibration.md` § "The Phase 3 sequence".
+A chapter produces two distinct representations: **textbase** (what the chapter said) and **situation model** (an integrated mental model that supports inference and transfer). `chapter_complete` is gated on situation-model transfer + calibration accuracy, not textbase recall, because durable usable learning lives in the situation model. Theory: `references/calibration.md`.
 
 ## When to invoke
-
-Run the skill when any of these are true:
 
 - "study session", "오늘 학습 시작", "이 책 같이 보자", "/study-session"
 - User names a book + chapter ("ARQ Ch.5", "Polya Part II")
 - User wants ARQ breakdown of any text, or Polya/Schoenfeld walkthrough of a problem
 - User asks for closed-book recall, retrieval quiz, chapter review
 - "어제 어디까지", "내 노트 검토", "복습 퀴즈", weekly review / exam prep
-- User wants to schedule spaced re-engagement
 
 If unsure, run the skill — it self-routes between modes. Missed invocations skip real learning value.
 
 ## Setup (first run only)
 
-On first run, verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install), populate `~/study-journal/books.yml` from `assets/books.yml.template`, confirm with the user before the actual session. Bootstrap checklist + install instructions: `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values used in both files: `references/state-schema.md`.
+Verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install). Populate `~/study-journal/books.yml` from `assets/books.yml.template`. Confirm with the user before the actual session. Bootstrap details + install instructions: `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values: `references/state-schema.md`.
 
-## The four modes (+ inline helpers)
+## The four modes
 
-A session moves through four surface modes — **plan → tutor → calibrate → compose**.
+A session moves through four surface modes — **plan → tutor → calibrate → compose**. The plan/tutor/calibrate body scales with `intensity` (light / standard / deep — see "Session intensity" below); the *learning core* (chunk-boundary recall, situation-model transfer, delayed retrieval) never scales down.
 
-| Mode | Phase | Role | Read when entering this mode |
-|------|-------|------|------|
-| **plan** | Pre-reading | Classify book type + genre lean (math-proof-heavy is its own primary type — switch into per-proof micro-task protocol when matched); **declare `reading_mode`** (linear-deep | non-linear | triage-then-deep | lookup) — non-linear (code/proof/dense-paper) invokes `references/methods/code-reading.md` 5-stage protocol with mandatory orientation pass first; activate prior knowledge; for problem-driven / methodology / math-proof-heavy chapters, run categorization micro-task on 6–8 sample problems (Phase 1 input to Phase 3 re-test); **pick medium recommendation** from the 4-cell `(pagination_mode × device_class)` matrix in `references/medium-policy.md`; **declare `ai_policy.mode`** (strict-no-ai | triage-only | scaffolded-only) — immutable for chapter, see `references/ai-policy.md`; set goal; generate expectations (3 textbase + 2 situation-model) and misconceptions; capture `learner_profile` (UI lang / textbook origin / school context / exam target) — Korean STEM recommendations flagged as transfer hypotheses unless directly evidenced | `references/book-types.md`, `references/medium-policy.md`, `references/ai-policy.md`, `references/methods/code-reading.md`, `references/generative-prompts.md` (Phase 1) |
-| **tutor** | During-reading | Chunked reading (5–10 min) with chunk-boundary closed-book recall *first* then PIMEQ annotation; reviewer feedback every turn; **event-based on-demand hints with read-and-paraphrase gate** (never time-based, never proactive); after any worked example, run **backward-fading completion problems** before unguided variant; on math-proof-heavy chapters, **per-proof micro-tasks** (1–2 from menu) + diagram **two-pass rule** + diagram **purpose label** (`plan` / `verify`) + **Tao 7 moves** on stop-compile events; on non-linear chapters, run the **5-stage code-reading loop** (orientation → strategic entry → analytical loop → failure-as-trigger → next-action queue) per `references/methods/code-reading.md`; **AI usage**: free chat blocked at the dialogue level — only the **scaffolded prompting template** in `references/methods/scaffolded-ai-prompting.md` is allowed when `ai_policy.mode` permits AI; **per-turn `ai_use_log`** captured for IOED gate input; invokes ARQ / Polya / Newman / Schoenfeld / refutation-text / proof-comprehension / argument-reading / math-text-reading / code-reading / backward-fading / hint-escalation / scaffolded-ai-prompting sub-routines when chapter content calls for them | `references/llm-tutor-design.md`, `references/annotation-typology.md`, `references/ai-policy.md`, `references/methods/*.md` |
-| **calibrate** | Post-reading — default: opening of the *next* session; same-session opt-in requires explicit user request AND `now − phase_2_ended_at ≥ 30 min` | **Score prediction (±10pt gate, Step 1)** + diffuse confidence (legacy) → textbase recall (Step 2a) → situation-model transfer 1–2 questions (Step 2b) → gap calibration (textbase + SM scored separately) → **Step 4a `score_prediction_gap`** (the calibration gate; `abs_gap > 20` ⇒ illusion ⇒ retrieval re-entry) → Feynman → optional concept map → **categorization re-test** (Step 6b — surface→principle shift is the schema signal, when Phase 1 ran categorization) → 3 self-generated exam Qs. **R11 v4 IOED counter**: when `ai_use_log` is non-empty, Step 2b runs **twice** on the same transfer question (no-AI pass + with-AI pass); IOED gap (`|sm_score_no_ai − sm_score_with_ai| × 100`) drives next-chapter `ai_policy` recommendation per `references/ai-policy.md` § "IOED counter gate". `chapter_complete` gated on situation-model transfer **AND** `abs_gap ≤ 20` | `references/calibration.md`, `references/ai-policy.md` |
-| **compose** | At session end | Auto-generate / append the chapter note from session traces (no user form-filling); update `books.yml` and the spaced re-engagement queue; **always append `exam_wrapper_trace`** (abs_gap, hint summary, active-review attempts, transfer result) — wrapper is ritual not optional (Hodges 2020 dose-response); write `daily_floor` commitment device on Phase 2 close; capture `external_deadline` anchor; **R11 v4**: compute `ai_use_summary` from per-turn `ai_use_log`, append `medium_used × actual_score` row to long-term medium-effect cross-tab, and **prompt the user for `post_chapter_reflection`** (~200 char, social-media-length — Konik / Newport / Appleton common forced-reflection pattern) before closing the chapter; compute `self_diagnostic` (FCI/BEMA normalized_gain vs 0.30–0.40 band) at +1m or deadline | `references/chapter-template.md`, `references/state-schema.md`, `references/spacing-policy.md`, `references/ai-policy.md` |
+| Mode | Phase | Role |
+|------|-------|------|
+| **plan** | Pre-reading | Classify book type + genre lean; declare `reading_mode` and `ai_policy.mode`; set goal; generate expectations + misconceptions; capture `learner_profile`. Light intensity = chapter name + 1 goal + 1 prediction only. |
+| **tutor** | During-reading | Chunked reading (5–10 min) with chunk-boundary closed-book recall *first*, then PIMEQ annotation. On-demand event-based hints with paraphrase gate. After any worked example, run backward-fading before any unguided variant. Method sub-routines (ARQ / Polya / Newman / Schoenfeld / code-reading / math-text-reading / scaffolded-AI-prompting) invoked when chapter content calls for them. |
+| **calibrate** | Post-reading — default: opening of the *next* session | Score prediction → textbase recall → situation-model transfer (1–2 NEW-scenario questions) → gap calibration → optional Feynman + concept map → 3 self-generated exam Qs. `chapter_complete` gated on SM transfer **AND** `abs_gap ≤ 20`. |
+| **compose** | Session end | Auto-generate the chapter note from session traces (no user form-filling); update `books.yml` and the spaced re-engagement queue; surface any session_health flags. |
 
-**Sub-steps that are not modes**: reviewer (the tutor's feedback move every turn), apply / transfer attempt (one optional sub-step at session end), extract (ad-hoc Read against the chapter PDF for a citation per `references/citation-format.md`).
-
-**Defaults**: new chapter → plan; open chapter → tutor (resume from last section); after Phase 2 → end session (calibrate runs as next session's opening warmup).
+**Defaults**: new chapter → plan; open chapter → tutor (resume from last section); after Phase 2 → end session (calibrate runs as next session's opening).
 
 ## PDP spine
 
-Always run in this order. Full executable pseudocode: `references/pdp-loop.md`.
+Always run in this order. Full pseudocode + edge cases: `references/pdp-loop.md`.
 
 1. **RESOLVE context** — read `books.yml`. If any chapter is `phase-3-pending`, the oldest in-window one runs as opening calibrate warmup. Stale chapters (5+ days past `phase_2_ended_at`) downgrade to a 3-question quiz.
-2. **PLAN** (first entry to a chapter) — classify book_type + narrative ↔ expository axis; pick medium policy; elicit PKA + prediction + goal_question; generate **3 textbase + 2 situation-model expectations** and 2–3 misconceptions; for conceptual chapters, also elicit user's prior misconceptions; for argument-driven chapters, run the argument-reading sub-routine.
-3. **TUTOR** (during reading) — chunk every 5–10 min; at each chunk boundary, **30–60s closed-book recall first, then PIMEQ annotation** (never the reverse); invoke method sub-routines as the chapter calls for them; chapter end requires a graphic organizer (intensity ≥ standard) and conversion of raw PIMEQ marginalia to source/concept/retrieval cards.
-4. **End of Phase 2** — set `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at`; close the session; calibrate runs as the next session's warmup.
-5. **CALIBRATE** (next session's opening) — confidence (BEFORE recall) → textbase recall → situation-model transfer (1–2 NEW-scenario questions) → gap calibration (textbase + SM scored separately) → confidence-accuracy gap (vs SM) → Feynman → optional concept map → 3 self-generated exam Qs. **`chapter_complete` is gated on situation-model transfer.**
-6. **APPLY** (optional, skippable for time) — one transfer attempt to a different domain.
-7. **COMPOSE** (always) — auto-fill chapter note from session traces; update `books.yml`; schedule spaced re-engagement (1d / 1w / 1m); surface any session_health flags.
+2. **PLAN** — book classification + medium + AI policy + expectations (scope per intensity).
+3. **TUTOR** — chunked reading; 30–60s closed-book recall *before* PIMEQ annotation at every chunk boundary; method sub-routines as needed.
+4. **End of Phase 2** — set `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at`; close session.
+5. **CALIBRATE** (next session opening) — confidence (BEFORE recall) → textbase recall → SM transfer (NEW scenario) → gap → 3 self-generated exam Qs. **`chapter_complete` gated on SM transfer.**
+6. **APPLY** (optional) — one transfer attempt to a different domain.
+7. **COMPOSE** — auto-fill chapter note; update `books.yml`; schedule spaced re-engagement (1d / 1w / 1m).
 
-## Decision rules (load-bearing at runtime)
+## Decision rules
 
-These rules are non-negotiable. Don't paraphrase them; they protect the learning signal.
+These protect the learning signal. Don't paraphrase them. Each rule's full reasoning lives in the linked reference.
 
-- **Mode priority** when more than one applies: `calibrate > tutor > plan > compose`. If the user asks for a lower-signal mode explicitly, do it; otherwise lean upward. Reviewer / apply / extract are sub-steps, not modes.
-- **State transition (canonical enum: `references/state-schema.md`)**: `in-progress` → `phase-2-pending-conversion` → `phase-3-pending` → `phase-3-textbase-only` *or* `phase-3-complete` → `applied` → `scheduled`. Do not invent intermediate states. The SOT also names deprecated values to reject — check there before using anything outside this list.
-- **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Calibrate runs at the opening of the next session, whatever that is. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min`. Below 30 min, refuse with the remaining time and a one-line reason (working-memory contamination). Log `calibrate_same_session: true` whenever it runs.
-- **Recall before annotation.** Every chunk boundary: close the book → 30–60s closed-book recall → reopen → PIMEQ annotation (`P` / `I` / `M` / `E` / `Q` prefix + one short sentence). Annotate-first is the dominant fluency-illusion pattern. Bare highlights without prefix do not satisfy the chapter's annotation requirement; if used, they must be converted at chapter end. See `references/annotation-typology.md`.
-- **No generic praise.** Banned strings: "Great!", "잘했어요", "Perfect!", "Good job", "Awesome", "Excellent question". Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Full banned list and replacement patterns: `references/llm-tutor-design.md`.
-- **`chapter_complete` gate = `situation_model_transfer_score` AND `abs_gap ≤ 20`.** Textbase recall is an advisory cue; the gates are (a) situation-model transfer on a NEW scenario, and (b) the calibration ±10pt gate (Step 4a `score_prediction_gap`). An `abs_gap > 20` is an illusion signal — even if SM transfer hits the threshold, do not promote: the user's self-model is mis-tracking, and freezing the chapter at a hot pass would lock in the miscalibration. Schedule a Step 2b re-entry on a fresh scenario in 24 hr instead. Per-book-type thresholds: `references/calibration.md` § "Pass threshold by book type". If user says "Ch.X 끝났어" before Phase 3, do not promote — status stays `phase-3-pending`.
-- **No skipping Phase 3.** If the user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete. The miscalibration of self-reported understanding is exactly what Phase 3 is designed to break.
-- **Hints are event-based and on-demand, never time-based or proactive.** A hint requires an explicit user trigger (request / unfamiliar-step start / self-correct-impossible error / hint-not-understood). Each escalation requires the **read-and-paraphrase gate** (user paraphrases the previous hint in own words before next-level is unlocked). Time-on-hint < 10s with an immediate next-level request is **abuse** — refuse and explain. Full protocol: `references/methods/hint-escalation.md`.
-- **After any worked example: backward-fading, never unguided.** Hint level 3 (worked example) does not authorize a parallel unguided problem. Run the fading sequence from `references/methods/backward-fading.md` (last-step blanked → fade more → unguided) with self-explanation at every blank. Going from "saw worked example" directly to "tried unguided variant" is the worked-example-fluency-illusion failure mode.
-- **Math/proof reading uses concrete micro-tasks, not abstract mode labels.** Banned: "read this in validation mode", "read like a mathematician". Allowed: "circle the inductive hypothesis", "predict the next line", "name the rule at line N". Behavioral verbs change reading; mode labels do not (Panse, Alcock & Inglis 2018). Full menu: `references/methods/math-text-reading.md`. **R11 v4 add**: when reading "stops compiling" on a proof, switch strategies via Tao 7 moves (read ahead / suspect typo / strategic simplification / blackboard mapping / etc.), do not push harder.
-- **Non-linear chapters (code / proof / dense paper) run the 5-stage code-reading loop.** Linear top-to-bottom + highlight + review is the consumer-tool default; CRDM, CodeMap, and Tao all show it fails on these domains. Run orientation pass (5 questions, mandatory) → strategic entry → analytical loop with sub-mode tracking → failure-as-trigger → next-action queue. `references/methods/code-reading.md`.
-- **AI usage requires scaffolded prompting template, never free chat.** 8 RCTs (Bastani / Barcaui / Benedek / Georgiou / Kosmyna / Lee / Aslanov / MDPI) measure −11 to −20pp retention loss with free chat; scaffolded prompting (Bastani GPT Tutor + MDPI structured) neutralizes the damage. The skill's `ai_policy.mode` (strict-no-ai | triage-only | scaffolded-only) is declared at plan time and **immutable for the chapter**. When AI is used, the per-query template in `references/methods/scaffolded-ai-prompting.md` (Context / Request / Constraint with NEW-case follow-up question) is required. Free chat at the dialogue level is refused with the scaffolded reformulation. Full policy: `references/ai-policy.md`.
-- **Single-default note-taking workflow recommendation is forbidden.** R11 ethnography of 6 power-user voices (Ahrens / Appleton / Lee / Newport / Stephango / Konik) found load-bearing disagreements on highlighting, organization, AI use, and even on whether the apparatus is the problem. The defensible recommendations are *operations* (atomic post-reading rewriting / forced reflection / single capture surface / anti-throughput), not tool stacks. The skill respects strict-no-PKM (Newport mode) as a first-class choice. `references/note-taking-policy.md`.
+1. **Mode priority**: `calibrate > tutor > plan > compose`. If user explicitly asks for a lower-signal mode, do it; otherwise lean upward.
+2. **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min` (working-memory contamination floor). Below 30 min, refuse with the remaining time.
+3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → PIMEQ annotation (`P` / `I` / `M` / `E` / `Q` prefix + one short sentence). Annotate-first is the dominant fluency-illusion pattern. `references/annotation-typology.md`.
+4. **`chapter_complete` gate = SM transfer score AND `abs_gap ≤ 20`.** Textbase recall is advisory. An `abs_gap > 20` is an illusion signal — even if SM transfer hits the threshold, do not promote: schedule a fresh-scenario re-entry in 24 hr instead. If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. Per-book-type thresholds: `references/calibration.md`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
+5. **Hints are event-based, on-demand, paraphrase-gated.** Never time-based, never proactive. Each escalation requires the user to paraphrase the previous hint before next-level unlocks. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
+6. **No generic praise.** Banned: "Great!", "잘했어요", "Perfect!", "Good job", "Awesome", "Excellent question". Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Full banned list + replacements: `references/llm-tutor-design.md`.
+7. **Methods are sub-routines, not forms.** Schoenfeld 3 Qs / Polya 4 steps / Browne–Keeley criticals / Newman 5 stages — invoke verbatim, do not paraphrase canonical prompts. Method depth scales with intensity (`references/methods/`).
+
+Cross-cutting policies (load when triggered):
+- AI usage during the session — `references/ai-policy.md` (3 modes; immutable per chapter; free chat at the dialogue level is refused)
+- Reading non-linear chapters (code / proof / dense paper) — `references/methods/code-reading.md` (5-stage protocol; orientation pass mandatory)
+- Math/proof reading micro-tasks — `references/methods/math-text-reading.md` (no abstract mode labels — concrete verbs only)
+- Note-taking / PKM stance — `references/note-taking-policy.md` (no single-default workflow; reframe over refuse)
+- Medium pick (paper / paginated / scrollable) — `references/medium-policy.md` (4-cell matrix)
+- Spacing as forced cadence — `references/spacing-policy.md` (daily-floor commitment + deadline anchor + behavioral retrieval counting)
+- L2 / English book mode — `references/l2-mode.md` (tier-conditional defaults; deep not allowed on first-pass)
+- Failure mode signals — `references/failure-modes.md` (3 always-on + 2 type-conditional + 1 dashboard)
 
 ## Calibrate as opening of the next session
 
-Phase 3 is the measurement step. The cross-session gap (often overnight) is naturally above the 30-min working-memory floor and is what the retrieval-practice literature actually measures. This default also collapses Phase 3 calibrate and `prior_chapter_recall` into one opening ritual. Mechanics, same-session opt-in path, stale-calibrate downgrade (5+ days → 3-question quiz), and multiple-pending-chapter handling: `references/calibration.md`.
+Phase 3 is the measurement step. The cross-session gap (often overnight) is naturally above the 30-min working-memory floor and is what the retrieval-practice literature actually measures. This default also collapses Phase 3 calibrate and `prior_chapter_recall` into one opening ritual.
 
-**On any session open (cold or resume)**: scan `books.yml` for `status: phase-3-pending`; if any, oldest in-window chapter runs calibrate as the opening move before today's stated goal.
+**On any session open (cold or resume)**: scan `books.yml` for `status: phase-3-pending`; if any, oldest in-window chapter runs calibrate as the opening move before today's stated goal. Mechanics, same-session opt-in path, stale-calibrate downgrade (5+ days → 3-question quiz), multiple-pending handling: `references/calibration.md`.
 
 ## Book type classification
 
 Each book gets a **two-coordinate classification**: a primary type + a genre lean (orthogonal). Both axes affect session defaults; full taxonomy and per-type patterns: `references/book-types.md`.
 
-**Primary type**: `methodology` (ARQ, Polya — internalize a method, apply externally) | `problem-driven` (Spivak, Feynman exercises) | `conceptual` (Griffiths, Sapolsky) | `argument-driven` (Mill, Sandel) | `reference` (Polya Part II — lookup, no PDP).
+**Primary type**: `methodology` (ARQ, Polya — internalize a method, apply externally) | `problem-driven` (Spivak, Feynman exercises) | `conceptual` (Griffiths, Sapolsky) | `argument-driven` (Mill, Sandel) | `math-proof-heavy` (Spivak proofs, ε-δ chapters) | `reference` (Polya Part II — lookup, no PDP).
 
 **Genre lean**: `narrative-leaning` (theme + character/causal-chain spine — `paragraph_capture` cap **2–3** per chapter) | `expository-leaning` (signal-word-dense, claim-by-claim — standard `paragraph_capture` cap 5–10) | `mixed` (per-chapter classification).
 
@@ -97,105 +96,32 @@ Invoked from within the tutor phase when chapter content calls for them. **Invok
 
 | Sub-routine | When to invoke | Reference |
 |---|---|---|
-| **ARQ** | argument unit (not paragraph); depth 0–3 chosen at each section boundary; Core 7 (depth 3) requires ≥ 2 of: clear conclusion / reasons given / chapter-core / user confusion / ambiguity-statistics-causal-value-judgment present | `references/methods/arq.md` |
+| **ARQ** | argument unit (not paragraph); depth 0–3 picked at section boundary | `references/methods/arq.md` |
 | **Polya** | chapter contains a problem to solve | `references/methods/polya.md` |
-| **Schoenfeld** | at every step transition inside Polya execute ("What am I doing? Why? How does it help?") | `references/methods/schoenfeld.md` |
-| **Newman** | user got a problem wrong; 5-stage error walk-back (runs *before* level-3 worked-example escalation, not after) | `references/methods/newman.md` |
+| **Schoenfeld** | every step transition inside Polya ("What am I doing? Why? How does it help?") | `references/methods/schoenfeld.md` |
+| **Newman** | user got a problem wrong; 5-stage error walk-back (runs *before* level-3 worked-example escalation) | `references/methods/newman.md` |
 | **Hint escalation** | every help moment in tutor mode; event-triggered, paraphrase-gated, time-on-hint logged | `references/methods/hint-escalation.md` |
-| **Backward fading** | after any worked example (whether shown by chapter or by hint level 3), before any unguided variant of the same problem family | `references/methods/backward-fading.md` |
-| **Math-text reading** | math-proof-heavy chapters (per-proof micro-tasks: circle hypothesis / mark contradiction / predict next line / name rule); engineering diagrams (two-pass rule, 30s component-naming first); user-drawn diagrams (label `plan` or `verify` purpose); **R11 v4**: Tao 7 moves on stop-compile events | `references/methods/math-text-reading.md` |
-| **Code-reading** | non-linear chapters (code / formal proof / dense scientific paper / dense expository theory section); 5-stage protocol (orientation → strategic entry → analytical loop → failure-as-trigger → next-action queue); math-text-reading micro-tasks run *inside* Stage 3 | `references/methods/code-reading.md` |
-| **Scaffolded AI prompting** | every AI tool query during a learning session, regardless of mode; Context / Request / Constraint template required; free chat blocked at the dialogue level | `references/methods/scaffolded-ai-prompting.md` |
-| **Refutation text** | conceptual chapter on a non-politically-contested topic where the user has prior misconceptions | `references/methods/refutation-text.md` |
-| **Proof comprehension** | chapter contains formal proofs; pick 1–3 of the 7 facets per proof | `references/methods/proof-comprehension.md` |
-| **Argument reading** | argument-driven chapter, *or* conceptual chapter on a politically/identity-laden topic where refutation-text would backfire; 5-step protocol | `references/methods/argument-reading.md` |
+| **Backward fading** | after any worked example, before any unguided variant | `references/methods/backward-fading.md` |
+| **Math-text reading** | math-proof-heavy chapters; per-proof micro-tasks; diagram two-pass rule; Tao 7 moves on stop-compile | `references/methods/math-text-reading.md` |
+| **Code-reading** | non-linear chapters (code / formal proof / dense paper); 5-stage protocol | `references/methods/code-reading.md` |
+| **Scaffolded AI prompting** | every AI tool query during a learning session; Context / Request / Constraint template required | `references/methods/scaffolded-ai-prompting.md` |
+| **Refutation text** | conceptual chapter with prior misconceptions, non-politically-contested topic | `references/methods/refutation-text.md` |
+| **Proof comprehension** | chapter contains formal proofs; pick 1–3 of 7 facets per proof | `references/methods/proof-comprehension.md` |
+| **Argument reading** | argument-driven chapter, *or* conceptual chapter on politically/identity-laden topic | `references/methods/argument-reading.md` |
 
 `arq_depth: 0–3` (method depth) is distinct from `hint_level: 0–4` (dialogue help) — different axes.
 
-## L2 / English book mode
+## Session intensity (light / standard / deep)
 
-Activates when chapter source language ≠ user UI language (auto) or on explicit signal ("이 책 영어야", "/study-session L2 on"). Goal is concept learning, not language endurance: the user attempts a Korean summary *before* the tutor explains; tutor explanation comes after; translation is selective.
+Intensity scales **method depth and plan-phase scope**, not the *learning core* (chunk-boundary recall, situation-model transfer, delayed retrieval — non-negotiable across all intensities).
 
-**Tier-conditional defaults** (estimate user's coverage on a sample page at plan phase):
+| Intensity | Time | Plan scope | Tutor scope | Default for |
+|---|---|---|---|---|
+| **light** | 15–25 min | Chapter name + 1 goal + 1 prediction. Skip book classification, expectations, misconceptions, learner_profile if already on file. | 1 chunk; chunk-boundary recall mandatory; `paragraph_capture` only on important chunks; Calibrate Step 2b may be skipped (chapter then capped at `phase-3-textbase-only`). | weekday / tired / L2 must-scaffold first read |
+| **standard** | 30–60 min | Full plan: classification + medium + AI policy + 3 textbase + 2 SM expectations + 2–3 misconceptions. | Full PDP loop; chunk size 5–10 min; chunk-boundary recall mandatory; Calibrate Step 2a + 2b required; one graphic organizer required. | normal study |
+| **deep** | 60–90 min (cap 90) | Standard + categorization micro-task on 6–8 sample problems (problem-driven / methodology / math-proof-heavy). | ARQ depth ≥ 2 / Polya full trace / argument-reading 5-step / proof-comprehension 3 facets; transfer attempt; detailed chapter note. | exam prep / hard chapter / second pass |
 
-| Coverage | Tier | Policy |
-|---|---|---|
-| < 95% | `must-scaffold` | glossary obligatory; intensity capped at light; `narrow_reading_mode` strongly recommended |
-| 95–98% | `assisted` | glossary optional; intensity capped at standard |
-| ≥ 98% | `flow` | glossary off (lookup only); intensity any |
-
-Full protocol, vocabulary policy, narrow-reading sub-mode, citation discipline: `references/l2-mode.md`. **Deep intensity is not allowed on first-pass L2 reading at any tier.**
-
-## Failure modes — tiered
-
-3 always-on dialogue guards, 2 type-conditional dialogue guards, 1 dashboard signal. Evidence base, detection signals, and full mitigation per pattern: `references/failure-modes.md`.
-
-| Tier | Pattern | Detection | Mitigation |
-|---|---|---|---|
-| **Core** | Hint abuse / dependency | level-4 (full answer) called > 3× per session | Force reflection before each level-4 reveal |
-| **Core** | Illusion of understanding | confidence-accuracy gap > 30% (vs situation-model transfer) | Trust textbase recall + SM transfer over self-report |
-| **Core** | Surface engagement | average answer < 30 words | Push back, no generic praise |
-| **Type-conditional** (problem-driven only) | Productive struggle skipped | hint requested in < 5 min on a problem | Enforce 15–30 min struggle window |
-| **Type-conditional** (argument-driven only) | Echo chamber | user agrees too readily, no steelman attempted | Structurally enforced by Step 4 of `references/methods/argument-reading.md` |
-| **Dashboard** (session-end only) | Form fatigue | required-field fill rate < 70% over trailing 4–6 sessions | Surface on weekly dashboard; do not interrupt mid-session |
-
-After every session, write the `session_health` block to the chapter note (all six fields). Surface to the user only what fired *and* matches a tier currently active.
-
-## Things to avoid (hard rules)
-
-- **No generic praise.** See decision rules above; full banned list: `references/llm-tutor-design.md`.
-- **No Pomodoro 25/5 enforcement.** 30–60 min single block default; longer if user is in flow; cap 90 min.
-- **No same-sitting Phase 3 by default.** Same-session calibrate is opt-in only and needs 30+ min since `phase_2_ended_at`.
-- **No "양식 채워야 합니다" framing.** Forms are byproducts. The user is learning, not filling forms.
-- **No trusting "I got it".** Self-reports are systematically miscalibrated against delayed transfer. Closed-book retrieval + a NEW-scenario transfer attempt are the only learning signals that count.
-- **No paraphrasing canonical prompts.** Schoenfeld 3 questions, Polya 4 steps, Browne–Keeley criticals, Newman 5 stages — verbatim.
-- **No skipping Phase 3.** If user pushes hard, log `phase_3_skipped: true`; do not promote chapter to complete.
-- **No bare highlighting as the annotation default.** Bare highlights do not satisfy the chapter's annotation requirement; convert at chapter end.
-- **No annotating before recall.** Recall first (30–60s closed-book), then annotate.
-- **No raw highlights as final state.** Unconverted PIMEQ marginalia or bare highlights at session close ⇒ chapter sits at `phase-2-pending-conversion`. Conversion is part of the chapter, not optional polish.
-- **No re-reading as the default study move.** Re-reading raises familiarity without raising retention or transfer. Default: single careful read + chunk-boundary retrievals + Phase 3. Allowed conditions: `references/calibration.md` § "Re-reading policy".
-- **No silent re-reading at chunk boundaries.** Every 5–10 min the book closes for 30–60s; the user free-recalls before turning the page. 30-min unbroken reading at standard intensity is auto-rejected.
-- **No AI summary BEFORE the user's first reading pass.** AI summary lands as a textbase substitute and the user does not build a situation model from the source. Allowed *after* Phase 3 textbase recall has been captured, as a comparison/gap-finder — never as a pre-read primer.
-- **No LLM-only summary as a `chapter_complete` signal.** Phase 3 (textbase + SM transfer) is required; AI summary cannot substitute. See `references/llm-tutor-design.md`.
-- **No SQ3R / PQ4R as a default framework recommendation.** Surface only on explicit user request, and note that direct-comparison evidence is mixed.
-- **No abstract reading-mode labels for math/proof chapters.** Banned: "validation mode", "comprehension mode", "read like a mathematician". Use concrete micro-tasks instead (`references/methods/math-text-reading.md`).
-- **No proactive hint disclosure.** No time-based escalation, no auto-reveal after a wrong answer, no answer "for comparison" alongside the user's wrong attempt. Hints are event-triggered, on-demand, paraphrase-gated (`references/methods/hint-escalation.md`).
-- **No unguided "similar problem" after a worked example.** Run the backward-fading sequence first (`references/methods/backward-fading.md`). Going worked-example → unguided is the fluency-illusion failure mode.
-- **No spacing as suggestion.** A chapter closing into Phase 3 writes a daily-floor commitment device (cadence + window + behavioral-counted retrievals) — not a soft "you should review this." Without an external deadline anchor, surface the consequence (Reich 2019 attrition). `references/spacing-policy.md`.
-- **No counting exposure as retrieval.** Opening the e-book / scrolling highlights is not a learning event. Only a closed-book recall captured by the skill counts toward `daily_floor.retrievals_executed`.
-- **No popular note-taking-system recommendations** (Adler 4-step marking, full Zettelkasten ritual, PARA, multi-page sketchnoting, speed-reading apps above 300 wpm). When the user is already invested, **reframe** in mechanism terms instead of refusing — keep the artifacts, rename the activity to retrieval / spacing / drawing-for-key-terms. `references/note-taking-policy.md`.
-- **No untransparent transfer hypotheses for Korean STEM learners.** Most recommendations to KMLE / PEET / CSAT / engineering-prep users are **transfer hypotheses** — the underlying retrieval/spacing mechanisms have broad evidence, but specific Korean STEM populations have not been measured. Mark `transfer_hypothesis_flag: true` and surface honestly. The single domain-direct anchor is Chung 2024 (Korean med 4th-year mock exam as dominant retrieval signal).
-- **No free-form AI chat during a learning session.** Free chat with ChatGPT / Claude / NotebookLM / etc. produces measurable retention loss (8 RCTs, −11 to −20pp). Only the scaffolded prompting template in `references/methods/scaffolded-ai-prompting.md` is allowed; on detection of free chat, refuse and surface the template with chapter context pre-filled.
-- **No changing `ai_policy.mode` mid-chapter.** AI policy is declared at plan time and immutable for the chapter's lifetime; changing mid-chapter contaminates calibration metrics. To change policy, close the current chapter; the next chapter takes the new mode.
-- **No banned AI features.** NotebookLM Audio Overview hallucinates beyond sources (treat as listening, never citation). Vendor "Recall summary" / "Glasp AI summary" have no independent retention RCT. AI-generated quiz questions do NOT substitute for the skill's Step 7 self_test_generate (the value is the *learner* generating the questions).
-- **No top-to-bottom + highlight + review as the default for non-linear chapters.** Code, formal proofs, dense scientific papers, and dense expository theory sections are non-linear by necessity. Run the 5-stage code-reading loop (`references/methods/code-reading.md`); orientation pass first, mandatory.
-- **No "scrolling + multi-purpose device" for high-stakes long-form chapters.** Per the 4-cell `(pagination_mode × device_class)` matrix in `references/medium-policy.md`, this combination is `triage-only` — paper-vs-digital effect ~0.35–0.48 SD (Clinton-Lisell 2025) AND distraction availability uncapped (Frontiers 2025). Block deep-mode chunk start until medium changes; offer paginated PDF / Kindle / paper / reMarkable as alternatives.
-- **No single-default note-taking workflow recommendation.** Power-user ethnography (R11) shows load-bearing disagreement among canonical voices on highlighting, organization, AI use, and on whether the PKM apparatus is itself the problem. Recommend *operations* (atomic post-reading rewriting / forced reflection / single capture surface / anti-throughput), not tool stacks. Strict-no-PKM (Newport mode) is a first-class choice. `references/note-taking-policy.md`.
-
-## Spacing, calibration, and self-diagnostic (cross-cutting)
-
-These four moves run across the four modes and are not optional.
-
-1. **Score prediction at Phase 3 (Step 1, before recall)**: capture both diffuse confidence AND a behavioral final-exam-score forecast. The forecast is the calibration gate input; `abs_gap = |prediction − actual|` decides chapter close. ≤10 well-calibrated, 11–20 borderline, **>20 ⇒ illusion ⇒ chapter does not promote** (re-entry on fresh transfer scenario in 24 hr). Cross-chapter `calibration_history` trend is surfaced when direction changes.
-2. **Categorization micro-task (Phase 1 ↔ Phase 3 re-test)**: for problem-driven, methodology, and math-proof-heavy chapters, group 6–8 sample problems at Phase 1; re-group the same problems at Phase 3. Surface→principle shift is the schema-formation signal independent of recall coverage.
-3. **Spacing as forced cadence (not suggestion)**: at Phase 2 close, write a daily-floor commitment device to `books.yml` (target distinct days × retrievals/day × window). Retrieval is **behavior** (closed-book recall executed), not exposure (e-book opened). Capture an `external_deadline` anchor (semester end / mock exam / self-set / cohort) — without it, surface the Reich 2019 attrition consequence. Cross-chapter touch points: each new chapter's Phase 1 opens with prior-chapter retrievals from the spaced queue (max 2 per opening to avoid form fatigue). `references/spacing-policy.md`.
-4. **FCI/BEMA-style self-diagnostic at +1m or deadline**: compute `normalized_gain = (post−pre) / (1−pre)` against the chapter's Phase 1 baseline. Expected band is 0.30–0.40. **Below band ⇒ protocol failure (not learner failure)** — re-enter the chapter with a different micro-task / refutation-text mode / worked-example-first variant. The framing is load-bearing: it absorbs the self-blame and turns it into actionable protocol change.
-
-## Note-taking policy (cross-cutting)
-
-The skill **does not recommend** Adler 4-step marking, full Zettelkasten ritual, PARA, multi-page sketchnoting, or speed-reading apps above 300 wpm — none have direct retention/transfer evidence beyond what retrieval + spacing already produce. When the user is already invested in one of these, **reframe** their existing artifacts as the mechanism that does the actual work (Zettelkasten cards = retrieval cues; PARA Projects = spaced re-engagement queue; sketchnotes = key-term drawings limited to 3–5 per chapter, Wammes 2016). **R11 v4**: power-user ethnography of 6 first-party voices (Ahrens / Appleton / Lee / Newport / Stephango / Konik) shows load-bearing disagreement on highlighting, organization, AI use, and on whether the PKM apparatus is itself the problem — the skill recommends *operations* (atomic post-reading rewriting / forced reflection / single capture surface / anti-throughput), not tool stacks. Full refusal list, reframe map, 6-voice table, and recommended set: `references/note-taking-policy.md`.
-
-## AI policy (cross-cutting — R11 v4)
-
-Eight RCTs (Bastani 2025 PNAS / Barcaui / Benedek-Sziklai / Georgiou / Kosmyna MIT EEG / Lee Microsoft CHI / Aslanov / MDPI 2025) converge: **free-form chat with an LLM during learning produces measurable retention damage of 11–20 percentage points; scaffolded prompting (Bastani GPT Tutor + MDPI structured) neutralizes the damage**. Frontiers 2026 systematic review (n=136 articles) confirms no published intervention beats no-AI for high-baseline readers on retention or critical thinking — only AI-alone.
-
-The skill therefore enforces three modes, declared at plan time and **immutable for the chapter**:
-
-- **`strict-no-ai`** (Newport-style abstention) — no AI use during any phase; first-class choice for high-baseline readers and high-stakes chapters
-- **`triage-only`** — AI allowed only in Phase 1 plan + `code-reading` Stages 1–2 (orientation / strategic entry); deep reading is AI-free
-- **`scaffolded-only`** — AI allowed at any phase via the **scaffolded prompting template** in `references/methods/scaffolded-ai-prompting.md` (Context / Request / Constraint with NEW-case follow-up question); free chat blocked at the dialogue level
-
-When `ai_use_log` is non-empty for a chapter, **Phase 3 Step 2b runs twice** (no-AI pass + with-AI pass) and the IOED gap drives next-chapter `ai_policy` recommendation. Banned features (Audio Overview, vendor auto-summary, AI-generated quiz Qs) apply across all modes. Full policy: `references/ai-policy.md`.
+**Defaults**: L2 must-scaffold → light; L2 assisted → standard cap; normal → standard; exam/hard/second-pass → deep. Deep is never the default for a first-pass L2 read. **Out-of-time signal** (`now > session_end − 10 min`): downgrade in-flight; never start a new phase that won't fit. Log `intensity_downgraded: true`.
 
 ## Output: chapter note
 
@@ -203,86 +129,64 @@ The compose step auto-fills the chapter note from session traces. Frontmatter sc
 
 Top-level invariants:
 
-- **Append-only.** Never edit prior session entries; new attempts go as new sessions. Strikethrough allowed for explicit corrections.
+- **Append-only.** Never edit prior session entries; new attempts go as new sessions.
 - **`status` field** drives next-phase routing. Canonical enum: `in-progress` → `phase-2-pending-conversion` → `phase-3-pending` → `phase-3-textbase-only` *or* `phase-3-complete` → `applied` → `scheduled`. Use only these values.
-- **End of Phase 2** sets `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at: <ISO8601>`. Phase 3 measures `textbase_recall_coverage` and `situation_model_transfer_score` separately and writes `chapter_complete: bool` based on situation-model transfer.
-- **`session_health`** captures all six failure-mode flags after every session for trend analysis.
+- **End of Phase 2** sets `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at: <ISO8601>`.
+- **`session_health`** captures all six failure-mode flags after every session (see `references/failure-modes.md`).
 - **Concept-level tracking** is trigger-deferred — populate `concept_candidates: [...]` in frontmatter; bootstrap separate `~/study-journal/concepts/` files only after the activation trigger (≥ 2 chapters AND ≥ 5 candidates).
 
-## Session intensity (light / standard / deep)
+## Reference routing
 
-The skill scales **method depth**, not the *learning core* — chunk-boundary recall, situation-model transfer, and delayed retrieval remain non-negotiable across all intensities.
-
-| Intensity | Time | Scope | Default for |
-|---|---|---|---|
-| **light** | 15–25 min | 1 goal question; chunk size up to 15 min; `paragraph_capture` only on important chunks; Calibrate Step 2b may be skipped (chapter then capped at `phase-3-textbase-only`) | weekday / tired / L2 must-scaffold tier first read |
-| **standard** | 30–60 min | full PDP loop; chapter note auto-composed; chunk size 5–10 min mandatory; chunk-boundary recall mandatory; Calibrate Step 2a + Step 2b required; one graphic organizer required | normal study |
-| **deep** | 60–90 min (cap 90) | ARQ depth ≥ 2 / Polya full trace / argument-reading 5-step / proof-comprehension 3 facets; transfer attempt; detailed chapter note | exam prep / hard chapter / second pass |
-
-**Defaults**: L2 must-scaffold → light; L2 assisted → standard cap; normal → standard; exam/hard/second-pass → deep. Deep is never the default for a first-pass L2 read.
-
-**Out-of-time signal** (`now > session_end − 10 min`): downgrade in-flight; never start a new phase that won't fit. Log `intensity_downgraded: true`.
-
-**Never scales down** (the learning core): user's native-language summary attempt before tutor explanation; chunk-boundary closed-book recall; Calibrate Step 2a (textbase) + Step 2b (situation-model transfer — light may skip but chapter then `phase-3-textbase-only`); cross-session calibrate.
-
-## When to read which reference
-
-Loaded only when the situation calls for it. The references each carry their own theory and rationale.
+Loaded only when the situation calls for it. Each reference carries its own theory + rationale.
 
 | Situation | Read |
 |---|---|
 | First-time setup, EPUB conversion, install issues | `references/setup.md` |
-| Need the canonical status enum or frontmatter field list | `references/state-schema.md` |
-| Need the full PDP pseudocode | `references/pdp-loop.md` |
-| Classifying a new book or unsure about per-type patterns | `references/book-types.md` |
-| Picking medium (paper / paginated PDF / scrollable HTML) for a chapter | `references/medium-policy.md` |
-| Generating Phase 1/2/3 prompts (verbatim wordings) | `references/generative-prompts.md` |
-| Annotation rules, PIMEQ, conversion contract, density caps | `references/annotation-typology.md` |
+| Canonical status enum / frontmatter field list | `references/state-schema.md` |
+| Full PDP pseudocode + edge cases | `references/pdp-loop.md` |
+| Classifying a new book / per-type patterns | `references/book-types.md` |
+| Picking medium for a chapter | `references/medium-policy.md` |
+| Generating Phase 1/2/3 prompts (verbatim) | `references/generative-prompts.md` |
+| Annotation rules, PIMEQ, conversion contract | `references/annotation-typology.md` |
 | Phase 3 mechanics, rubrics, gates, re-reading policy | `references/calibration.md` |
 | Reviewer feedback, banned praise, Bloom distribution | `references/llm-tutor-design.md` |
 | Failure-mode detection signals + mitigations | `references/failure-modes.md` |
 | L2 protocol, vocabulary policy, narrow-reading mode | `references/l2-mode.md` |
-| Method sub-routine templates and trigger discipline | `references/methods/<method>.md` |
-| Hint escalation triggers, paraphrase gate, time-on-hint logging | `references/methods/hint-escalation.md` |
-| Backward-fading completion sequence after a worked example | `references/methods/backward-fading.md` |
-| Math/proof per-line micro-tasks; two-pass diagram rule; diagram purpose label; PF entry guard; **R11 Tao 7 moves on stop-compile** | `references/methods/math-text-reading.md` |
-| **Non-linear chapter 5-stage protocol (orientation → strategic entry → analytical loop → failure-as-trigger → next-action queue)** | `references/methods/code-reading.md` |
-| **Scaffolded AI prompting template (Context / Request / Constraint)** | `references/methods/scaffolded-ai-prompting.md` |
-| **AI policy (3 modes; per-chapter declaration; IOED counter gate; banned features)** | `references/ai-policy.md` |
-| Daily-floor commitment device, behavioral retrieval counting, deadline anchor, FCI/BEMA self-diagnostic | `references/spacing-policy.md` |
-| Refusal list for popular note-taking systems; reframe map; **6 power-user voice table**; recommended-set with evidence anchors | `references/note-taking-policy.md` |
-| **Medium 4-cell matrix (pagination_mode × device_class) + writable e-ink caveat** | `references/medium-policy.md` |
-| Citation format / quote_id schema for source notes | `references/citation-format.md` |
-| Worked examples of standalone Polya, stale calibrate, multi-pending, drafted-analysis review | `references/operational-examples.md` |
-| Chapter note body schema (Phase 1 / 2 / 3 / 4 sections) | `references/chapter-template.md` |
+| AI policy modes, IOED counter, banned features | `references/ai-policy.md` |
+| Method sub-routine templates | `references/methods/<method>.md` |
+| Spacing, daily-floor commitment, FCI/BEMA self-diagnostic | `references/spacing-policy.md` |
+| Note-taking refusal list, reframe map, 6-voice table | `references/note-taking-policy.md` |
+| Citation format / quote_id schema | `references/citation-format.md` |
+| Worked examples (standalone Polya, stale calibrate, multi-pending, drafted-analysis review) | `references/operational-examples.md` |
+| Chapter note body schema | `references/chapter-template.md` |
 
 ## Operational examples
 
-### Example 1: Cold start
+### Cold start
 
 User: "ARQ Ch.1부터 같이 공부하고 싶어"
 
-1. Check `~/study-journal/` — absent. Run setup. Convert ARQ EPUB → PDF if needed. Bootstrap `books.yml` with ARQ + Polya entries.
-2. Plan phase: classify ARQ as **methodology** + **expository-leaning**; pick medium policy; generate 3 textbase + 2 situation-model expectations; PKA dump + prediction + goal_question.
-3. Tutor phase: load Ch.1 via Read tool. Chunked reading: 5–10 min chunk → 30–60s closed-book recall → PIMEQ annotation (P/I/M/E/Q prefix); ARQ sub-routine invoked at argument units.
-4. Chapter end: convert PIMEQ marginalia + build one graphic organizer (intensity ≥ standard).
-5. End Phase 2: set `phase_2_ended_at` and `status: phase-3-pending`; close the session. Calibrate runs as the next session's warmup.
+1. Check `~/study-journal/` — absent. Run setup. Convert ARQ EPUB → PDF if needed. Bootstrap `books.yml`.
+2. Plan phase (standard default): classify ARQ as **methodology** + **expository-leaning**; pick medium; declare AI policy; generate 3 textbase + 2 SM expectations; PKA + prediction + goal_question.
+3. Tutor phase: chunked reading (5–10 min) → 30–60s closed-book recall → PIMEQ annotation; ARQ sub-routine at argument units.
+4. Chapter end: convert PIMEQ marginalia + one graphic organizer.
+5. End Phase 2: set `phase_2_ended_at` + `status: phase-3-pending`; close session. Calibrate runs as next session's warmup.
 
-### Example 2: Resume — calibrate as opening warmup
+### Resume — calibrate as opening warmup
 
 User: "오늘 학습 시작"
 
 1. Read `books.yml`. ARQ Ch.4 is `phase-3-pending`; `phase_2_ended_at` was yesterday.
-2. Open with calibrate on Ch.4 as the warmup ritual: confidence (before recall) → textbase recall → 1–2 situation-model transfer questions on a NEW scenario → gap calibration (textbase + SM scored separately) → Feynman → 3 self-generated exam Qs.
-3. `chapter_complete` decision is gated on `situation_model_transfer_score`, not the textbase recall alone.
-4. After Ch.4 calibrate completes, ask: "Continue to Ch.5 (plan phase) or stop here?" Calibrate is not a branching question — it always runs first.
+2. Open with calibrate on Ch.4: confidence (BEFORE recall) → textbase recall → 1–2 SM transfer questions on a NEW scenario → gap calibration → Feynman → 3 self-generated exam Qs.
+3. `chapter_complete` decision is gated on `situation_model_transfer_score`, not textbase alone.
+4. After Ch.4 calibrate completes, ask: "Continue to Ch.5 (plan phase) or stop here?"
 
-For the remaining patterns — standalone Polya problem (no book), review of a user-drafted analysis, same-session calibrate opt-in path, stale-calibrate downgrade, multiple-pending-chapter queue, conceptual-chapter refutation-text protocol, L2 sub-threshold narrow-reading mode — see `references/operational-examples.md`.
+For remaining patterns (standalone Polya, drafted-analysis review, same-session calibrate opt-in, stale-calibrate downgrade, multiple-pending queue, conceptual-chapter refutation-text, L2 sub-threshold narrow-reading): `references/operational-examples.md`.
 
 ## When in doubt
 
-- If multiple modes could apply, follow the priority above (`calibrate > tutor > plan > compose`). If the user asks for the lower-signal mode explicitly, do it; otherwise lean upward.
-- Do not narrate the protocol step-by-step ("now we will do Phase 1, then Phase 2..."). Just run it. Surface phase transitions only when needed (the delay before calibrate, the choice between branches in resume).
-- If the chapter PDF doesn't load, fall back to user-provided chapter text (paste). Do not block the session on file format.
-- If pandoc/calibre is missing for EPUB conversion, surface the install command from `references/setup.md` and let the user install (do not auto-install).
+- If multiple modes apply, follow the priority above (`calibrate > tutor > plan > compose`).
+- Don't narrate the protocol step-by-step ("now we will do Phase 1, then Phase 2..."). Just run it. Surface phase transitions only when the user needs to make a choice.
+- If the chapter PDF doesn't load, fall back to user-provided text (paste). Don't block on file format.
+- If pandoc/calibre is missing for EPUB conversion, surface the install command from `references/setup.md` — don't auto-install.
 - Sessions are short by default (30–60 min target). Favor shorter, more frequent sessions over a long single block.
