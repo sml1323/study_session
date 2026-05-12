@@ -106,8 +106,22 @@ Health and meta:
 | `related_chapters` | list of `{book, chapter, relation}` | cross-refs |
 | `evergreen_extracts` | list of paths | `~/study-journal/evergreen/*.md` |
 | `concept_candidates` | list of strings | trigger-deferred concept tracking |
+| `session_health.label_migration` | enum or `null` | one of `pending` / `renamed` / `left-as-is` / `null`; flagged when a chapter note's existing recall rows use `R-P / R-I / R-M / R-E / R-Q` form and migration was surfaced. See `references/annotation-typology.md § Reserved letters` |
+| `references_touched` | list[string] | per-response self-declared refs, append-only with dedup; `file§section` form (e.g., `pdp-loop.md§TUTOR`); see `SKILL.md § Per-response context surfacing` |
+| `methods_invoked` | list[string] | per-response self-declared method sub-routines, append-only with dedup; bare filename or `file§section` form (e.g., `arq.md§Step-4-steelman`); `methods/` prefix omitted |
 
 Full body section schema lives in `references/chapter-template.md`.
+
+### Recall-table label convention
+
+Closed-book recall tables in the chapter note body (Phase 2 chunk-boundary recalls, Phase 3 calibrate textbase recall) use **numeric row labels**:
+
+- Row keys: `R1`, `R2`, `R3`, ... — *never* `R-P`, `R-I`, `R-M`, `R-E`, `R-Q`.
+- The probe category word lives as a subscript on the schema key (`R1_proposition`) and is optional as a parenthetical in surface output (`R1 (proposition): ...`).
+- Single-letter `P / I / M / E / Q` is reserved for margin PIMEQ prefixes (see `references/annotation-typology.md`). Recall rows must not collide with margin prefix letters because shared first letters induce structural hallucination across sessions (the recall row's category word leaks into the next session's margin PIMEQ vocabulary).
+- Per-book-type probe schemas: `references/generative-prompts.md § recall_probe_schema`.
+
+The lint script does **not** currently enforce this convention (it's a content rule, not a status-enum rule). Detected via the chapter-note rendering pattern at session resume; surfaced under `session_health.label_migration` for affected legacy notes.
 
 ## Frontmatter fields — `books.yml`
 
@@ -121,8 +135,23 @@ Per book entry:
 | `total_pages`, `printed_page_offset` | int | for citation discipline |
 | `current_chapter` | int or string | most recent chapter touched |
 | `chapter_status` | object `{N: status}` | one entry per chapter studied so far; values from canonical enum (or aggregate `complete` shorthand inside this block only) |
+| `chapter_structure` | object `{N: {title, sections: [...]}}` | per-chapter section list; populated at init (full ToC) or lazily on first entry; full schema + section status enum in `references/section-tracking.md` |
 | `chapter_metrics` | object | per-chapter Phase 3 metrics; mirrored from each chapter note |
 | `review_queue` | list | per-book spaced retrieval queue |
+
+## Canonical section status enum (orthogonal to chapter status)
+
+Sections inside a chapter carry their own status, defined here as the SOT. This axis is *independent* of the chapter-level enum above — a chapter is `in-progress` while its sections are mostly `pending`. Full semantics, transitions, and the chapter-completion gate built on this enum live in `references/section-tracking.md`.
+
+| Status | Meaning |
+|---|---|
+| `pending` | Default; not yet processed |
+| `in-progress` | Mid-section session close; current chunk lives here |
+| `covered` | Closed-book recall + PIMEQ both ran on the section's narrative |
+| `used-as-exercise` | Section's prose was used as training material for some method, but the section's own narrative claims were not processed via recall + PIMEQ — **learning debt** |
+| `skipped` | Explicit user bypass; reason recorded in chapter-note Section progress block |
+
+`covered` and `used-as-exercise` are **not** interchangeable. Phase-3 advancement and any "next chapter" recommendation requires every section to be `covered` or `skipped`.
 
 Top-level `books.yml`:
 

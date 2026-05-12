@@ -56,6 +56,71 @@ Each prompt has:
 - **Why this is non-negotiable**: chunk-boundary recall improves the *next* chunk's acquisition substantially, not just the current chunk's retention (forward effect). Skipping it loses not only the recall but also the next chunk's encoding boost.
 - **Avoid**: silent re-reading at the chunk boundary instead of recall — this is the fluency-illusion failure mode the rule exists to prevent. The book stays closed during the 30-60s.
 
+#### recall_probe_schema — book-type-specific probe categories (numeric labels)
+
+The 30-60s closed-book recall is *free* in form but *structured* in what it probes for. A free recall (`"무엇 읽었지?"`) measures a noisy union of textbase + situation model + open-question; making the probe categories explicit lets the next chunk's encoding focus and the chapter-end calibrate compare like with like (Karpicke & Blunt 2011; Kintsch construction-integration). Without an explicit schema the recall row is a schema vacuum and the model fills it on the fly — historically by borrowing the PIMEQ first-letter (`R-P / R-I / R-M`), which then drifted across sessions into hallucinated "book-type-specific PIMEQ" tables. See `references/annotation-typology.md § Reserved letters` for the structural fix.
+
+**Row labels are numeric: `R1`, `R2`, `R3`, ...** The descriptive word (proposition / paraphrase / setup / …) is a subscript on the label key (`R1_proposition`) and an aide-mémoire in the schema definition. In the *output* recall, write the label as `R1` (optionally with the category in parentheses: `R1 (proposition)`). Do **not** write `R-P`, `R-I`, `R-M`, `R-E`, `R-Q` — single-letter forms collide with margin PIMEQ prefixes and re-induce the hallucination. P/I/M/E/Q single letters are reserved for margin prefixes only.
+
+Pick the schema by chapter `type` (and `genre_lean` where the table calls it out). The schema rows are the *targets* — actual recall rows are populated by the user; rows where the chunk has nothing relevant are omitted (`R4_equation` for a non-mathy chunk, etc.).
+
+##### conceptual / conceptual-physics
+
+```
+recall_probe_schema:
+  R1_proposition:   핵심 명제 한 문장 (저자의 주장; textbase 측정)
+  R2_image:         결정적 이미지 한 개 (visualizable; situation model)
+  R3_mechanism:     결과를 만든 메커니즘 (인과 사슬 1–2 단계; situation model)
+  R4_equation:      수식/관계 — 있을 때만 (없으면 omit)
+  R5_open_q:        청크가 남긴 본인의 자력 질문 — 선택 (R4 tow에서 surface 시)
+```
+
+##### methodology / argumentation (ARQ etc.)
+
+```
+recall_probe_schema:
+  R1_paraphrase:    저자가 한 일을 본인 말로 한 문장 (method step or argument move)
+  R2_inference:     본문에 명시 안 됐지만 함축된 한 점
+  R3_open_q:        저자 framing 에 대한 본인 질문 / 반박 후보 — 선택
+```
+
+##### problem-driven
+
+```
+recall_probe_schema:
+  R1_setup:         문제 setup 재진술 (조건 + 미지수)
+  R2_strategy:      Polya 어느 단계까지 갔나 (understand / plan / execute / look-back)
+  R3_block:         막힌 자리 — 있을 때 (Schoenfeld 3 Qs 로 surface)
+```
+
+##### math-proof-heavy
+
+```
+recall_probe_schema:
+  R1_statement:     증명할 명제 재진술
+  R2_structure:     증명 골격 (induction / contradiction / direct / case-on-which-variable)
+  R3_load_bearing:  본인이 "그 줄 못 빠뜨린다" 고 판단한 핵심 1–2 줄
+  R4_gap:           못 따라간 자리 — 있을 때 (Tao 7 moves 적용 후보)
+```
+
+##### argument-driven
+
+```
+recall_probe_schema:
+  R1_thesis:        저자 결론 한 문장
+  R2_reasons:       그 결론을 받치는 reason 2–3 개
+  R3_assumptions:   명시 안 된 전제 (Browne–Keeley 5 종 중 surface 된 것)
+  R4_open_q:        응답할 자리 — 선택
+```
+
+##### reference
+
+PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall probe 자체가 부적합.
+
+**Why numeric labels** — across the 6 schemas the row words (proposition / paraphrase / setup / statement / thesis) all begin with letters that overlap PIMEQ first-letters or near-overlap (P → Predict, I → Infer/Inference, M → Monitor/Mechanism). A single-letter row label is a structural attractor: shared first letter induces post-hoc generalization across sessions, and the recall row's *category word* gets re-labeled as a margin prefix in the *next* session. The `R1..R5` convention forces the surface label to be unambiguously a recall row, never a margin prefix. The category word lives as a subscript or parenthetical aide-mémoire, never as the row's primary label.
+
+**Avoid**: writing `R-P`, `R-I`, `R-M`, `R-E`, `R-Q`; redefining PIMEQ as "Proposition / Image / Mechanism / Equation / Question" or "Paraphrase / Inference / Misconception / Example / Question" — these are recall *probe categories*, not the margin PIMEQ vocabulary. Margin PIMEQ is permanently `P=Predict / I=Infer / M=Monitor / E=Evaluate / Q=Question` regardless of book type. See `references/annotation-typology.md § Reserved letters` for the structural ban + anti-pattern fixtures.
+
 ### concept_define
 
 - **Purpose**: targeted self-explanation in own words; high-leverage retention move

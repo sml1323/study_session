@@ -64,6 +64,17 @@ session_health:
   struggle_skip: false
   form_fatigue: false
   echo: false
+  label_migration: null                 # null | pending | renamed | left-as-is (see annotation-typology § Reserved letters)
+
+# Per-response self-declared context (append-only, deduped; see SKILL.md § Per-response context surfacing)
+# Cross-check against ~/study-journal/.session-log/<UTC-date>.jsonl (deterministic hook log)
+references_touched:
+  - pdp-loop.md§TUTOR
+  - annotation-typology.md§Reserved-letters
+  - generative-prompts.md§recall_probe_schema
+methods_invoked:
+  - arq.md§Step-4-steelman
+  - hint-escalation.md
 
 # AI dialogue Bloom-level distribution (per chapter; see references/llm-tutor-design.md)
 prompt_bloom_distribution:

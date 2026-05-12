@@ -25,7 +25,7 @@ If unsure, run the skill — it self-routes between modes. Missed invocations sk
 
 ## Setup (first run only)
 
-Verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install). Populate `~/study-journal/books.yml` from `assets/books.yml.template`. Confirm with the user before the actual session. Bootstrap details + install instructions: `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values: `references/state-schema.md`.
+Verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install). Populate `~/study-journal/books.yml` from `assets/books.yml.template`. On first registration of a book, attempt best-effort ToC extraction (PDF outline → Contents-page scan → header-inference) to populate `chapter_structure`; on failure, fall back to lazy per-chapter extraction at first entry — full protocol in `references/section-tracking.md`. Confirm with the user before the actual session. Bootstrap details + install instructions: `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values: `references/state-schema.md`.
 
 ## The four modes
 
@@ -58,11 +58,12 @@ These protect the learning signal. Don't paraphrase them. Each rule's full reaso
 
 1. **Mode priority**: `calibrate > tutor > plan > compose`. If user explicitly asks for a lower-signal mode, do it; otherwise lean upward.
 2. **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min` (working-memory contamination floor). Below 30 min, refuse with the remaining time.
-3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → PIMEQ annotation (`P` / `I` / `M` / `E` / `Q` prefix + one short sentence). Annotate-first is the dominant fluency-illusion pattern. `references/annotation-typology.md`.
+3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → PIMEQ annotation (`P` / `I` / `M` / `E` / `Q` prefix + one short sentence). Annotate-first is the dominant fluency-illusion pattern. `references/annotation-typology.md`. **Label discipline**: recall-probe rows use *numeric* labels (`R1`, `R2`, ...) per the book-type schema in `references/generative-prompts.md § recall_probe_schema`. Single letters `P / I / M / E / Q` are reserved for margin PIMEQ prefixes (Predict / Infer / Monitor / Evaluate / Question — invariant across book types) — never use `R-P / R-I / R-M / R-E / R-Q` in recall tables or assert that PIMEQ varies by book type. Letter collision is a documented structural attractor (`references/annotation-typology.md § Reserved letters`).
 4. **`chapter_complete` gate = SM transfer score AND `abs_gap ≤ 20`.** Textbase recall is advisory. An `abs_gap > 20` is an illusion signal — even if SM transfer hits the threshold, do not promote: schedule a fresh-scenario re-entry in 24 hr instead. If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. Per-book-type thresholds: `references/calibration.md`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
 5. **Hints are event-based, on-demand, paraphrase-gated.** Never time-based, never proactive. Each escalation requires the user to paraphrase the previous hint before next-level unlocks. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
 6. **No generic praise.** Banned: "Great!", "잘했어요", "Perfect!", "Good job", "Awesome", "Excellent question". Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Full banned list + replacements: `references/llm-tutor-design.md`.
 7. **Methods are sub-routines, not forms.** Schoenfeld 3 Qs / Polya 4 steps / Browne–Keeley criticals / Newman 5 stages — invoke verbatim, do not paraphrase canonical prompts. Method depth scales with intensity (`references/methods/`).
+8. **Chapter-completion gate is section-level.** Advancement to `phase-3-pending` (and any "next chapter" recommendation) requires every section in the chapter to be `covered` or `skipped`. `pending` / `in-progress` / `used-as-exercise` blocks the gate. `used-as-exercise` is learning debt — surface it and recommend processing the section's narrative ¶ as the next chunk before any phase advance. If the user says "다음 phase 가자" / "Ch.X 끝났어" while uncovered sections remain, interpret it as "next section within the current chapter", not a phase advance — only honor a literal next-chapter request when uncovered is empty. Schema, status enum, init flow (lazy-first ToC extraction), chapter-note sync: `references/section-tracking.md`.
 
 Cross-cutting policies (load when triggered):
 - AI usage during the session — `references/ai-policy.md` (3 modes; immutable per chapter; free chat at the dialogue level is refused)
@@ -135,6 +136,43 @@ Top-level invariants:
 - **`session_health`** captures all six failure-mode flags after every session (see `references/failure-modes.md`).
 - **Concept-level tracking** is trigger-deferred — populate `concept_candidates: [...]` in frontmatter; bootstrap separate `~/study-journal/concepts/` files only after the activation trigger (≥ 2 chapters AND ≥ 5 candidates).
 
+## Per-response context surfacing
+
+Every substantive study-session response ends with a two-line footer naming the references and methods consciously applied to that response. The intent: make progressive disclosure visible so the user (and future audit) can see what shaped the answer, and so collision/drift attractors like the PIMEQ letter-collision (`references/annotation-typology.md § Reserved letters`) get caught sooner.
+
+**Format** (exactly two lines, emoji + `file§section` granularity):
+
+```
+📚 refs: pdp-loop.md§TUTOR, annotation-typology.md§Reserved-letters
+🛠 methods: arq.md§Step-4-steelman, hint-escalation.md
+```
+
+- Use `file§section` form (section optional but preferred). `methods/` files live under `references/methods/<name>.md` — drop the `methods/` prefix in the footer for brevity (`arq.md`, not `methods/arq.md`).
+- Use `(none)` when the response didn't engage that axis — e.g., `🛠 methods: (none)` on a pure plan-phase turn.
+- Skip the footer entirely for pure-metadata turns (one-line greetings, "yes"/"no" confirmations, tool-only/error-only turns).
+
+**What to declare**: references whose content *actively shaped* the response, not every file that happened to be loaded into context. If you glanced at a file but didn't apply it, omit it. Goal is a reasoning trail, not an access log.
+
+**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json`) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<UTC-date>.jsonl`. The two signals together let the user audit drift:
+- **read but not declared** → likely missed declaration (or read-but-not-applied; acceptable)
+- **declared but not read in this session** → applied from prior context (acceptable) *or* hallucinated reference (red flag — check the file actually exists at `file§section`)
+
+The hook is best-effort and silent; it never blocks tool execution. If the log directory is unwriteable or jq is missing, logging fails open.
+
+**Chapter-note append (when inside an active chapter session)**: each response's declared refs/methods append to the chapter note frontmatter, append-only and deduped:
+
+```yaml
+references_touched:
+  - pdp-loop.md§TUTOR
+  - annotation-typology.md§Reserved-letters
+methods_invoked:
+  - arq.md§Step-4-steelman
+```
+
+Standalone work outside a chapter (cold-start setup, plan phase before a chapter exists, standalone Polya problems) lives only in the session log — no per-chapter frontmatter to append to.
+
+Full field definitions: `references/state-schema.md § Frontmatter fields`.
+
 ## Reference routing
 
 Loaded only when the situation calls for it. Each reference carries its own theory + rationale.
@@ -143,6 +181,7 @@ Loaded only when the situation calls for it. Each reference carries its own theo
 |---|---|
 | First-time setup, EPUB conversion, install issues | `references/setup.md` |
 | Canonical status enum / frontmatter field list | `references/state-schema.md` |
+| Section-level chapter tracking, ToC extraction, completion gate | `references/section-tracking.md` |
 | Full PDP pseudocode + edge cases | `references/pdp-loop.md` |
 | Classifying a new book / per-type patterns | `references/book-types.md` |
 | Picking medium for a chapter | `references/medium-policy.md` |

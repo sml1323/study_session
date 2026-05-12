@@ -21,6 +21,30 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
     open the chapter note file (create if absent)
     determine current_phase (plan/tutor/calibrate) from chapter note state
 
+    # Section-level resolution within the current chapter
+    # (full spec: references/section-tracking.md)
+    sections = book.chapter_structure[current_chapter].sections   # may be missing
+    if sections is missing:
+      run lazy mini-extraction on this chapter (PDF outline sub-entries, or
+      first 1-2 pages, or ask the user to paste the section headers)
+      save the result back into books.yml
+    uncovered = [s for s in sections if s.status not in ("covered", "skipped")]
+    if uncovered:
+      next_section = uncovered[0]
+      if next_section.status == "in-progress":
+        recommend resuming next_section from where the previous chunk stopped
+      elif next_section.status == "used-as-exercise":
+        surface as learning debt; recommend that section's narrative ¶
+        (closed-book recall + PIMEQ) as the next chunk before any other move
+      else:  # pending
+        recommend starting next_section as a fresh chunk
+      # If the user says "다음 phase 가자" / "Ch.X 끝났어" while uncovered exists,
+      # interpret it as "next section within the current chapter", not phase-3
+      # or next-chapter. Only honor a literal next-chapter request when uncovered
+      # is empty OR the user explicitly accepts that the rest will be `skipped`.
+    else:
+      chapter is eligible for phase-3-pending transition / next-chapter prompt
+
   PLAN PHASE (if entering chapter for first time):
     classify book_type per references/book-types.md
       (also classify on the narrative ↔ expository orthogonal axis — see book-types.md)
@@ -43,9 +67,17 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
     enforce chunk_size 5-10min (see references/generative-prompts.md interim_recall)
     for each chunk boundary (every 5-10 min of reading):
       30-60s closed-book recall of what the chunk just said (forward effect)
-      then PIMEQ annotation of the chunk (see references/annotation-typology.md):
+        pick recall_probe_schema for chapter.type from
+          references/generative-prompts.md § recall_probe_schema
+        label recall rows R1, R2, R3, ... (numeric only)
+        NEVER write R-P, R-I, R-M, R-E, R-Q — single letters P/I/M/E/Q are
+          reserved for margin PIMEQ prefixes (see references/annotation-typology.md
+          § Reserved letters); letter collision is a structural attractor that
+          produces hallucinated "book-type-specific PIMEQ" tables across sessions
+      then PIMEQ annotation of the chunk (canonical 5 prefixes — see references/annotation-typology.md):
         annotate AFTER recall, never before
         prefix every margin note with P / I / M / E / Q
+          (Predict / Infer / Monitor / Evaluate / Question — invariant across book types)
         respect 1-2 PIMEQ notes per page cap
       pick one of: concept_define / next_predict / monitoring_check
       ask the user
@@ -64,10 +96,28 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
     chapter end: convert raw PIMEQ marginalia to source/concept/retrieval cards
       (see references/annotation-typology.md § "Conversion contract")
 
+    # At chunk close: update section status (references/section-tracking.md)
+    for each section touched in this chunk:
+      if recall + PIMEQ ran on the section's own narrative: status = covered
+      elif section's prose was used as training material only:    status = used-as-exercise
+      elif chunk ended mid-section:                               status = in-progress
+      elif user explicitly skipped:                               status = skipped
+    sync the Section progress block in the chapter note from books.yml
+
   WHEN reading complete (or session time up):
     save Phase 2 traces to chapter note
     set phase_2_ended_at: <ISO8601 now>
-    set status: phase-3-pending
+    # Chapter-completion gate (references/section-tracking.md):
+    # Only set phase-3-pending when every section is `covered` or `skipped`.
+    # If any section is `pending`, `in-progress`, or `used-as-exercise`,
+    # leave chapter status as `in-progress` and surface uncovered sections to
+    # the user. `used-as-exercise` is learning debt — recommend processing the
+    # section's narrative ¶ as the next chunk before any phase advance.
+    if all sections in (covered, skipped):
+      set status: phase-3-pending
+    else:
+      keep status: in-progress
+      surface uncovered/debt sections; do not offer phase-3 or next-chapter
     end session with: "Saved. Calibrate runs as the warmup of your next study
                        session — the gap between sessions is the delay that
                        retrieval-practice research calls for. No need to wait
