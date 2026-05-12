@@ -153,7 +153,7 @@ Every substantive study-session response ends with a two-line footer naming the 
 
 **What to declare**: references whose content *actively shaped* the response, not every file that happened to be loaded into context. If you glanced at a file but didn't apply it, omit it. Goal is a reasoning trail, not an access log.
 
-**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json`) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<UTC-date>.jsonl`. The two signals together let the user audit drift:
+**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json` — see `references/setup.md § Step 8` for install) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. The two signals together let the user audit drift:
 - **read but not declared** → likely missed declaration (or read-but-not-applied; acceptable)
 - **declared but not read in this session** → applied from prior context (acceptable) *or* hallucinated reference (red flag — check the file actually exists at `file§section`)
 
