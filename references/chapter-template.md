@@ -165,6 +165,19 @@ ai_use_summary:
 ```markdown
 # Ch.<N> — <title>
 
+## Section progress
+<!-- Mirrors books.yml `chapter_structure[<N>].sections`. books.yml is the SOT;
+     this block is a convenience read-out for the user. Schema, status enum,
+     and sync rules: references/section-tracking.md.
+     Box conventions: [x]=covered, [△]=used-as-exercise (debt),
+     [ ]=pending or in-progress (annotate inline), [-]=skipped. -->
+- [x] 1.1 Critical Thinking to the Rescue (covered, Session 2)
+- [x] 1.2 The Sponge and Panning-for-Gold (covered, Session 3-4)
+- [△] 1.3 An Example of Panning-for-Gold (used-as-exercise, Session 5 Round 3 — narrative ¶ 미처리, debt)
+- [ ] 1.4 Panning for Gold: Asking Critical Questions
+- [ ] 1.5 The Myth of the Right Answer
+- [-] 1.6 Thinking and Feeling (skipped — user said "이미 익숙해서 건너뛸래")
+
 ## Phase 1 — Plan
 - **PKA dump**: <user's pre-reading dump>
 - **Prediction**: <user's prediction>

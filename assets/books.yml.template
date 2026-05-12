@@ -20,6 +20,20 @@ books:
     chapter_status: {}
     chapter_metrics: {}
     review_queue: []
+    # Section-level interior of each chapter. Populated by best-effort ToC
+    # extraction at book registration, or lazily on first entry into a chapter.
+    # Schema + status enum: references/section-tracking.md
+    chapter_structure:
+      "1":
+        title: "The Benefit of Asking the Right Questions"
+        sections:
+          - { id: "1.1", title: "Critical Thinking to the Rescue", status: pending }
+          - { id: "1.2", title: "The Sponge and Panning-for-Gold: Alternative Thinking Styles", status: pending }
+          - { id: "1.3", title: "An Example of the Panning-for-Gold Approach", status: pending }
+          - { id: "1.4", title: "Panning for Gold: Asking Critical Questions", status: pending }
+          - { id: "1.5", title: "The Myth of the Right Answer", status: pending }
+          - { id: "1.6", title: "Thinking and Feeling", status: pending }
+          - { id: "1.7", title: "Weak-Sense and Strong-Sense Critical Thinking", status: pending }
 
   # Multi-part book with different types per part.
   polya:

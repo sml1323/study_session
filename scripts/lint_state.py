@@ -34,6 +34,19 @@ CANONICAL_STATUSES = {
     "scheduled",
 }
 
+# Section-level status enum (orthogonal axis; lives in references/section-tracking.md).
+# Sections inside a chapter use the same `status:` key name as chapter notes do, so
+# the linter must accept these values without flagging them as unknown chapter
+# statuses. `in-progress` is shared with the chapter enum above (intentional —
+# same word, same meaning at its respective level).
+SECTION_STATUSES = {
+    "pending",
+    "in-progress",
+    "covered",
+    "used-as-exercise",
+    "skipped",
+}
+
 # `complete` is an aggregate alias allowed ONLY inside chapter_status: blocks
 # in books.yml-style files (one-line per chapter). It must NOT appear as a chapter
 # note frontmatter `status:` value.
@@ -58,6 +71,7 @@ REQUIRED_CHAPTER_NOTE_FIELDS = (
 SCHEMA_DEFINING_FILES = {
     "references/state-schema.md",
     "references/calibration.md",  # has historical chapter_status example referenced
+    "references/section-tracking.md",  # defines the section status enum
 }
 
 # Glob patterns to scan
@@ -231,8 +245,12 @@ def lint_file(path: Path, root: Path):
                 f"— use 'phase-3-complete' (canonical) — line: {raw.strip()}"
             )
         elif value not in CANONICAL_STATUSES:
+            # Allow section-level status values (orthogonal enum, same `status:` key
+            # at section depth — see references/section-tracking.md).
+            if value in SECTION_STATUSES:
+                pass
             # Unknown — but skip if file is schema-defining (it might be talking about hypotheticals).
-            if not is_schema_def:
+            elif not is_schema_def:
                 errors.append(
                     f"{rel}:{lineno}: unknown status '{value}' "
                     f"(not in canonical enum) — line: {raw.strip()}"
