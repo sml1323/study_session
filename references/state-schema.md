@@ -136,8 +136,64 @@ Per book entry:
 | `current_chapter` | int or string | most recent chapter touched |
 | `chapter_status` | object `{N: status}` | one entry per chapter studied so far; values from canonical enum (or aggregate `complete` shorthand inside this block only) |
 | `chapter_structure` | object `{N: {title, sections: [...]}}` | per-chapter section list; populated at init (full ToC) or lazily on first entry; full schema + section status enum in `references/section-tracking.md` |
-| `chapter_metrics` | object | per-chapter Phase 3 metrics; mirrored from each chapter note |
+| `chapter_metrics` | object | per-chapter metrics — **metadata-only** (enums/numbers/dates/status maps/short anchors). Long-form narrative is forbidden; see § "books.yml `chapter_metrics` — allowed and forbidden fields" below |
 | `review_queue` | list | per-book spaced retrieval queue |
+
+## books.yml `chapter_metrics` — allowed and forbidden fields
+
+`books.yml` is re-cached on every `Edit` tool call. Long-form session narrative inside `chapter_metrics[N]` inflates `cache_create` on each save and historically accounted for 30–40% of session token cost (audited 2026-05-12: one 47-turn session burned $9.60 of cache_create against a 30 KB books.yml that had grown to hold per-session `progress` strings of 2–3 KB each).
+
+The fix is structural: `chapter_metrics[N]` carries *only* machine-readable signals; narrative spills to the chapter note body or to `books/<slug>/_archived/`.
+
+### Allowed (metadata-only)
+
+| Field | Type | Notes |
+|---|---|---|
+| `phase_2_ended_at` | ISO 8601 datetime | drives calibrate gating |
+| `session_count` | int | bumped per session |
+| `phase_3_attempts` | int | bumped per Phase 3 retry |
+| `phase_3_downgraded_to_quiz` | bool | stale-calibrate flag |
+| `textbase_recall_coverage` | float 0–1 | Step 2a/3 |
+| `situation_model_transfer_score` | float 0–1 | Step 2b gate |
+| `situation_model_transfer_questions_count` | int | 0 if Step 2b skipped |
+| `chapter_complete` | bool | gated on SM score |
+| `confidence_accuracy_gap_session_N` | int | one per session, signed |
+| `closed_book_coverage_attempt_N` | float | legacy attempt scores |
+| `confidence_self_report_attempt_N` | int 0–100 | legacy |
+| `confidence_accuracy_gap_attempt_N` | int | legacy |
+| `spaced_retrievals` | list of `{date, type, q_count, score}` rows | machine-readable; `notes` field optional but cap **one short sentence** if present |
+| `session_health` | object with **enum/boolean keys only** (`illusion`, `surface`, `struggle_skip`, `echo`, `form_fatigue`, `hint_abuse`, plus book-specific enum flags) | no `*_note` qualifiers |
+| `section_progress` | object `{section_id: status}` | mirrors `chapter_structure[N].sections` |
+| `archived` | string (path) | cross-reference to `books/<slug>/_archived/books-yml-snapshot-<date>.md` if a slim-down has run |
+| `title`, `genre_lean`, `ai_policy`, `intensity` (Feynman-style per-chapter overrides) | enum/string | per-chapter metadata when it differs from book-level |
+
+### Forbidden (move to chapter note body or `_archived/`)
+
+| Pattern | Where it goes |
+|---|---|
+| `progress: "..."` (any length) | chapter note § "Session N" body |
+| `session_N_progress_archive: "..."` | chapter note § "Session N" body |
+| `session_N_recall_notes: "..."` | chapter note § "Phase 3 — Calibrate" body |
+| `section_progress_notes: { "X.Y": "narrative" }` | chapter note § "Section progress" + per-section "Open threads" |
+| `next_session_warmup_anchors: [...]` (long bullets) | chapter note § "다음 session warmup anchor" body |
+| `counter_feedback_event: {claim_by_ai, counter_by_user, ...}` | chapter note § "Notable events" or "Open threads" |
+| `misconceptions_active: {M1: "narrative", ...}` | chapter note § "Phase 1" misconceptions or evergreen note |
+| `session_health.*_note` (any narrative qualifier on a health flag) | chapter note § "session_health" body |
+| `legacy_metric_note` / `situation_model_transfer_note` / `confidence_accuracy_gap_session_N_note` | chapter note § "Phase 3" body |
+| anything else > ~80 chars of prose | chapter note body |
+
+Rule of thumb: if the value is a complete Korean/English sentence rather than a token, enum, number, or date, it belongs in the chapter note, not `books.yml`.
+
+### Migration when a `books.yml` has already grown long-form
+
+Do not silently delete. Snapshot first, then slim:
+
+1. Create `books/<slug>/_archived/books-yml-snapshot-<YYYY-MM-DD>.md`
+2. Dump every forbidden field verbatim as markdown sections (preserves the YAML string value as a blockquote so the user can later re-narrativize into chapter note prose)
+3. Remove the forbidden fields from `books.yml`
+4. Add `archived: books/<slug>/_archived/books-yml-snapshot-<date>.md` inside the relevant `chapter_metrics[N]` so future sessions can find the dump
+
+The compose step at session end **must enforce this**: when populating `chapter_metrics[N]`, surface any narrative string as a candidate spill into the chapter note instead of writing it into `books.yml`.
 
 ## Canonical section status enum (orthogonal to chapter status)
 

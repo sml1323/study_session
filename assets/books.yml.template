@@ -3,6 +3,22 @@
 # Lives at ~/study-journal/books.yml
 # The study-session skill maintains this file.
 # You can hand-edit paths, types, and parts; the skill preserves manual edits.
+#
+# Operating invariant — books.yml is METADATA-ONLY:
+#   - Allowed: enums, numbers, dates, status maps, short anchor lists,
+#     spaced_retrievals (machine-readable rows), cross-refs to other files.
+#   - Forbidden: long-form session narrative. Specifically banned keys include:
+#       progress / session_N_progress_archive / session_N_recall_notes /
+#       *_note / *_notes / section_progress_notes / next_session_warmup_anchors /
+#       counter_feedback_event / misconceptions_active (narrative form)
+#     These live in the chapter note body (~/study-journal/books/<slug>/ch-NN-*.md)
+#     under "## Session N" or "## Open threads" sections.
+#   - Why: books.yml is re-cached on every Edit; long-form narrative inflates
+#     cache_create on every save and shows up as 30-40% of session token cost.
+#     Schema + canonical enum: references/state-schema.md § Frontmatter
+#     fields — chapter_metrics. Migration of pre-existing fat books.yml:
+#     dump removed fields to books/<slug>/_archived/books-yml-snapshot-<date>.md
+#     and cross-reference with `archived: <path>` inside chapter_metrics[N].
 
 books:
 
@@ -18,6 +34,35 @@ books:
     printed_page_offset: -4     # PDF page minus printed page (front matter)
     current_chapter: 1
     chapter_status: {}
+    # chapter_metrics — populated as sessions accumulate. METADATA-ONLY (see header).
+    # Example of the canonical slim shape after a few sessions:
+    #
+    #   chapter_metrics:
+    #     "1":
+    #       phase_2_ended_at: 2026-04-29T10:14:21+09:00
+    #       session_count: 4
+    #       phase_3_attempts: 1
+    #       textbase_recall_coverage: 0.65
+    #       situation_model_transfer_score: 0.7
+    #       situation_model_transfer_questions_count: 2
+    #       chapter_complete: false
+    #       confidence_accuracy_gap_session_3: 12
+    #       confidence_accuracy_gap_session_4: 8
+    #       spaced_retrievals:
+    #         - { date: 2026-05-06, type: stale_quiz, q_count: 3, score: 1.8 }
+    #         - { date: 2026-05-09, type: warmup_recall, q_count: 5, score: 2.4 }
+    #       session_health:                         # enum + boolean only; no *_note
+    #         illusion: recovering
+    #         surface: false
+    #         struggle_skip: false
+    #         echo: false
+    #         form_fatigue: false
+    #         hint_abuse: false
+    #       section_progress:                       # mirrors chapter_structure[N].sections status
+    #         "1.1_critical_thinking_to_the_rescue": covered
+    #         "1.2_sponge_and_panning": covered
+    #         "1.3_panning_example": used-as-exercise
+    #       archived: books/arq/_archived/books-yml-snapshot-2026-05-12.md   # if a slim-down ran
     chapter_metrics: {}
     review_queue: []
     # Section-level interior of each chapter. Populated by best-effort ToC
