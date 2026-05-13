@@ -137,6 +137,67 @@ Top-level invariants:
 - **Concept-level tracking** is trigger-deferred — populate `concept_candidates: [...]` in frontmatter; bootstrap separate `~/study-journal/concepts/` files only after the activation trigger (≥ 2 chapters AND ≥ 5 candidates).
 - **`books.yml` is metadata-only.** During compose, write only enums / numbers / dates / status maps / short anchors into `chapter_metrics[N]`. Long-form session narrative (progress strings, `*_recall_notes`, `*_progress_archive`, `section_progress_notes`, `next_session_warmup_anchors`, `*_note` health qualifiers, `counter_feedback_event`, narrative `misconceptions_active`) goes into the chapter note body — never into `books.yml`. Reason: `books.yml` is re-cached on every Edit; narrative there inflates `cache_create` ~30–40% of session token cost. Full allow/forbid list: `references/state-schema.md § books.yml chapter_metrics — allowed and forbidden fields`.
 
+## Required-read gates
+
+The skill's runtime contract: **the canonical spec is the file, not your memory of it, and not the one-line summaries in this SKILL.md.** Method bodies, hint ladders, schemas, and gates evolve; reconstructing them from memory drifts in ways the SKILL.md summary will not catch because the summary "sounds right."
+
+Before doing any of the following, `Read` the canonical reference in the **current session**:
+
+- describe the method body, steps, or rule as if quoting the spec,
+- invoke the method as a sub-routine treating it as canonical,
+- cite the file in the response footer or in `references_touched` / `methods_invoked`,
+- claim a refusal/gate exists "per the spec".
+
+SKILL.md summaries and prior-session reads do not satisfy the gate. If you have not Read it this session:
+
+- **Do not** describe the spec body or steps as canonical.
+- **Do not** put the file in the footer or chapter-note frontmatter.
+- **Do not** say "the spec says ..." or "per the canonical X".
+- Either Read it now, or label the substance as `SKILL.md summary only` and acknowledge the spec body is unverified.
+
+This is not a politeness rule; it is the audit contract. The PostToolUse hook (`scripts/log_reference_read.sh`) records every Read; `scripts/analyze_references.py` cross-checks chapter-note declarations against the hook log and surfaces `declared_not_read` as drift. A declared-but-not-read footer is a hallucination, not an attribution.
+
+### Situation → required Read
+
+When the current turn enters one of these situations, the listed file is a hard prerequisite. If it has already been Read this session, no new Read is needed; if not, Read before the substantive move.
+
+| Situation | Required Read (current session) |
+|---|---|
+| Explaining, invoking, or refusing a hint at level 1-4; describing the L0-L4 ladder; naming the paraphrase gate; logging `hint_event` | `references/methods/hint-escalation.md` |
+| After any worked example, before any unguided / parallel problem; generating a fade-N completion | `references/methods/backward-fading.md` |
+| Polya 4-step verbatim invocation; `hint_level: 4` reveal requiring the level-4 reflection record | `references/methods/polya.md` |
+| Newman 5-stage error walk-back after a failed problem attempt | `references/methods/newman.md` |
+| Schoenfeld 3-question prompt at a Polya step transition | `references/methods/schoenfeld.md` |
+| ARQ depth 0-3 invocation; argument-unit segmentation; Browne-Keeley criticals | `references/methods/arq.md` |
+| Argument-driven echo-chamber detection; steelman requirement | `references/methods/argument-reading.md` + `references/failure-modes.md` |
+| Math-proof-heavy chapter micro-tasks; ε-δ; diagram two-pass; mode-label rejection | `references/methods/math-text-reading.md` |
+| Formal proof comprehension (7 facets, pick 1-3) | `references/methods/proof-comprehension.md` |
+| Code-reading or non-linear chapter (5-stage protocol, orientation pass) | `references/methods/code-reading.md` |
+| Refutation text for non-politically-contested misconception removal | `references/methods/refutation-text.md` |
+| AI-assisted study query (any AI tool call during a learning session) | `references/ai-policy.md` + `references/methods/scaffolded-ai-prompting.md` |
+| PIMEQ marginalia generation; recall-probe label disambiguation (numeric R1..Rn vs letter prefix) | `references/annotation-typology.md` + `references/generative-prompts.md` |
+| Chapter-note frontmatter write/edit; `books.yml chapter_metrics` allow/forbid | `references/state-schema.md` |
+| Section-level chapter tracking; "next chapter" recommendation; chapter-completion gate | `references/section-tracking.md` |
+| Phase 3 calibrate mechanics; SM transfer gate; `abs_gap ≤ 20` illusion check; stale-calibrate downgrade; per-type thresholds | `references/calibration.md` |
+| Failure-mode flag set on session close (any of the 6 tiers) | `references/failure-modes.md` |
+| L2 / English book tier + narrow-reading mode + glossary policy | `references/l2-mode.md` |
+| Medium choice (paper / paginated / scrollable) for a chapter | `references/medium-policy.md` |
+| Spacing scheduler invocation; daily-floor commitment; behavioral retrieval counting | `references/spacing-policy.md` |
+| Note-taking system reframe (Zettelkasten / PARA / sketchnoting) | `references/note-taking-policy.md` |
+| LLM-tutor banned praise, Bloom distribution surface | `references/llm-tutor-design.md` |
+| Citation / `quote_id` format | `references/citation-format.md` |
+| Book-type classification (any axis) | `references/book-types.md` |
+| Composing the chapter-note body section schema | `references/chapter-template.md` |
+| PDP loop pseudocode + edge cases (when the spine itself is in question) | `references/pdp-loop.md` |
+
+These are *gates*, not a reading list. A turn that only confirms a session plan or restates a goal triggers nothing; a turn that explains why a level-4 hint was refused triggers `hint-escalation.md`.
+
+### Pre-session read budget
+
+Do **not** Read all the listed files at session start. The point is to Read on *entry* to a situation. A heavy chapter typically pulls 3–4 method files plus 2–3 policy files across 60 min; a light chapter often pulls 0–1. SKILL.md plus the single method/policy file the current chapter calls for is usually enough.
+
+If a situation lists two required Reads and you've only Read one this session, the right move is to Read the second before proceeding — not to cite both and hope.
+
 ## Per-response context surfacing
 
 Every substantive study-session response ends with a two-line footer naming the references and methods consciously applied to that response. The intent: make progressive disclosure visible so the user (and future audit) can see what shaped the answer, and so collision/drift attractors like the PIMEQ letter-collision (`references/annotation-typology.md § Reserved letters`) get caught sooner.
@@ -152,11 +213,22 @@ Every substantive study-session response ends with a two-line footer naming the 
 - Use `(none)` when the response didn't engage that axis — e.g., `🛠 methods: (none)` on a pure plan-phase turn.
 - Skip the footer entirely for pure-metadata turns (one-line greetings, "yes"/"no" confirmations, tool-only/error-only turns).
 
-**What to declare**: references whose content *actively shaped* the response, not every file that happened to be loaded into context. If you glanced at a file but didn't apply it, omit it. Goal is a reasoning trail, not an access log.
+**What to declare — Option A (read-this-session only)**: a file may appear in the footer or in `references_touched` / `methods_invoked` **only if it was Read in the current session**. Prior-session context, SKILL.md summaries, and remembered method bodies do not count. The previous "actively shaped" attribution rule is retired: it allowed declared-but-not-read drift because the model could claim "applied from prior context" with no audit signal. Read-this-session is decidable — the hook log either has the read or it doesn't.
 
-**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json` — see `references/setup.md § Step 8` for install) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. The two signals together let the user audit drift:
-- **read but not declared** → likely missed declaration (or read-but-not-applied; acceptable)
-- **declared but not read in this session** → applied from prior context (acceptable) *or* hallucinated reference (red flag — check the file actually exists at `file§section`)
+If the substance was applied but the file was not Read this session, do one of:
+
+1. Read it now, then declare it.
+2. Leave it off the footer.
+3. Label the substance as `SKILL.md summary only` if it came from the SKILL.md summary alone.
+
+Declaring a file you have not Read this session is a contract violation. So is paraphrasing the file's content "from memory" while citing it.
+
+**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json` — see `references/setup.md § Step 8` for install) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. The hook log and the chapter-note declarations let `scripts/analyze_references.py` partition every reference touch into four classes:
+
+- **read_and_declared** → fine; the spec was loaded and acknowledged.
+- **read_not_declared** → likely missed declaration; minor (acceptable). Analyzer surfaces as a soft warning.
+- **declared_not_read** → contract violation. Analyzer surfaces as the primary drift signal.
+- **unknown_or_context_carried** → neither read nor declared; either the situation didn't call for it (fine) or a required-read gate was skipped (check via `Required-read gates` above).
 
 The hook is best-effort and silent; it never blocks tool execution. If the log directory is unwriteable or jq is missing, logging fails open.
 
