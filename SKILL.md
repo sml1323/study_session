@@ -50,7 +50,7 @@ Always run in this order. Full pseudocode + edge cases: `references/pdp-loop.md`
 4. **End of Phase 2** — set `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at`; close session.
 5. **CALIBRATE** (next session opening) — confidence (BEFORE recall) → textbase recall → SM transfer (NEW scenario) → gap → 3 self-generated exam Qs. **`chapter_complete` gated on SM transfer.**
 6. **APPLY** (optional) — one transfer attempt to a different domain.
-7. **COMPOSE** — auto-fill chapter note; update `books.yml`; schedule spaced re-engagement (1d / 1w / 1m).
+7. **COMPOSE** — auto-fill chapter note; update `books.yml`; run `python3 scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>` so `references_touched` / `methods_invoked` reflect the actual hook-log Reads (not model-authored attribution); schedule spaced re-engagement (1d / 1w / 1m).
 
 ## Decision rules
 
@@ -95,14 +95,14 @@ Classify both axes on first session per book; confirm with the user; store in `b
 
 Invoked from within the tutor phase when chapter content calls for them. **Invoke verbatim** — paraphrasing canonical prompts weakens them.
 
-| Sub-routine | When to invoke | Reference |
-|---|---|---|
-| **ARQ** | argument unit (not paragraph); depth 0–3 picked at section boundary | `references/methods/arq.md` |
-| **Polya** | chapter contains a problem to solve | `references/methods/polya.md` |
-| **Schoenfeld** | every step transition inside Polya ("What am I doing? Why? How does it help?") | `references/methods/schoenfeld.md` |
-| **Newman** | user got a problem wrong; 5-stage error walk-back (runs *before* level-3 worked-example escalation) | `references/methods/newman.md` |
-| **Hint escalation** | every help moment in tutor mode; event-triggered, paraphrase-gated, time-on-hint logged | `references/methods/hint-escalation.md` |
-| **Backward fading** | after any worked example, before any unguided variant | `references/methods/backward-fading.md` |
+| Sub-routine | When to invoke | Canonical shape (verify via Reference before quoting) | Reference |
+|---|---|---|---|
+| **ARQ** | argument unit (not paragraph); depth 0–3 picked at section boundary | depth 0=passive read → 3=full Browne–Keeley 11-Q + steelman | `references/methods/arq.md` |
+| **Polya** | chapter contains a problem to solve | 4 steps: Understand → Plan → Carry Out → Look Back | `references/methods/polya.md` |
+| **Schoenfeld** | every step transition inside Polya | 3 Qs: "What am I doing? Why? How does it help?" | `references/methods/schoenfeld.md` |
+| **Newman** | user got a problem wrong; runs *before* level-3 worked-example escalation | 5-stage error walk-back: Reading → Comprehension → Transformation → Process → Encoding | `references/methods/newman.md` |
+| **Hint escalation** | every help moment in tutor mode; event-triggered, paraphrase-gated, time-on-hint logged | L0 self-solved → L1 re-read → L2 schema lookup → L3 worked example → L4 reveal; paraphrase gate between each | `references/methods/hint-escalation.md` |
+| **Backward fading** | after any worked example, before any unguided variant | Last step blanked first (fade-1) → fade-2 → fade-3 → unguided; SE quality required at each level | `references/methods/backward-fading.md` |
 | **Math-text reading** | math-proof-heavy chapters; per-proof micro-tasks; diagram two-pass rule; Tao 7 moves on stop-compile | `references/methods/math-text-reading.md` |
 | **Code-reading** | non-linear chapters (code / formal proof / dense paper); 5-stage protocol | `references/methods/code-reading.md` |
 | **Scaffolded AI prompting** | every AI tool query during a learning session; Context / Request / Constraint template required | `references/methods/scaffolded-ai-prompting.md` |
@@ -145,17 +145,20 @@ Before doing any of the following, `Read` the canonical reference in the **curre
 
 - describe the method body, steps, or rule as if quoting the spec,
 - invoke the method as a sub-routine treating it as canonical,
-- cite the file in the response footer or in `references_touched` / `methods_invoked`,
+- name a numbered protocol, ladder, or gate by spec terms (e.g., "L0-L4 ladder", "Newman 5-stage", "Polya 4 steps", "abs_gap ≤ 20", "paraphrase gate"),
 - claim a refusal/gate exists "per the spec".
 
 SKILL.md summaries and prior-session reads do not satisfy the gate. If you have not Read it this session:
 
 - **Do not** describe the spec body or steps as canonical.
-- **Do not** put the file in the footer or chapter-note frontmatter.
 - **Do not** say "the spec says ..." or "per the canonical X".
 - Either Read it now, or label the substance as `SKILL.md summary only` and acknowledge the spec body is unverified.
 
-This is not a politeness rule; it is the audit contract. The PostToolUse hook (`scripts/log_reference_read.sh`) records every Read; `scripts/analyze_references.py` cross-checks chapter-note declarations against the hook log and surfaces `declared_not_read` as drift. A declared-but-not-read footer is a hallucination, not an attribution.
+(Chapter-note `references_touched` / `methods_invoked` is system-emitted from the hook log at compose time — you don't author it directly. See `Per-response context surfacing` below.)
+
+This is not a politeness rule; it is the audit contract. The PostToolUse hook (`scripts/log_reference_read.sh`) records every Read; `scripts/analyze_references.py` cross-checks chapter-note declarations against the hook log and surfaces `declared_not_read` as drift.
+
+**Pre-invocation self-check**: Before naming a method, ladder, gate, or numbered protocol in the body (e.g., "Newman 5-stage", "L0-L4 ladder", "paraphrase gate", "abs_gap ≤ 20"), verify you Read its canonical file in this session. Familiar academic names are the highest-risk hallucination attractor — the friendlier the name, the faster memory-reconstruction fires before the Read. If you cannot point to the Read, Read it now or label the substance as `SKILL.md summary only`.
 
 ### Situation → required Read
 
@@ -200,77 +203,19 @@ If a situation lists two required Reads and you've only Read one this session, t
 
 ## Per-response context surfacing
 
-Every substantive study-session response ends with a two-line footer naming the references and methods consciously applied to that response. The intent: make progressive disclosure visible so the user (and future audit) can see what shaped the answer, and so collision/drift attractors like the PIMEQ letter-collision (`references/annotation-typology.md § Reserved letters`) get caught sooner.
+Do **not** write a `📚 refs:` / `🛠 methods:` footer in the response. Reference attribution is now system-generated from the deterministic hook log — model-authored footers were retired because they let `declared_not_read` drift in (footer cites a file that was never actually Read this session). The hook log either has the Read or it doesn't; that's the source of truth.
 
-**Format** (exactly two lines, emoji + `file§section` granularity):
+**Mechanism**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json`) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. At **compose** time, run:
 
 ```
-📚 refs: pdp-loop.md§TUTOR, annotation-typology.md§Reserved-letters
-🛠 methods: arq.md§Step-4-steelman, hint-escalation.md
+python3 scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>
 ```
 
-- Use `file§section` form (section optional but preferred). `methods/` files live under `references/methods/<name>.md` — drop the `methods/` prefix in the footer for brevity (`arq.md`, not `methods/arq.md`).
-- Use `(none)` when the response didn't engage that axis — e.g., `🛠 methods: (none)` on a pure plan-phase turn.
-- Skip the footer entirely for pure-metadata turns (one-line greetings, "yes"/"no" confirmations, tool-only/error-only turns).
+This filters the log to the current session and dedupe-appends the actual Reads into the chapter note's `references_touched` / `methods_invoked`. Idempotent; safe to re-run. Standalone work outside a chapter (cold-start setup, plan phase, standalone Polya) has no chapter note to append to — the session log is the only record.
 
-**What to declare — Option A (read-this-session only)**: a file may appear in the footer or in `references_touched` / `methods_invoked` **only if it was Read in the current session**. Prior-session context, SKILL.md summaries, and remembered method bodies do not count. The previous "actively shaped" attribution rule is retired: it allowed declared-but-not-read drift because the model could claim "applied from prior context" with no audit signal. Read-this-session is decidable — the hook log either has the read or it doesn't.
+**For body-level references** (citing a method or rule mid-response, not in a footer): the same contract still holds — the canonical spec is the file, not your memory. See `Required-read gates` below for which situations require a Read in the current session before invoking a spec.
 
-If the substance was applied but the file was not Read this session, do one of:
-
-1. Read it now, then declare it.
-2. Leave it off the footer.
-3. Label the substance as `SKILL.md summary only` if it came from the SKILL.md summary alone.
-
-Declaring a file you have not Read this session is a contract violation. So is paraphrasing the file's content "from memory" while citing it.
-
-**Cross-check with deterministic hook log**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json` — see `references/setup.md § Step 8` for install) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. The hook log and the chapter-note declarations let `scripts/analyze_references.py` partition every reference touch into four classes:
-
-- **read_and_declared** → fine; the spec was loaded and acknowledged.
-- **read_not_declared** → likely missed declaration; minor (acceptable). Analyzer surfaces as a soft warning.
-- **declared_not_read** → contract violation. Analyzer surfaces as the primary drift signal.
-- **unknown_or_context_carried** → neither read nor declared; either the situation didn't call for it (fine) or a required-read gate was skipped (check via `Required-read gates` above).
-
-The hook is best-effort and silent; it never blocks tool execution. If the log directory is unwriteable or jq is missing, logging fails open.
-
-**Chapter-note append (when inside an active chapter session)**: each response's declared refs/methods append to the chapter note frontmatter, append-only and deduped:
-
-```yaml
-references_touched:
-  - pdp-loop.md§TUTOR
-  - annotation-typology.md§Reserved-letters
-methods_invoked:
-  - arq.md§Step-4-steelman
-```
-
-Standalone work outside a chapter (cold-start setup, plan phase before a chapter exists, standalone Polya problems) lives only in the session log — no per-chapter frontmatter to append to.
-
-Full field definitions: `references/state-schema.md § Frontmatter fields`.
-
-## Reference routing
-
-Loaded only when the situation calls for it. Each reference carries its own theory + rationale.
-
-| Situation | Read |
-|---|---|
-| First-time setup, EPUB conversion, install issues | `references/setup.md` |
-| Canonical status enum / frontmatter field list | `references/state-schema.md` |
-| Section-level chapter tracking, ToC extraction, completion gate | `references/section-tracking.md` |
-| Full PDP pseudocode + edge cases | `references/pdp-loop.md` |
-| Classifying a new book / per-type patterns | `references/book-types.md` |
-| Picking medium for a chapter | `references/medium-policy.md` |
-| Generating Phase 1/2/3 prompts (verbatim) | `references/generative-prompts.md` |
-| Annotation rules, PIMEQ, conversion contract | `references/annotation-typology.md` |
-| Phase 3 mechanics, rubrics, gates, re-reading policy | `references/calibration.md` |
-| Reviewer feedback, banned praise, Bloom distribution | `references/llm-tutor-design.md` |
-| Failure-mode detection signals + mitigations | `references/failure-modes.md` |
-| L2 protocol, vocabulary policy, narrow-reading mode | `references/l2-mode.md` |
-| AI policy modes, IOED counter, banned features | `references/ai-policy.md` |
-| Method sub-routine templates | `references/methods/<method>.md` |
-| Spacing, daily-floor commitment, FCI/BEMA self-diagnostic | `references/spacing-policy.md` |
-| Note-taking refusal list, reframe map, 6-voice table | `references/note-taking-policy.md` |
-| Citation format / quote_id schema | `references/citation-format.md` |
-| Worked examples (standalone Polya, stale calibrate, multi-pending, drafted-analysis review) | `references/operational-examples.md` |
-| Chapter note body schema | `references/chapter-template.md` |
+Audit: `scripts/analyze_references.py` (default mode) partitions all reads into `read_and_declared` / `read_not_declared` / `declared_not_read` / `unknown_or_context_carried`. `declared_not_read` is the drift signal. Full field definitions: `references/state-schema.md § Frontmatter fields`.
 
 ## Operational examples
 

@@ -226,6 +226,172 @@ def load_explicit_declared(
     return valid, invalid, raws
 
 
+def _splice_into_field(fm: str, field: str, new_items: list[str]) -> str:
+    """Append items to an existing YAML list block, or create a new block at the
+    end of the frontmatter if the field is missing. Preserves comments,
+    indentation, and ordering of existing entries. Callers must pre-dedupe.
+    """
+    if not new_items:
+        return fm
+
+    lines = fm.splitlines()
+    field_idx: int | None = None
+    for i, raw in enumerate(lines):
+        if raw.lstrip().startswith(field + ":"):
+            field_idx = i
+            break
+
+    if field_idx is None:
+        block = [f"{field}:"] + [f"  - {item}" for item in new_items]
+        return "\n".join(lines + block)
+
+    # Detect inline forms on the field line itself:
+    #   `field: []`           → empty inline list; rewrite the line and start a block
+    #   `field: [a, b]`       → non-empty inline list; expand inline items into the block
+    #   `field: scalar`       → single-value scalar; promote to a list with the scalar
+    #   `field:`              → block-form header (no inline payload)
+    head = lines[field_idx]
+    after_colon = head.split(":", 1)[1].strip()
+    inline_items: list[str] = []
+    is_inline = False
+    if after_colon == "":
+        is_inline = False
+    elif after_colon == "[]":
+        is_inline = True
+    elif after_colon.startswith("[") and after_colon.endswith("]"):
+        is_inline = True
+        inner = after_colon[1:-1].strip()
+        if inner:
+            inline_items = [v.strip().strip("'\"") for v in inner.split(",") if v.strip()]
+    elif not after_colon.startswith("#"):
+        is_inline = True
+        inline_items = [after_colon.strip("'\"")]
+
+    if is_inline:
+        # Rewrite the field line as a block header, then emit prior inline items
+        # (now promoted to block entries) plus the new additions.
+        head_indent = head[: len(head) - len(head.lstrip())]
+        new_head = f"{head_indent}{field}:"
+        promoted = [f"{head_indent}  - {it}" for it in inline_items]
+        additions = [f"{head_indent}  - {it}" for it in new_items]
+        return "\n".join(
+            lines[:field_idx] + [new_head] + promoted + additions + lines[field_idx + 1 :]
+        )
+
+    # Block form: find end of the existing list block (first non-blank, non-comment,
+    # non-indented-list-entry line) and splice additions before it.
+    block_end = len(lines)
+    for j in range(field_idx + 1, len(lines)):
+        stripped = lines[j].strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if not (lines[j].startswith(" ") and stripped.startswith("- ")):
+            block_end = j
+            break
+
+    indent = "  "
+    for j in range(field_idx + 1, block_end):
+        s = lines[j]
+        if s.lstrip().startswith("- "):
+            indent = s[: len(s) - len(s.lstrip())]
+            break
+
+    additions = [f"{indent}- {item}" for item in new_items]
+    return "\n".join(lines[:block_end] + additions + lines[block_end:])
+
+
+def emit_frontmatter_to_chapter(
+    chapter_path: Path,
+    session_id: str | None,
+    skill_files_set: set[str],
+) -> int:
+    """Auto-populate chapter note's references_touched / methods_invoked from the
+    PostToolUse hook log, filtered by session_id (or auto-detected from the
+    latest log entry).
+
+    This replaces the previous model-authored footer. The hook log is the
+    deterministic source of truth: a file appears in the chapter note iff it
+    was actually Read in the named session. No hallucination surface.
+    """
+    if not chapter_path.exists():
+        raise SystemExit(f"Chapter note not found: {chapter_path}")
+
+    text = chapter_path.read_text()
+    fm = _extract_frontmatter(text)
+    if fm is None:
+        raise SystemExit(f"No YAML frontmatter found in {chapter_path}")
+
+    sid_filter = session_id
+    if sid_filter is None:
+        latest: tuple[dict, datetime] | None = None
+        for entry, ts in load_entries(None):
+            if latest is None or ts > latest[1]:
+                latest = (entry, ts)
+        if latest is None:
+            print("No log entries found — nothing to emit.")
+            return 0
+        sid_filter = latest[0].get("session_id", "")
+        if not sid_filter:
+            print("Latest log entry has no session_id — cannot auto-detect.")
+            return 1
+        print(f"Auto-detected session_id: {sid_filter}")
+
+    session_paths: set[str] = set()
+    for entry, _ts in load_entries(None):
+        if entry.get("session_id") != sid_filter:
+            continue
+        p = entry.get("path", "")
+        if p and p != "SKILL.md":
+            session_paths.add(p)
+
+    if not session_paths:
+        print(f"No qualifying reads for session {sid_filter} — nothing to emit.")
+        return 0
+
+    methods_new: list[str] = []
+    refs_new: list[str] = []
+    for p in sorted(session_paths):
+        if p not in skill_files_set:
+            continue
+        basename = Path(p).name
+        if p.startswith("references/methods/"):
+            methods_new.append(basename)
+        elif p.startswith("references/"):
+            refs_new.append(basename)
+
+    existing_refs = {d.split("§", 1)[0] for d in _extract_list_field(fm, "references_touched")}
+    existing_methods = {d.split("§", 1)[0] for d in _extract_list_field(fm, "methods_invoked")}
+
+    refs_to_add = [r for r in refs_new if r not in existing_refs]
+    methods_to_add = [m for m in methods_new if m not in existing_methods]
+
+    if not refs_to_add and not methods_to_add:
+        print(f"All session reads already declared in {chapter_path.name} — no changes.")
+        return 0
+
+    new_fm = fm
+    if refs_to_add:
+        new_fm = _splice_into_field(new_fm, "references_touched", refs_to_add)
+    if methods_to_add:
+        new_fm = _splice_into_field(new_fm, "methods_invoked", methods_to_add)
+
+    fm_end = text.find("\n---", 4)
+    body = text[fm_end:]
+    new_text = f"---\n{new_fm}{body}"
+    chapter_path.write_text(new_text)
+
+    print(f"Updated {chapter_path}:")
+    if refs_to_add:
+        print(f"  references_touched: +{len(refs_to_add)}")
+        for r in refs_to_add:
+            print(f"    + {r}")
+    if methods_to_add:
+        print(f"  methods_invoked: +{len(methods_to_add)}")
+        for m in methods_to_add:
+            print(f"    + {m}")
+    return 0
+
+
 def scan_chapter_note_declarations(
     skill_files: set[str],
 ) -> tuple[set[str], list[str], dict[str, list[str]]]:
@@ -291,7 +457,38 @@ def main() -> int:
         action="store_true",
         help="Skip the auto chapter-note scan. Only use --declared (if given).",
     )
+    ap.add_argument(
+        "--emit-frontmatter",
+        action="store_true",
+        help=(
+            "Auto-populate a chapter note's references_touched / methods_invoked "
+            "from the hook log (deterministic; replaces model-authored footer)."
+        ),
+    )
+    ap.add_argument(
+        "--chapter",
+        default=None,
+        help="Path to a chapter note for --emit-frontmatter.",
+    )
+    ap.add_argument(
+        "--session",
+        default=None,
+        help=(
+            "Session id to filter by for --emit-frontmatter. If omitted, the "
+            "most recent session in the log is used."
+        ),
+    )
     args = ap.parse_args()
+
+    if args.emit_frontmatter:
+        if not args.chapter:
+            raise SystemExit("--emit-frontmatter requires --chapter <path>")
+        skill_files_set = set(list_skill_files())
+        return emit_frontmatter_to_chapter(
+            Path(args.chapter).expanduser(),
+            args.session,
+            skill_files_set,
+        )
 
     delta = parse_period(args.period)
     cutoff: datetime | None = None

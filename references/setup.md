@@ -208,7 +208,9 @@ Be brief. Don't narrate every directory creation. Summary message:
 
 ## Step 8 (optional): Reference-audit PostToolUse hook
 
-The skill ships a PostToolUse hook (`scripts/log_reference_read.sh`) that logs every `Read` of a `references/*` or `references/methods/*` file into `~/study-journal/.session-log/<KST-date>.jsonl`. This is **opt-in** — the skill works fine without it. Use it when you want a deterministic audit trail of which references the skill actually leaned on, separate from the self-declared `📚 refs` footer the model writes (see `SKILL.md § Per-response context surfacing` for the dual-signal rationale).
+The skill ships a PostToolUse hook (`scripts/log_reference_read.sh`) that logs every `Read` of a `references/*` or `references/methods/*` file into `~/study-journal/.session-log/<KST-date>.jsonl`. This is the **source of truth** for which references the skill actually leaned on. The compose step calls `scripts/analyze_references.py --emit-frontmatter` against this log to auto-populate the chapter note's `references_touched` / `methods_invoked` — there is no model-authored footer to hallucinate. See `SKILL.md § Per-response context surfacing` for the rationale.
+
+Strongly recommended (not strictly opt-in any more): the compose step depends on this log existing. Without the hook, `references_touched` / `methods_invoked` will remain empty and you lose audit visibility.
 
 ### Automatic install (recommended)
 
@@ -273,7 +275,7 @@ Delete the `Read` matcher entry from `~/.claude/settings.json` by hand, or resto
 ### Note on what the hook captures and doesn't
 
 - **Captures**: every `Read` tool call whose `file_path` is under `study-session/references/` or `study-session/references/methods/` (or `SKILL.md`, but the harness pre-loads SKILL.md without a Read call so it usually won't appear).
-- **Doesn't capture**: model attention to a reference that's already in context, or whether a `Read` reference actually shaped the response. That gap is what the self-declared footer is for. Cross-checking the two surfaces both omissions and hallucinations.
+- **Doesn't capture**: model attention to a reference that's already in context, or whether a `Read` reference actually shaped the response. The hook is a *read-was-performed* signal, not a *spec-was-applied* signal. Body-level invocation of a spec ("Newman 5-stage", "L0-L4 ladder") still relies on the pre-invocation self-check in `SKILL.md § Required-read gates`.
 
 ## After first run
 
