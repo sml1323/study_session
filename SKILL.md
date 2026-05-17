@@ -7,6 +7,8 @@ description: Use for guided book/chapter study, math/science problem-solving (Po
 
 This is a runtime manual. The reasoning, evidence, full policies, and edge-case handling live in `references/`. Load only what the current situation requires.
 
+> **Runtime assumption — Claude Code PostToolUse hook.** The audit contract (Required-read gates + `scripts/log_reference_read.sh` + `scripts/analyze_references.py`) depends on Claude Code's PostToolUse hook to log every `Read` of a reference file. In Codex or other CLI environments without an equivalent hook, the deterministic read-audit cannot run; a shell-based read-audit replacement is deferred to a separate iteration. Until then, on those environments, the skill's body-level invocation discipline (Required-read gates) still applies but the audit signal is reduced to "model self-reports the Reads it did" rather than "hook log is the ground truth." Compose-mode `references_touched` / `methods_invoked` cannot be system-emitted without the hook log.
+
 ## Core principle
 
 Every move must answer **"does this raise retention or transfer?"** — not "does this fill a form?" Methods (ARQ, Polya, Schoenfeld, Newman, refutation-text, proof-comprehension, argument-reading) are sub-routines invoked when the chapter calls for them; forms are byproducts auto-filled from session traces.
