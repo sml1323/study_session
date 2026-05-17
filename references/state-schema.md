@@ -87,15 +87,35 @@ Phase 3 metrics — populated when calibrate runs:
 | Field | Type | Notes |
 |---|---|---|
 | `textbase_recall_coverage` | float 0–1 or `null` | Step 2a/3 score; advisory floor by book type |
-| `situation_model_transfer_score` | float 0–1 or `null` | mean of Step 2b transfer questions; **gate** for `chapter_complete` |
+| `situation_model_transfer_score` | float 0–1 or `null` | mean of Step 2b transfer questions |
 | `situation_model_transfer_questions_count` | int | 0 if Step 2b skipped (light intensity) |
-| `chapter_complete` | bool | gated on `situation_model_transfer_score` meeting book-type threshold |
+| `learning_passed` | bool | `situation_model_transfer_score` meets the book-type gate. **The chapter_complete signal** (see Decision rule #4 in SKILL.md). |
+| `chapter_complete` | bool | **= `learning_passed`** (B1 split, 2026-05-17). Calibration health is tracked separately and does not hard-block this. |
+| `calibration_gap_abs` | int 0–100 or `null` | `\|score_prediction − actual_score\|` (Phase 3 Step 4a). `null` if either score is missing. |
+| `calibration_health` | enum | `well_calibrated` (abs ≤ 10) / `loose` (10 < abs ≤ 20) / `over_confident` (abs > 20, predicted > actual) / `under_confident` (abs > 20, predicted < actual) / `unknown` (gap not computable). See § "calibration_health enum" below. |
+| `confirm_next_chapter` | bool | `true` when `calibration_gap_abs > 30` — the next session's open should prompt the user for confirmation before advancing chapters. Default `false`. |
 | `confidence_self_report` | int 0–100 | captured **before** recall (Step 1) |
-| `confidence_accuracy_gap` | int | `confidence_self_report - situation_model_transfer_score * 100` |
+| `confidence_accuracy_gap` | int | `confidence_self_report - situation_model_transfer_score * 100`; legacy diffuse-confidence gap, retained for trend |
 | `calibrate_same_session` | bool | true if Phase 3 ran in same sitting as Phase 2 (opt-in path) |
 | `phase_3_downgraded_to_quiz` | bool | true if calibrate downgraded to 3-question quiz (5+ day stale) |
 | `phase_3_attempts` | int | bumped on each retry |
 | `textbase_low_but_transfer_pass` | bool | rare path: textbase < advisory floor but SM ≥ gate |
+
+### `calibration_health` enum
+
+| Value | Meaning | Trigger |
+|---|---|---|
+| `well_calibrated` | abs gap ≤ 10. Metacomprehension is functioning. | `calibration_gap_abs ≤ 10` |
+| `loose` | abs gap 11–20. Borderline; watch trend. | `10 < calibration_gap_abs ≤ 20` |
+| `over_confident` | abs gap > 20, predicted higher than actual. Illusion-of-understanding signal. | `calibration_gap_abs > 20` AND `score_prediction > actual_score` |
+| `under_confident` | abs gap > 20, predicted lower than actual. Imposter-signal candidate; surface as positive. | `calibration_gap_abs > 20` AND `score_prediction < actual_score` |
+| `unknown` | `score_prediction` or `actual_score` not captured (e.g., light-intensity light path; Step 2b skipped). | either score missing |
+
+The split between `chapter_complete` (= `learning_passed`) and `calibration_health` is the B1 reviewer-patch split: a chapter can be learning-passed and over-confident at the same time; conflating them into one gate hid the calibration signal. Down-stream: `over_confident` chapters get a 24-hr Step 2b retry on a fresh scenario *and* a `confirm_next_chapter: true` flag, but the chapter is no longer hard-blocked from `phase-3-complete`.
+
+### Backward compatibility
+
+Existing chapter notes (created before 2026-05-17) carry the pre-B1 single-gate `chapter_complete` definition (= SM AND abs_gap ≤ 20). They are **read-only under the new schema**: do not retroactively rewrite their frontmatter to add `learning_passed` / `calibration_health` / `confirm_next_chapter`. The lint script treats absence of B1 fields on a pre-B1 chapter note as expected, not as a violation. New chapter notes (Phase 3 runs after 2026-05-17) use the split schema.
 
 Health and meta:
 

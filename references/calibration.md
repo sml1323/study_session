@@ -122,13 +122,37 @@ abs_gap = |score_prediction_gap|
 
 When operating: if the user objects to the split (e.g., "my actual exam is 80% recall"), accept their override on a per-chapter basis and store as `actual_score_weights: { textbase: <int>, sm: <int> }` in the chapter note frontmatter. Do not treat the table as authoritative.
 
-| `abs_gap` | Diagnosis | Surfacing |
+| `abs_gap` | `calibration_health` | Surfacing |
 |---|---|---|
-| ≤ 10 | **Well-calibrated.** The user can predict their own performance within ±10pt; metacomprehension is functioning. | Surface as positive: "Predicted X, actual Y, gap Z — well-calibrated." |
-| 11-20 | Borderline. | Surface neutrally: "Predicted X, actual Y, gap Z — calibration is loose; watch the trend." |
-| > 20 | **Illusion signal.** The user's self-model of their learning is mis-tracking the chapter. | Surface and **recommend the chapter back to retrieval re-entry**: schedule a Step 2b retry on a fresh transfer scenario in 24 hr. See B1's `calibration_health` split below — large `abs_gap` is no longer a hard block on `chapter_complete`; it sets `confirm_next_chapter: true` and surfaces an over/under-confident health label. |
+| ≤ 10 | `well_calibrated` | Surface as positive: "Predicted X, actual Y, gap Z — well-calibrated." |
+| 11-20 | `loose` | Surface neutrally: "Predicted X, actual Y, gap Z — calibration is loose; watch the trend." |
+| > 20, predicted > actual | `over_confident` | Surface as illusion signal: "Predicted X, actual Y, gap Z — over-confident on this chapter. Recommended: 24-hr Step 2b retry on a fresh scenario; next session opening will confirm chapter advance before moving on." Set `confirm_next_chapter: true`. **Does not hard-block `chapter_complete`** (B1 split — see below). |
+| > 20, predicted < actual | `under_confident` | Surface as positive: "Predicted X, actual Y, gap Z — under-confident; you did better than you thought. Trend watch only." Set `confirm_next_chapter: true` (still flag for next-session confirmation since the gap is large). |
+| score missing | `unknown` | Step 2b skipped or score_prediction not captured. No gap diagnostic; `chapter_complete` falls back to `learning_passed` only. |
 
-*All three rows: evidence: operational-heuristic. The ≤10 / 11-20 / >20 partition is a first-cut chosen for actionability; Ratnayake 2023 names the ±10pt direction but does not publish the 11-20 vs >20 split.*
+*All rows: evidence: operational-heuristic. The ≤10 / 11-20 / >20 partition is a first-cut chosen for actionability; Ratnayake 2023 names the ±10pt direction but does not publish the 11-20 vs >20 split.*
+
+#### B1 split — `chapter_complete` vs `calibration_health`
+
+Before 2026-05-17, the gate read **`chapter_complete = (SM transfer ≥ threshold) AND (abs_gap ≤ 20)`**. The reviewer flagged that this conflates two distinct signals: *did the learning land* (SM transfer) and *can the user predict their own performance* (calibration). A learner can be **learning-passed and over-confident at the same time** — that pattern is informative on its own and should not be hidden behind a single gate that refuses to advance.
+
+The post-B1 gate:
+
+```
+learning_passed = (situation_model_transfer_score >= book_type_threshold)
+chapter_complete = learning_passed              # SM-only gate; calibration does not hard-block
+calibration_gap_abs = |score_prediction - actual_score|
+calibration_health = <enum based on gap + sign>   # see § state-schema.md
+confirm_next_chapter = (calibration_gap_abs > 30)  # softer signal; user prompt at next session open
+```
+
+What changes operationally:
+
+- A learning-passed chapter with `abs_gap` in 21–30 advances to `phase-3-complete` and `chapter_complete: true`, with `calibration_health: over_confident` (or `under_confident`) attached. Step 2b retry on a fresh scenario in 24 hr is *recommended* but no longer gating.
+- A learning-passed chapter with `abs_gap > 30` advances the same way, with `confirm_next_chapter: true` — at the next session open the skill asks the user to confirm the chapter advance before queueing the next chapter.
+- A learning-failed chapter (SM below gate) still stays at `phase-3-pending` regardless of `calibration_health`. The SM transfer gate is the learning signal; calibration health is the metacognition signal.
+
+The pre-B1 illusion-signal default — *block chapter_complete on abs_gap > 20* — was operationally based on the patch source caveat above; the B1 reviewer noted that no RCT supports a hard chapter-completion block on calibration miscalibration alone. The metacomprehension literature supports surfacing the miscalibration; the operational choice to use it as a hard advancement gate was the drift. *[evidence: operational-heuristic — the B1 split is itself operational; the rct-strong direction is "miscalibration is a real signal worth surfacing" (Karpicke; Yang 2023), not "block advancement on a specific abs_gap threshold."]*
 
 Capture:
 
@@ -324,13 +348,15 @@ If the user requests a re-read outside these conditions, surface once: "Re-readi
 
 ## What "complete" means
 
-A chapter is complete when:
+A chapter is complete (`chapter_complete: true` ≡ `learning_passed: true`) when:
 
 1. Phase 1 done (PKA, prediction, goal_question, expectations, misconceptions captured)
 2. Phase 2 done (chapter read; section-break prompts captured; ARQ/Polya invoked as applicable)
 3. Phase 3 done — confidence + textbase recall (Step 2a) + situation-model transfer (Step 2b) + gap + Feynman + self-test — **as opening of a later session, or as same-session opt-in with `now - phase_2_ended_at >= 30 min`**
 4. `situation_model_transfer_score` meets the book-type gate (see Pass threshold table above)
 5. Phase 4 transfer attempt logged (success / partial / failure / domain mismatch) — for problem-driven, this is also gating; for other types, advisory
+
+`calibration_health` is **tracked separately** from `chapter_complete` (B1 split — see § B1 split above). A learning-passed chapter can still be `over_confident` or `under_confident`; that surfaces as a recommended 24-hr Step 2b retry on a fresh scenario and a `confirm_next_chapter: true` flag at extreme gaps, but does not hard-block advancement.
 
 Anything less is `phase-X-pending`. Be explicit about state in `books.yml`:
 
@@ -363,14 +389,17 @@ arq:
   chapter_metrics:
     4:
       textbase_recall_coverage: 0.65          # Step 2a / 3
-      situation_model_transfer_score: 0.75    # Step 2b mean (gate field)
+      situation_model_transfer_score: 0.75    # Step 2b mean (learning_passed input)
       situation_model_transfer_questions_count: 2
+      learning_passed: true                   # SM >= book-type gate; B1 split
+      chapter_complete: true                  # = learning_passed (B1 split, 2026-05-17)
       confidence_self_report: 80              # Step 1 diffuse confidence (legacy)
-      score_prediction: 75                    # Step 1 behavioral forecast (gate input)
+      score_prediction: 75                    # Step 1 behavioral forecast
       actual_score: 70                        # composite: textbase*50 + SM*50
       score_prediction_gap: 5                 # Step 4a; |gap| ≤ 10 = well-calibrated
-      abs_gap: 5
-      calibration_diagnosis: well-calibrated
+      calibration_gap_abs: 5
+      calibration_health: well_calibrated     # well_calibrated | loose | over_confident | under_confident | unknown
+      confirm_next_chapter: false             # true when calibration_gap_abs > 30
       confidence_accuracy_gap: 5              # confidence - SM*100 (Step 4b, legacy)
       categorization_re_test:
         phase_1_grouping: surface
@@ -381,10 +410,9 @@ arq:
       avg_answer_length: 35
       transfer_attempt: success
       session_count: 2
-      chapter_complete: true                  # gated on situation_model_transfer_score AND abs_gap ≤ 20
       session_health:
         hint_abuse: false
-        illusion: false                       # set true if abs_gap > 20
+        illusion: false                       # set true when calibration_health == over_confident (post-B1)
         surface: false
         struggle_skip: false
         form_fatigue: false
@@ -404,7 +432,7 @@ Across multiple chapters, watch:
 | `textbase_recall_coverage` | should rise | propositional learning signal — what the chapters *said* is sticking |
 | `situation_model_transfer_score` | should rise | core learning signal — durable usable knowledge |
 | Gap between textbase and SM | should narrow over book | model integration improving (early chapters often have textbase ≫ SM; mature reading converges) |
-| **`abs_gap` (score_prediction)** | should narrow toward ≤10 | metacomprehension calibrating — user can predict own performance |
+| **`calibration_gap_abs` (score_prediction)** | should narrow toward ≤10 | metacomprehension calibrating — user can predict own performance. `calibration_health` should trend `over_confident`/`under_confident` → `loose` → `well_calibrated`. Legacy notes use `abs_gap`. |
 | Confidence-accuracy gap (vs SM, legacy) | should narrow toward 0 | diffuse-confidence calibration improving |
 | Categorization shift rate (surface→principle) | should rise across chapters | schema formation accumulating |
 | Avg hint level | should fall | dependency reducing |

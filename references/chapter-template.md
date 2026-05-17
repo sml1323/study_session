@@ -36,17 +36,19 @@ hint_levels: [0, 1, 1, 2, 0]   # one entry per help moment
 avg_hint_level: 0.8
 avg_answer_length: 35           # words
 
-# Phase 3 metrics (populated after calibrate; textbase and situation model are scored separately)
+# Phase 3 metrics (populated after calibrate; textbase, situation model, learning_passed and calibration_health are scored separately — B1 split, 2026-05-17)
 textbase_recall_coverage: 0.65            # 0-1, Step 2a/3 scoring — what the chapter said (advisory)
-situation_model_transfer_score: 0.75      # 0-1, mean of Step 2b transfer questions — gate for chapter_complete
+situation_model_transfer_score: 0.75      # 0-1, mean of Step 2b transfer questions
 situation_model_transfer_questions_count: 2  # number of Step 2b questions asked (0 if skipped)
-chapter_complete: true                    # gated on situation_model_transfer_score AND abs_gap ≤ 20
+learning_passed: true                     # situation_model_transfer_score >= book-type gate; THE chapter_complete signal
+chapter_complete: true                    # = learning_passed (B1: calibration health no longer hard-blocks this)
 confidence_self_report: 80                # 0-100, Step 1 diffuse confidence (legacy)
 score_prediction: 75                      # 0-100, Step 1 behavioral exam-score forecast — captured BEFORE recall
 actual_score: 70                          # composite: textbase_recall_coverage*50 + situation_model_transfer_score*50
 score_prediction_gap: 5                   # Step 4a, signed (prediction − actual)
-abs_gap: 5                                # |score_prediction_gap|; ≤10 well-calibrated, 11-20 borderline, >20 illusion
-calibration_diagnosis: well-calibrated    # well-calibrated | borderline | illusion
+calibration_gap_abs: 5                    # |score_prediction_gap|; drives calibration_health enum below
+calibration_health: well_calibrated       # well_calibrated | loose | over_confident | under_confident | unknown
+confirm_next_chapter: false               # true when calibration_gap_abs > 30 → next session prompts user before chapter advance
 confidence_accuracy_gap: 5                # confidence_self_report - SM*100 (Step 4b, legacy gap kept for trend)
 categorization_re_test:                   # populated when Phase 1 ran the Mason-Singh micro-task
   phase_1_grouping: surface               # surface | mixed | principle
@@ -120,9 +122,10 @@ self_diagnostic:
   diagnosis: above_band                   # below_band | in_band | above_band
   computed_at: 2026-05-30
 
-# Exam-wrapper trace (auto-appended every chapter; ritual not optional — Hodges 2020, Ratnayake 2023)
+# Exam-wrapper trace (auto-appended every chapter — Hodges 2020, Ratnayake 2023)
 exam_wrapper_trace:
-  abs_gap: 5
+  calibration_gap_abs: 5                  # post-B1 field name; legacy notes used `abs_gap`
+  calibration_health: well_calibrated     # post-B1; mirrors the top-level field
   hint_levels_summary: { max: 2, avg: 0.8, level_4_count: 0 }
   active_review_attempts: 4               # closed-book recall + transfer attempts during the chapter
   transfer_attempt_result: success
@@ -345,10 +348,12 @@ ai_use_log:
 - `situation_model_transfer_score`: 0.75 (mean of Step 2b)
 
 ### Calibration gaps
-- **Score-prediction gap (gate)**: predicted 75, actual 70, abs_gap 5 → well-calibrated (≤10)
+- **Learning gate (`learning_passed`)**: `situation_model_transfer_score` 0.75 ≥ 0.70 book-type threshold → **chapter_complete: true**
+- **Score-prediction gap**: predicted 75, actual 70, `calibration_gap_abs` 5 → `calibration_health: well_calibrated` (≤ 10)
+- `confirm_next_chapter`: false (gap ≤ 30)
 - Confidence-accuracy gap (legacy): 80 − 75 = 5
 - Categorization shift (Phase 1 → Phase 3): surface → principle ✓ (schema-formation signal)
-- Cross-chapter trend (last 4 chapters' abs_gap): 22 → 14 → 8 → 5 (improving)
+- Cross-chapter trend (last 4 chapters' `calibration_gap_abs`): 22 → 14 → 8 → 5 (improving)
 
 ### IOED counter (R11 v4 — only when ai_use_log is non-empty)
 Per `references/ai-policy.md` § "IOED counter gate". Step 2b runs twice on the same transfer question:
@@ -437,9 +442,13 @@ When compose mode runs (end of session or end of phase):
    - `avg_hint_level` from `hint_levels`
    - `avg_answer_length` from session response lengths
    - `actual_score` from `textbase_recall_coverage * w_t + situation_model_transfer_score * w_s` (R10 v3; weights per book type or user override)
-   - `score_prediction_gap`, `abs_gap`, `calibration_diagnosis` from Step 1 + Step 4a
+   - `learning_passed` = `situation_model_transfer_score` ≥ book-type SM gate
+   - `chapter_complete` = `learning_passed` (B1 split, 2026-05-17)
+   - `score_prediction_gap`, `calibration_gap_abs` from Step 1 + Step 4a
+   - `calibration_health` enum from `calibration_gap_abs` + sign of `score_prediction_gap` (see `references/state-schema.md § calibration_health enum`)
+   - `confirm_next_chapter` = `calibration_gap_abs > 30`
    - `confidence_accuracy_gap` from `confidence_self_report` + SM transfer (legacy trend)
-   - `session_health.illusion` ← true if `abs_gap > 20`
+   - `session_health.illusion` ← true if `calibration_health` is `over_confident` (post-B1; legacy notes used `abs_gap > 20`)
    - `session_health.*` other flags from detection rules in `references/failure-modes.md`
    - `daily_floor.status` from `retrievals_executed` (behavior-counted) vs `target_distinct_days` × `retrievals_per_day_min`
    - `exam_wrapper_trace` block (always — ritual, not optional; Hodges 2020 dose-response)

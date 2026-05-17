@@ -132,7 +132,7 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
     Step 2a — textbase recall (decisive for textbase score):
       ask user to write a 1-page summary without looking
       capture as textbase_recall
-    Step 2b — situation-model transfer (gate for chapter_complete):
+    Step 2b — situation-model transfer (drives learning_passed):
       generate 1-2 transfer questions tailored to book type
         (templates in references/calibration.md § "Step 2b: situation-model transfer")
       ask user to answer without looking
@@ -140,13 +140,17 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
     Step 3 — gap_calibration:
       open chapter; score textbase_recall_coverage and situation_model_transfer_score separately
       see references/calibration.md § "Coverage Rubrics"
-    Step 4 — confidence_accuracy_gap:
-      compute confidence - (situation_model_transfer_score * 100)
+    Step 4 — calibration gaps (B1 split, 2026-05-17):
+      compute calibration_gap_abs = |score_prediction - actual_score|
+      compute calibration_health enum from gap + sign (over_confident / under_confident / loose / well_calibrated / unknown)
+      compute confidence_accuracy_gap = confidence - (SM * 100)    # legacy trend
     Step 5 — feynman_explain
     Step 6 — concept_map_build (optional but recommended)
     Step 7 — self_test_generate (3 questions + answers)
-    set chapter_complete based on situation_model_transfer_score gate (book-type table in calibration.md)
-    log textbase + SM separately to chapter note Phase 3 section
+    set learning_passed = (situation_model_transfer_score >= book-type gate)
+    set chapter_complete = learning_passed                            # B1: calibration health no longer hard-blocks
+    set confirm_next_chapter = (calibration_gap_abs > 30)
+    log textbase + SM + calibration_health separately to chapter note Phase 3 section
 
   APPLY (optional sub-step at session end — skip if user is out of time):
     prompt for one transfer attempt (different domain or example)
@@ -172,4 +176,4 @@ If the user says "skip Phase 3, I already understand it", explain (briefly, once
 
 ## Why textbase and situation-model are scored separately
 
-A reader can have a strong textbase (can reproduce what the chapter said) and a weak situation model (cannot apply it to a new case), or the reverse — both patterns are documented (Kintsch construction-integration model). Scoring only one signal makes the dissociation invisible. The skill scores both and gates `chapter_complete` on the situation model because durable usable learning lives there. See `references/calibration.md` for the full rubrics and book-type thresholds.
+A reader can have a strong textbase (can reproduce what the chapter said) and a weak situation model (cannot apply it to a new case), or the reverse — both patterns are documented (Kintsch construction-integration model). Scoring only one signal makes the dissociation invisible. The skill scores both and gates `learning_passed` (≡ `chapter_complete`, post-B1) on the situation model because durable usable learning lives there. Calibration health is tracked separately as a metacognition signal that does not hard-block advancement. See `references/calibration.md` for the full rubrics, book-type thresholds, and the B1 split rationale.
