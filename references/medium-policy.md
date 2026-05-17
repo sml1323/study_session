@@ -1,5 +1,7 @@
 # Medium Policy — 4-axis decision tree + 4-cell pagination × device-class matrix
 
+Evidence labels: see `references/evidence-labels.md`. The Clinton-Lisell 2025 effect sizes (g 0.03–0.12 paginated, 0.35–0.48 scrolling) and Frontiers 2025 distraction g = −0.64 are `rct-strong` / `observational`; the cell labels (recommended / allowed-with-caveat / triage-only) are `operational-heuristic`.
+
 When invoked: at plan phase, decide what reading medium the user should default to for this chapter. Medium effects on comprehension are real but not "screen bad" simple — the variance is captured by 4 axes, and the decision-tree below makes the right tradeoff visible.
 
 The R10 v3 patch (and earlier rounds) framed medium choice as a 4-axis decision. The R11 v4 patch sharpens this: Clinton-Lisell & Litzinger 2025 (network meta n=56 / 79 effect sizes) localizes the screen-vs-paper effect to **scrolling specifically**, with paginated digital reading dropping to g = 0.03–0.12 vs paper (no reliable difference). Frontiers 2025 distractions meta (n=32 studies / 124 experiments) shows distraction interference is medium-invariant once a distractor is present (Hedges' g = −0.64) — the e-ink advantage is upstream from display physics, in **distraction availability**. The v4 reframing is therefore: collapse the messy device taxonomy into a **2-axis (pagination_mode × device_class) 4-cell matrix** and surface the cell label (recommended / allowed / triage-only) at plan time.
@@ -25,7 +27,7 @@ A medium choice is a 4-coordinate, not a binary:
 
 4. **Pacing**
    - **Self-paced / time-loose**: medium effect smaller
-   - **Time-pressured (exam prep, deadline, "I have to finish this today")**: medium effect amplified ~3× in current evidence; if screen reading is unavoidable, force closed-book recall every page or every chunk and treat self-reported understanding as systematically over-estimated
+   - **Time-pressured (exam prep, deadline, "I have to finish this today")**: medium effect amplified ~3× in current evidence; if screen reading is unavoidable, force closed-book recall every page or every chunk and treat self-reported understanding as systematically over-estimated *[evidence: operational-heuristic — the "3× amplification" is a directional summary of Clinton-Lisell 2025 sub-analyses; the specific multiplier is not a clean threshold.]*
 
 ## The decision tree
 
@@ -46,7 +48,9 @@ The decision-tree above is still correct; this matrix is the v4 simplification t
 | | **single-purpose device** (Kindle, reMarkable, Supernote, Boox-strict, paper book) | **multi-purpose device** (laptop with apps, tablet with apps, phone, Boox-with-apps installed) |
 |---|---|---|
 | **paginated** | **RECOMMENDED** for high-stakes long-form. Within ~0.03–0.12 SD of paper (Clinton-Lisell 2025 network meta, scrolling-removed condition). Distraction-availability also blocked (Frontiers 2025 upstream mechanism). | **ALLOWED with caveat**. Pagination preserves comprehension; distraction-availability survives. Surface to user: "close other tabs / put phone away for the chunk." Activate `force_chunk_boundary_recall: true`. |
-| **scrolling** | **ALLOWED with caveat**. Scrolling is the dominant interface-side culprit but single-purpose blocks distraction. Useful for narrative or low-stakes chapters where scrolling is unavoidable (e.g., a Kindle PDF that doesn't paginate well). Activate `force_chunk_boundary_recall: true`. | **TRIAGE-ONLY**. paper-vs-digital effect ~0.35–0.48 SD (Clinton-Lisell 2025 scrolling condition) AND distraction availability uncapped. Use only for orientation / search / preview; switch medium before deep-reading entry. Block deep-mode chunk start until medium changes; offer reMarkable / Kindle / paper / paginated PDF as alternatives. |
+| **scrolling** | **ALLOWED with caveat**. Scrolling is the dominant interface-side culprit but single-purpose blocks distraction. Useful for narrative or low-stakes chapters where scrolling is unavoidable (e.g., a Kindle PDF that doesn't paginate well). Activate `force_chunk_boundary_recall: true`. | **TRIAGE-ONLY recommendation**. paper-vs-digital effect ~0.35–0.48 SD (Clinton-Lisell 2025 scrolling condition) AND distraction availability uncapped. Recommended use: orientation / search / preview only, with user-encouraged medium switch before deep-reading entry. User can override and continue on this cell; if they do, log `medium_recommendation_overridden: true` and force chunk-boundary recall. |
+
+*All four cells: evidence labels mixed. The effect sizes (0.03–0.12 paginated; 0.35–0.48 scrolling) are rct-strong from Clinton-Lisell 2025 network meta. The cell labels themselves (RECOMMENDED / ALLOWED / TRIAGE-ONLY) are operational-heuristic — the cutoffs between cells reflect the skill's risk tolerance, not a published threshold.*
 
 Capture both axes into chapter note frontmatter (`medium.pagination_mode`, `medium.device_class`). The **cell label** itself (recommended / allowed-with-caveat / triage-only) goes into `medium.recommendation` so the long-term `medium_used × actual_score` cross-tab can be computed by compose mode.
 

@@ -1,4 +1,5 @@
 # Refutation Text — Conceptual Chapter Sub-routine
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: a chapter classified `conceptual` (any sub-genre — physics, biology, social science, philosophy of science, etc.) where the topic plausibly carries widespread misconceptions in its audience. The sub-routine generates the misconception → correction structure as a learning activity, even when the chapter itself is written in plain expository style. Strong evidence base across science, math, and social-science topics; persists at 1-month delay.
 

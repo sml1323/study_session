@@ -1,4 +1,5 @@
 # Hint Escalation — Event-Based, Not Time-Based
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: every help moment in tutor mode. The level (0-4) chosen, the trigger that authorized escalation, and the user's response to the hint are all logged. This file is the canonical specification of *when* a hint is allowed and *how* the next escalation gates open.
 

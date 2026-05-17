@@ -1,12 +1,14 @@
 # Math / Proof-Heavy Text Reading — Micro-Task Protocol
 
+Evidence labels: see `references/evidence-labels.md`. Panse 2018 (eye-tracking) is `observational`; Lohmeyer & Meboldt 2015 two-pass is `observational`; Tao 7 moves is `operational-heuristic` (essay-based, no RCT); the Sinha & Kapur 2021 PF 6-condition list is `placeholder` (reconstructed, not verbatim).
+
 When invoked: chapter is from a university math, physics, or engineering text where the load-bearing content is **proofs, derivations, or formal definitions** rather than expository prose. Examples: Spivak *Calculus* main text (proofs, not just exercises), Rudin, Griffiths derivations, EE/CS textbook chapters with circuit/signal-flow analysis, theoretical chapters in formal CS texts.
 
 The failure mode this protocol is built against: **prose-skip**. Confronted with a page that is half symbols and half short prose, novices skim the prose. Skim mode preserves a feeling of progress without producing comprehension of the proof structure or the role each line plays. The replacement is not "read more carefully" (that label does not change behavior) but a small set of **concrete micro-tasks** that force the eye to do specific work on each load-bearing line.
 
 ## Why abstract mode labels do not work
 
-The intuitive instruction "read this in validation mode, not comprehension mode" sounds reasonable but does not change reader behavior in practice (Panse, Alcock & Inglis 2018 eye-tracking study of mathematicians and undergraduates). Telling a reader to switch reading mode produces compliance language without behavioral change. What does change behavior is concrete, line-level micro-tasks the reader has to *do* — not modes they are supposed to *be in*.
+The intuitive instruction "read this in validation mode, not comprehension mode" sounds reasonable but does not change reader behavior in practice (Panse, Alcock & Inglis 2018 eye-tracking study of mathematicians and undergraduates). Telling a reader to switch reading mode produces compliance language without behavioral change. What does change behavior is concrete, line-level micro-tasks the reader has to *do* — not modes they are supposed to *be in*. *[evidence: observational — Panse, Alcock & Inglis 2018 is eye-tracking observational, not RCT; the "mode label doesn't change behavior" claim is well-aligned with the data they report.]*
 
 **Banned**:
 - "Read this proof in validation mode."
@@ -48,7 +50,7 @@ proof_micro_tasks:
 
 ## Two-pass rule for engineering / scientific diagrams
 
-Engineering diagrams (circuit schematics, P&ID, signal-flow graphs, free-body diagrams, mechanical drawings) reward a different protocol than text-only proofs. Lohmeyer & Meboldt 2015 (mechanical-engineering eye-tracking) finds that successful readers do **two passes**, never one:
+Engineering diagrams (circuit schematics, P&ID, signal-flow graphs, free-body diagrams, mechanical drawings) reward a different protocol than text-only proofs. Lohmeyer & Meboldt 2015 (mechanical-engineering eye-tracking) finds that successful readers do **two passes**, never one: *[evidence: observational — Lohmeyer & Meboldt 2015 is eye-tracking observational on engineering students; the "two-pass" pattern is the load-bearing finding.]*
 
 | Pass | Time budget | Goal |
 |---|---|---|
@@ -109,11 +111,11 @@ tao_moves:
     outcome: "specialized to dim 2; saw the symmetry; re-read general"
 ```
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11)**: the 7 moves are direct citations from Tao 2017. The pick-1-2-per-event rule and the "stop-compile" hardcoded trigger are **operational placeholders** chosen to make the protocol actionable; Tao's original essay does not enumerate per-event move counts. Replace with R12-validated structure if RCT becomes available.
+> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11)**: the 7 moves are direct citations from Tao 2017. The pick-1-2-per-event rule and the "stop-compile" hardcoded trigger are **operational placeholders** chosen to make the protocol actionable; Tao's original essay does not enumerate per-event move counts. Replace with R12-validated structure if RCT becomes available. *[evidence: operational-heuristic — Tao 2017 is the source for the 7 moves; the pick-1-2-per-event cap and stop-compile trigger are operational.]*
 
 ## Diagram-purpose tracking (Kohl & Finkelstein 2006)
 
-When the user *draws* a diagram (during problem solving, derivation, or note-taking), the diagram serves one of two purposes; the user must label which:
+When the user *draws* a diagram (during problem solving, derivation, or note-taking), the diagram serves one of two purposes; the user labels which (default behavior; user may decline the label). *[evidence: observational — Kohl & Finkelstein 2006 physics-education study on plan vs verify diagram use; the "purpose density is the signal" framing is operational.]*
 
 | Purpose | When | What it captures |
 |---|---|---|
@@ -130,7 +132,7 @@ After computation, if the user did not redraw, prompt:
 
 Productive failure (Sinha & Kapur 2021) — letting the user struggle on a problem before any scaffold — is a real effect, but it is not a default.
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) requires "성인 학습자 + 개념 문제 + 6 충실도 조건 충족 가능 → PF 모드", but does NOT enumerate the specific 6 fidelity conditions.** The list below is an operational placeholder reconstructed from typical Sinha & Kapur 2021 protocol descriptions; the exact six items in the source patch are unverified. Treat as a checklist to discuss with the user, not as canon. Replace with the verified list when R11 nails them down.
+> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) requires "성인 학습자 + 개념 문제 + 6 충실도 조건 충족 가능 → PF 모드", but does NOT enumerate the specific 6 fidelity conditions.** The list below is an operational placeholder reconstructed from typical Sinha & Kapur 2021 protocol descriptions; the exact six items in the source patch are unverified. Treat as a checklist to discuss with the user, not as canon. Replace with the verified list when R11 nails them down. *[evidence: placeholder — Sinha & Kapur 2021 review is observational on PF; the specific 6 conditions are reconstructed and not citation-verified.]*
 
 Activate PF mode only when the conditions below all hold (placeholder list):
 

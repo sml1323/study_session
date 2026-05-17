@@ -1,4 +1,5 @@
 # Argument Reading — Argument-driven Chapter Sub-routine (5-step)
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: a chapter classified `argument-driven`, or a conceptual chapter on a politically/identity-laden topic where refutation-text would risk backfire. The sub-routine is a 5-step protocol designed to engage the chapter's argument as an argument (not as content to summarize), and to do it in the specific way that distinguishes top-tier critical readers from the median: structure first, then map, then dialogic engagement, then targeted re-reading. Plain repeated reading does not improve argument comprehension; structure-aware reading does.
 

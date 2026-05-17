@@ -1,4 +1,5 @@
 # Note-Taking Policy — Refusal List, Reframe Map, Recommended Set
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: the user mentions a popular note-taking system, asks "should I use [system]?", or describes a workflow built around one. This policy file defines what the skill **refuses to recommend**, **how to reframe** when the user is already using a refused system, and **what the skill recommends instead**.
 

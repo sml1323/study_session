@@ -1,4 +1,5 @@
 # Polya — Four-Step Problem Solving + Schoenfeld Metacognition
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter contains a problem to solve; user pastes an exercise; problem-driven book type runs Polya as the primary loop. Methodology books that teach Polya (Polya itself) use it during Phase 4 application.
 

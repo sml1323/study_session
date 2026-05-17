@@ -1,4 +1,5 @@
 # The PDP Master Loop — Detailed Pseudocode
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The pseudocode for the Pre-During-Post learning cycle. SKILL.md carries the spine (the 4 modes table + decision rules); this file carries the executable detail.
 

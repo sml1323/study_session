@@ -1,4 +1,5 @@
 # Annotation Typology — PIMEQ + Order + Conversion
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 Highlighting alone — selecting passages without an accompanying generative move — does not improve comprehension on standardized testing. The signal that *does* predict learning is the *constructive* move that follows the highlight: a margin question, a paraphrase, an objection, an inferred connection. This file specifies the typology, the order, and the chapter-end conversion contract.
 

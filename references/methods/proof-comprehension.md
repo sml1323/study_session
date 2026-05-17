@@ -1,4 +1,5 @@
 # Proof Comprehension — Math Chapter Sub-routine (7-facet)
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: a chapter contains one or more proofs. The sub-routine spec is from Mejía-Ramos et al.'s 7-facet model of mathematical proof comprehension, which decomposes "did you understand this proof?" into 3 local facets (line-by-line) and 4 holistic facets (whole-proof). Reading a proof differently from reading prose is the point: prose is read for content, a proof is read for *warrant verification* (each line must be checked against the line above).
 

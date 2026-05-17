@@ -1,4 +1,5 @@
 # ARQ — Browne & Keeley Critical Questions Method
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter contains a non-trivial argument; user wants to break down a paper, op-ed, or claim. Argument-driven book type uses ARQ as primary method during Phase 2 of the PDP cycle.
 

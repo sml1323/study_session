@@ -1,4 +1,5 @@
 # Section-Level Chapter Tracking
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The chapter is the *unit of completion*, but its interior is a sequence of sections. Tracking only `current_chapter` lets the skill mistakenly recommend "next chapter" when six conceptual sections of the current one are still unread. This file specifies how the skill records, advances, and gates on section state.
 

@@ -1,4 +1,5 @@
 # Chapter Note Template
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The chapter note is the *byproduct* of the session, auto-filled by the compose mode from session traces. The user does not face a blank form — the skill captures answers during the session and writes them out.
 

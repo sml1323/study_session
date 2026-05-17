@@ -1,4 +1,5 @@
 # Setup — First Run and Bootstrap
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 Run on the first invocation of the skill, when `~/study-journal/` does not exist or is incomplete.
 

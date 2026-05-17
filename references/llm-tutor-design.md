@@ -1,4 +1,5 @@
 # LLM Tutor Design — Dialogue Patterns and Move Specifications
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 How the skill should *speak* to the user during a session. Drawn from VanLehn 2011 (interaction granularity), Graesser AutoTutor (Expectation-Misconception-Tailored dialogue), Wang 2024 Tutor CoPilot (which dialogue moves correlate with outcomes), and Kestin 2025 Harvard physics RCT (engineered prompts hit ITS-level effect).
 

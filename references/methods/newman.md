@@ -1,4 +1,5 @@
 # Newman Error Analysis — 5-Stage Walk-Back
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: user gets a problem wrong. Walk back through 5 stages in reverse to identify which stage broke. Diagnosis informs which sub-skill needs work.
 

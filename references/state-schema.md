@@ -1,4 +1,5 @@
 # State Schema — Single Source of Truth
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 This file is the **canonical SOT** for chapter status values and frontmatter fields used by `books.yml` and chapter notes. Any other reference, fixture, or eval must conform to this enum. The lint script `scripts/lint_state.py` enforces it.
 

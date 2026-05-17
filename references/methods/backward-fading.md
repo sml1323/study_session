@@ -1,4 +1,5 @@
 # Backward Fading — Completion Problems After Worked Examples
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: the user just studied a worked example (or the chapter just presented one) and asks for "비슷한 문제 줘" / "another one to practice" / "더 풀어볼 문제". This is the moment that decides whether the worked example produces a transferable schema or a fluency illusion.
 

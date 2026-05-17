@@ -1,4 +1,5 @@
 # Failure Modes — Detection and Mitigation
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 LLM tutoring can make learning *worse* than no tutor. Bastani 2025 PNAS: vanilla GPT chat tutoring produced **−17%** on closed-book transfer tests vs control. Engineered (guardrailed, step-decomposed) tutors hit ITS-level d=0.73. The difference is the patterns documented here.
 

@@ -1,10 +1,12 @@
 # Calibration — Phase 3 Mechanics
 
-Phase 3 is the **measurement step**. Without it, learning is invisible and self-report substitutes for evidence — and self-reports of understanding are systematically miscalibrated against delayed recall. The skill should not mark a chapter complete without Phase 3. [exact citation pending — the previously cited "Yang 2023, r=0.18" was not externally verifiable; replace with a verified metacomprehension source before next major release.]
+Evidence labels: see `references/evidence-labels.md`. Hard-rule citation gate is defined there — thresholds tagged `operational-heuristic` / `placeholder` below are guidelines, not hard gates, when cited from SKILL.md.
+
+Phase 3 is the **measurement step**. Without it, learning is invisible and self-report substitutes for evidence — and self-reports of understanding are systematically miscalibrated against delayed recall. The skill should not mark a chapter complete without Phase 3. [evidence: placeholder — exact citation pending; the previously cited "Yang 2023, r=0.18" was not externally verifiable; replace with a verified metacomprehension source before next major release.]
 
 ## The delay: cross-session by default
 
-Karpicke & Blunt 2011 (Science) compared retrieval practice vs concept mapping. Retrieval won by ~50% on a *delayed* test, but on an *immediate* test the gap was much smaller. The delay is what creates the calibration mechanism.
+Karpicke & Blunt 2011 (Science) compared retrieval practice vs concept mapping. Retrieval won by ~50% on a *delayed* test, but on an *immediate* test the gap was much smaller. The delay is what creates the calibration mechanism. *[evidence: rct-strong — Karpicke & Blunt 2011, Science]*
 
 **Mechanically**: immediate post-reading recall reads from working memory, which is still primed. Delayed recall reads from durable encoding. The two answer different questions:
 - Immediate recall = "did you encode the surface?"
@@ -14,9 +16,9 @@ For learning, only the second matters.
 
 **The skill's default**: calibrate runs as the *opening of the next session*, not the tail of the current one. The cross-session gap (hours at minimum, often overnight) is well above the 30-minute floor and is closer to what Karpicke & Blunt 2011 actually measured. This also doubles as `prior_chapter_recall` — the same act covers measurement of Phase 2 *and* spaced retrieval warmup for the new session.
 
-**Same-session calibrate is opt-in only.** The skill checks `phase_2_ended_at` and refuses if `now - phase_2_ended_at < 30 minutes`. The 30-minute floor is the absolute minimum; a real cross-session break (next day) is preferable. Same-session use is opt-in because immediate Phase 3 defeats the purpose: it measures recall from the same encoding pass as Phase 2, not the durable version. Log the run with `calibrate_same_session: true` so the path's usage and outcomes can be reviewed later.
+**Same-session calibrate is opt-in only.** The skill checks `phase_2_ended_at` and refuses if `now - phase_2_ended_at < 30 minutes`. The 30-minute floor is the absolute minimum; a real cross-session break (next day) is preferable. Same-session use is opt-in because immediate Phase 3 defeats the purpose: it measures recall from the same encoding pass as Phase 2, not the durable version. Log the run with `calibrate_same_session: true` so the path's usage and outcomes can be reviewed later. *[evidence: operational-heuristic — the 30-min number is a working-memory contamination floor chosen for actionability; no RCT validates this specific cutoff. The qualitative direction (immediate ≠ delayed) is rct-strong (Karpicke & Blunt 2011).]*
 
-**Stale calibrate (5+ days)**: if `phase_2_ended_at` is older than ~5 days, the chapter has aged out of the calibrate window. Coverage at that point measures long-term retention rather than Phase 2 encoding quality, and comparison to expectations is contaminated by general decay. Downgrade to a 3-question retrieval quiz instead of running the full Phase 3 sequence; log `phase_3_downgraded_to_quiz: true`. Quiz results feed the spaced retrieval log, not the Phase 3 metrics. The user can still request a full Phase 3 explicitly — just don't run one by default at that age.
+**Stale calibrate (5+ days)**: if `phase_2_ended_at` is older than ~5 days, the chapter has aged out of the calibrate window. Coverage at that point measures long-term retention rather than Phase 2 encoding quality, and comparison to expectations is contaminated by general decay. Downgrade to a 3-question retrieval quiz instead of running the full Phase 3 sequence; log `phase_3_downgraded_to_quiz: true`. Quiz results feed the spaced retrieval log, not the Phase 3 metrics. The user can still request a full Phase 3 explicitly — just don't run one by default at that age. *[evidence: operational-heuristic — the 5-day boundary is a first-cut. Forgetting-curve work (Ebbinghaus 1885; modern Cepeda et al. 2008) supports that retention varies steeply with delay, but the specific 5-day cutoff between "Phase 2 encoding quality" and "long-term retention" is operational, not RCT-derived.]*
 
 ## The Phase 3 sequence
 
@@ -38,7 +40,7 @@ Capture as `score_prediction: <int>`.
 
 Both must come before recall — after is contaminated by the recall attempt itself. The two are not redundant: `confidence_self_report` is a diffuse self-rating (Dunning-Kruger-prone); `score_prediction` is a concrete behavioral forecast that grounds the calibration loop. The score_prediction is the one used in the **±10pt calibration gate** below.
 
-Why score_prediction beats raw confidence (Ratnayake 2023): asking "how confident are you" elicits an affective rating; asking "what score would you get" elicits a behavioral forecast that the user must reason about against a specific imagined task. The two diverge enough that capturing both reveals miscalibration patterns the single-confidence prompt misses.
+Why score_prediction beats raw confidence (Ratnayake 2023): asking "how confident are you" elicits an affective rating; asking "what score would you get" elicits a behavioral forecast that the user must reason about against a specific imagined task. The two diverge enough that capturing both reveals miscalibration patterns the single-confidence prompt misses. *[evidence: observational — Ratnayake 2023 reports the affective-vs-behavioral distinction; the specific "±10pt gate" cutoff is operational (see Step 4a caveat below).]*
 
 ### Step 2a: textbase recall
 
@@ -105,7 +107,7 @@ score_prediction_gap = score_prediction - actual_score                          
 abs_gap = |score_prediction_gap|
 ```
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the ±10pt calibration gate (Ratnayake 2023) but does NOT specify how to compute `actual_score` from textbase + SM scores.** The composite weighting below is a conservative first-cut, not RCT-validated. Per-book-type splits await R11.
+> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the ±10pt calibration gate (Ratnayake 2023) but does NOT specify how to compute `actual_score` from textbase + SM scores.** The composite weighting below is a conservative first-cut, not RCT-validated. Per-book-type splits await R11. *[evidence: operational-heuristic — w_t/w_s table is operational; ±10pt gate name from Ratnayake 2023 is observational.]*
 
 | Book type | `w_t` (textbase weight) | `w_s` (SM weight) | Rationale (placeholder) |
 |---|---|---|---|
@@ -116,13 +118,17 @@ abs_gap = |score_prediction_gap|
 | math-proof-heavy | 30 | 70 | exam dominantly tests proof transfer |
 | reference | n/a | n/a | PDP not enforced |
 
+*All rows above: evidence: operational-heuristic. Replace per-book-type split with user override when they object; do not treat as authoritative.*
+
 When operating: if the user objects to the split (e.g., "my actual exam is 80% recall"), accept their override on a per-chapter basis and store as `actual_score_weights: { textbase: <int>, sm: <int> }` in the chapter note frontmatter. Do not treat the table as authoritative.
 
 | `abs_gap` | Diagnosis | Surfacing |
 |---|---|---|
 | ≤ 10 | **Well-calibrated.** The user can predict their own performance within ±10pt; metacomprehension is functioning. | Surface as positive: "Predicted X, actual Y, gap Z — well-calibrated." |
 | 11-20 | Borderline. | Surface neutrally: "Predicted X, actual Y, gap Z — calibration is loose; watch the trend." |
-| > 20 | **Illusion signal.** The user's self-model of their learning is mis-tracking the chapter. | Surface and **route the chapter back to retrieval re-entry**: schedule a Step 2b retry on a fresh transfer scenario in 24 hr; do not promote to `chapter_complete` even if `situation_model_transfer_score` met the gate. The illusion is the durable problem; closing the chapter on a hot pass would freeze the miscalibration. |
+| > 20 | **Illusion signal.** The user's self-model of their learning is mis-tracking the chapter. | Surface and **recommend the chapter back to retrieval re-entry**: schedule a Step 2b retry on a fresh transfer scenario in 24 hr. See B1's `calibration_health` split below — large `abs_gap` is no longer a hard block on `chapter_complete`; it sets `confirm_next_chapter: true` and surfaces an over/under-confident health label. |
+
+*All three rows: evidence: operational-heuristic. The ≤10 / 11-20 / >20 partition is a first-cut chosen for actionability; Ratnayake 2023 names the ±10pt direction but does not publish the 11-20 vs >20 split.*
 
 Capture:
 
@@ -145,6 +151,8 @@ Compute against situation-model transfer (the gate), not textbase. Retained beca
 
 If `confidence_accuracy_gap > 30`: flag illusion signal in `session_health.illusion`.
 If `confidence_accuracy_gap < -20` (under-confident): surface as positive — usually means user is calibrating well or has imposter signal.
+
+*[evidence: operational-heuristic — the >30 and <-20 thresholds are first-cut; the legacy gap is retained for trend, not as a primary gate.]*
 
 #### Step 4c — calibration accuracy trend (cross-chapter)
 
@@ -182,7 +190,7 @@ Capture as `feynman_explanation: <text>`.
 
 > "Sketch a concept map: nodes for the main ideas, edges for relationships. Include at least one link to a concept from a prior chapter."
 
-User outputs ASCII/mermaid/text-described. Skill does not generate the map (Nesbit & Adesope: g=0.82 for *constructed*, g=0.37 for *consumed*).
+User outputs ASCII/mermaid/text-described. Skill does not generate the map (Nesbit & Adesope: g=0.82 for *constructed*, g=0.37 for *consumed*). *[evidence: observational — Nesbit & Adesope 2006 meta-analysis effect sizes; not a single RCT but converged across studies.]*
 
 ### Step 6b: categorization_re_test (when applicable)
 
@@ -204,7 +212,7 @@ categorization_re_test:
   notes: "Phase 1 grouped by 'pulley vs spring vs incline'; Phase 3 grouped by 'energy conservation vs force balance vs combined'."
 ```
 
-A surface→principle shift is strong schema-formation evidence; if `phase_3_grouping` is still surface, the chapter has not produced the schema the chapter intended, regardless of what the recall coverage looks like. Surface this in addition to the score_prediction_gap.
+A surface→principle shift is strong schema-formation evidence; if `phase_3_grouping` is still surface, the chapter has not produced the schema the chapter intended, regardless of what the recall coverage looks like. Surface this in addition to the score_prediction_gap. *[evidence: observational — Mason & Singh 2016 (and the Chi 1981 surface→principle physics-problem-categorization tradition) report the surface→principle shift as a schema-formation signal; not a single RCT with this exact protocol.]*
 
 If Phase 1 did not run categorization (e.g., on a pure argument-driven chapter where the move does not apply), skip this step. Do not retroactively invent a Phase 1 categorization at Phase 3 time.
 
@@ -267,6 +275,8 @@ Round to the nearest 0.25; half-steps (0.6, 0.85) are allowed when the recall st
 | argument-driven | ≥ 0.5 | ≥ 0.7 | steelman of opposing view logged (see `failure-modes.md` Failure 6) |
 | problem-driven | ≥ 0.4 | ≥ 0.7 | one transfer-problem attempt logged in Phase 4 |
 | reference | n/a | n/a | PDP not enforced |
+
+*All threshold rows: evidence: operational-heuristic. The qualitative direction (textbase advisory, SM gating) is observational (Kintsch construction-integration model + dissociation literature); the specific 0.5 / 0.7 / 0.4 numbers are first-cut. User-side override is supported via per-chapter `actual_score_weights` (see Step 4a).*
 
 If textbase is below the advisory floor but situation-model transfer passes, log `textbase_low_but_transfer_pass: true` and let `chapter_complete: true`; flag the unusual pattern in session_health notes for trend review (often it indicates the user already had the framework before reading and this chapter mostly re-keyed it).
 
@@ -419,6 +429,8 @@ After a chapter is fully complete, schedule retrieval at:
 - +1 week
 - +1 month
 
+*[evidence: observational — expanding spacing is rct-strong (Cepeda et al. 2008, "Spacing effects in learning"); the specific 1d/1w/1m schedule is operational, chosen for practical cadence rather than RCT-derived optimal intervals.]*
+
 Implementation: `books.yml` carries a queue:
 
 ```yaml
@@ -443,7 +455,7 @@ chapter_metrics:
       # +1 month pending
 ```
 
-If a spaced retrieval drops below 50%, re-add chapter to active review (not just spaced). Possibly run a mini calibrate session on it.
+If a spaced retrieval drops below 50%, re-add chapter to active review (not just spaced). Possibly run a mini calibrate session on it. *[evidence: operational-heuristic — the 50% cutoff is a first-cut; no RCT validates this specific re-add threshold.]*
 
 ---
 

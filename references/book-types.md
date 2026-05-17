@@ -1,4 +1,5 @@
 # Book Types and Default Session Patterns
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 A book gets a **two-coordinate classification**:
 

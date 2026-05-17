@@ -1,4 +1,5 @@
 # Generative Prompts — Verbatim Library
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 Verbatim wording matters. Bisra 2018 found "anticipate" prompts at g=1.37 vs generic "summarize" at near-null. Use the exact words below; do not paraphrase. Translate to Korean only when delivering to the user (not when planning internally).
 

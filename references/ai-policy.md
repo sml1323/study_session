@@ -1,23 +1,25 @@
 # AI Policy — Single Source of Truth for AI Usage in the Skill
 
-When invoked: any session that involves an external AI tool (ChatGPT / Claude / NotebookLM / Gemini / Perplexity / Custom GPT / Claude Project / etc.). This file specifies the **3 allowed modes**, the **per-chapter declaration mechanic**, the **per-turn AI usage log**, the **IOED counter gate**, and the **Newport strict-abstention path** as a first-class option.
+Evidence labels: see `references/evidence-labels.md`. The retention-loss range (11–20pp) below is `rct-strong` (8-study convergence); IOED diagnosis bands and the 3-mode structure are `operational-heuristic`.
+
+When invoked: any session that involves an external AI tool (ChatGPT / Claude / NotebookLM / Gemini / Perplexity / Custom GPT / Claude Project / etc.). This file specifies the **3 allowed modes** (high-stakes default; user may override per chapter), the **per-chapter declaration mechanic**, the **per-turn AI usage log**, the **IOED counter gate**, and the **Newport strict-abstention path** as a first-class option.
 
 This is the cross-cutting policy file referenced by SKILL.md. The per-template prompt format lives in `references/methods/scaffolded-ai-prompting.md`; the calibration gate lives in `references/calibration.md`. This file is the policy spine that the others hang on.
 
 ## The empirical floor
 
-Eight RCTs (Bastani 2025 PNAS n≈1000 / Barcaui 2025 n=120 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 n=54 EEG / Lee Microsoft CHI 2025 n=319 / Aslanov 2025 n=102 / MDPI 2025) converge:
+Eight studies (Bastani 2024 SSRN/SCALE — *not* "Bastani 2025 PNAS"; corrected per A2 fact-check / Barcaui 2025 n=120 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 n=54 EEG / Lee Microsoft CHI 2025 n=319 / Aslanov 2025 n=102 / MDPI 2025) converge:
 
-- **Free-form chat with an LLM during learning produces measurable retention damage**: −11 to −20 percentage points on delayed exam vs. no-AI controls. Bastani's PNAS Turkish HS RCT showed practice +48% in-session but exam −17% after AI access removed. Barcaui's 45-day delayed test: 57.5% (ChatGPT) vs 68.5% (traditional). Benedek-Sziklai: −20pp on paper test vs prior years.
-- **Scaffolded prompting neutralizes the damage**: Bastani's GPT Tutor (scaffolded prompt) condition showed no exam decline. MDPI 2025 reproduced on a different population: structured prompting reduced offloading + improved critical reasoning + improved reflection, while unguided AI did not.
-- **Mechanism is consistent**: cognitive offloading + IOED amplification (Aslanov) + EEG brain-connectivity decline (Kosmyna) + retrieval skipping. The harm is not in *seeing* AI output; it is in *not having to do the load-bearing thinking* before/while reading the output.
-- **Frontiers 2026 systematic review** (n=136 articles 2023-2025): no published intervention beats **no-AI** for high-baseline readers on retention or critical-thinking outcomes. Hybrid (AI + peer + instructor) beats AI-alone but does not flip the offloading sign for high-baseline readers.
+- **Free-form chat with an LLM during learning produces measurable retention damage**: −11 to −20 percentage points on delayed exam vs. no-AI controls. Bastani's Turkish HS RCT (SCALE 2024 working paper) showed practice +48% in-session but exam −17% after AI access removed. Barcaui's 45-day delayed test: 57.5% (ChatGPT) vs 68.5% (traditional). Benedek-Sziklai: −20pp on paper test vs prior years. *[evidence: rct-strong — 8-study convergence on the retention-loss direction and magnitude.]*
+- **Scaffolded prompting neutralizes the damage**: Bastani's GPT Tutor (scaffolded prompt) condition showed no exam decline. MDPI 2025 reproduced on a different population: structured prompting reduced offloading + improved critical reasoning + improved reflection, while unguided AI did not. *[evidence: rct-strong — Bastani 2024 + MDPI 2025 are RCTs; the neutralization is the load-bearing claim.]*
+- **Mechanism is consistent**: cognitive offloading + IOED amplification (Aslanov) + EEG brain-connectivity decline (Kosmyna) + retrieval skipping. The harm is not in *seeing* AI output; it is in *not having to do the load-bearing thinking* before/while reading the output. *[evidence: observational — Aslanov 2025 and Kosmyna 2025 are observational/quasi-experimental; the mechanism convergence is the strength.]*
+- **Frontiers 2026 systematic review** (n=136 articles 2023-2025): no published intervention beats **no-AI** for high-baseline readers on retention or critical-thinking outcomes. Hybrid (AI + peer + instructor) beats AI-alone but does not flip the offloading sign for high-baseline readers. *[evidence: observational — systematic review aggregating mixed-design primary studies.]*
 
-This skill therefore treats free-form chat as a **hard rule violation** during deep-reading work, treats scaffolded prompting as **damage-prevention not net gain**, and supports **strict abstention** as a first-class choice rather than an extreme position.
+This skill therefore treats free-form chat as a **high-stakes default refusal** during deep-reading work (per-chapter user override allowed), treats scaffolded prompting as **damage-prevention not net gain**, and supports **strict abstention** as a first-class choice rather than an extreme position.
 
 ## The 3 modes
 
-Every chapter declares one of these at plan time. Stored as `ai_policy.mode` in chapter note frontmatter. Cannot be changed mid-chapter.
+Every chapter declares one of these at plan time. Stored as `ai_policy.mode` in chapter note frontmatter. Cannot be changed mid-chapter (the lock is to keep `ai_policy` from contaminating that chapter's calibration metrics; user can change policy on the next chapter). *[evidence: operational-heuristic — the 3-mode partition is operational; the underlying choice (no-AI / orientation-only / scaffolded) is observational from practitioner ethnography (Newport, NotebookLM 2025-26, Konik 2025) + Bastani GPT Tutor.]*
 
 ### Mode 1 — `strict-no-ai` (Newport-style abstention)
 
@@ -62,7 +64,7 @@ The `allowed_in_phases` list is auto-filled:
 - `triage-only` → `[plan, tutor-orientation]` (orientation = code-reading Stage 1-2)
 - `scaffolded-only` → `[plan, tutor, calibrate, compose]` (any phase, but scaffolded template required)
 
-`ai_policy.mode` is **immutable for the lifetime of the chapter**. Changing AI policy mid-chapter contaminates the chapter's calibration metrics. If the learner wants to change policy, they close the current chapter and the next chapter takes the new policy.
+`ai_policy.mode` is **locked for the lifetime of the chapter** as a strong default. Changing AI policy mid-chapter contaminates the chapter's calibration metrics. If the learner wants to change policy, they close the current chapter and the next chapter takes the new policy. User can override the lock per-chapter for a specific reason — log `ai_policy_mid_chapter_override: true` with the reason so the contamination is visible at audit time.
 
 ## Per-turn AI usage log
 
@@ -101,7 +103,7 @@ calibration:
   ioed_diagnosis: low | borderline | high   # ≤10 low, 11-30 borderline, >30 high
 ```
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11) sets the IOED diagnosis bands (≤10 / 11-30 / >30) as first-cut placeholders.** Aslanov 2025 measured IOED amplification but did not publish a calibration band for individual learners. The bands here are conservative defaults pending R12 RCT-grounded values; treat as guidance, not authoritative thresholds.
+> ⚠ **Patch source caveat — `study-session-skill-patch-v4-2026-05-03.md` (Round 11) sets the IOED diagnosis bands (≤10 / 11-30 / >30) as first-cut placeholders.** Aslanov 2025 measured IOED amplification but did not publish a calibration band for individual learners. The bands here are conservative defaults pending R12 RCT-grounded values; treat as guidance, not authoritative thresholds. *[evidence: operational-heuristic — Aslanov 2025 is observational on IOED amplification; the band cutoffs are operational and chosen for actionability.]*
 
 If `ioed_diagnosis: high`:
 - Surface the gap to the learner in one short line ("AI is amplifying your sense of understanding by 30+pp; the next chapter goes strict-no-ai unless you object")

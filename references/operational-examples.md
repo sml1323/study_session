@@ -1,4 +1,5 @@
 # Operational Examples — extended
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 SKILL.md keeps two illustrative examples (cold start, resume with calibrate-as-warmup). The remaining examples — covering ad-hoc problem solving, user-drafted analysis review, opt-in same-session calibrate, and stale-calibrate downgrade — live here.
 

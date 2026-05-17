@@ -1,4 +1,5 @@
 # Schoenfeld 3-Question Metacognitive Sticky
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The single most important metacognitive prompt in problem solving. Verbatim wording matters; do not paraphrase.
 

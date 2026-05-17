@@ -1,4 +1,5 @@
 # Code Reading — Non-Linear 5-Stage Protocol
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter or session contains **code, formal proofs, or dense scientific papers** as the load-bearing reading unit. The chapter is non-linear by necessity — top-to-bottom + highlight + review (the consumer-tool default) does not work for these domains. The protocol below is the workflow that senior developers, mathematicians, and code auditors converge on independently.
 

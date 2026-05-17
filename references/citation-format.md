@@ -1,4 +1,5 @@
 # Citation Format — Discriminated Union by Source Kind
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When the user wants to quote a passage from a book during analysis (especially in ARQ extracts and Polya log entries), use a unified citation schema. The schema discriminates by source kind so future books (audio, EPUB, HTML) drop in without redesign.
 

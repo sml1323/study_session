@@ -1,14 +1,16 @@
 # Scaffolded AI Prompting — Template + Rationale
 
-When invoked: the learner asks the skill to use AI (ChatGPT / Claude / NotebookLM / Custom GPT / etc.) for any part of a study session. This file specifies the **only allowed prompt format** the learner should use for the AI tool, and the rationale for why free-form chat is blocked.
+Evidence labels: see `references/evidence-labels.md`. The 8-study free-chat-damage finding is `rct-strong`; the specific template structure (Context/Request/Constraint) is `operational-heuristic` — derived from Bastani GPT Tutor + MDPI 2025 patterns but not RCT-validated as the *only* working template shape.
 
-The empirical anchor: 8 RCTs (Bastani 2025 PNAS / Barcaui 2025 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 / Lee Microsoft CHI 2025 / Aslanov 2025 / MDPI 2025) converge that **free-form chat with an LLM during learning produces measurable retention damage of 11-20 percentage points**, while **scaffolded prompting templates neutralize the damage**. Bastani's GPT Tutor (scaffolded) showed no exam decline; the same model under free-form access showed −17%. MDPI 2025 demonstrated the mitigation on a different population. The mechanism (cognitive offloading + IOED + EEG connectivity decline + retrieval skipping) is robust across the 8 studies.
+When invoked: the learner asks the skill to use AI (ChatGPT / Claude / NotebookLM / Custom GPT / etc.) for any part of a study session. This file specifies the **recommended prompt format** the learner should use for the AI tool, and the rationale for why free-form chat is treated as the high-stakes default refusal.
 
-The skill's stance: free chat is treated as a hard rule violation in `Things to avoid`. Scaffolded prompting is the only allowed AI usage shape.
+The empirical anchor: 8 studies (Bastani 2024 SCALE — *corrected from "Bastani 2025 PNAS"* / Barcaui 2025 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 / Lee Microsoft CHI 2025 / Aslanov 2025 / MDPI 2025) converge that **free-form chat with an LLM during learning produces measurable retention damage of 11-20 percentage points**, while **scaffolded prompting templates neutralize the damage**. Bastani's GPT Tutor (scaffolded) showed no exam decline; the same model under free-form access showed −17%. MDPI 2025 demonstrated the mitigation on a different population. The mechanism (cognitive offloading + IOED + EEG connectivity decline + retrieval skipping) is robust across the 8 studies. *[evidence: rct-strong — direction and magnitude of the retention loss is RCT-derived; the template shape that neutralizes it is operational, derived from Bastani GPT Tutor + MDPI 2025.]*
 
-## The required template
+The skill's stance: free chat is the high-stakes default refusal in deep-reading work. Scaffolded prompting is the recommended AI usage shape when AI is used at all; the user may override per-chapter by selecting a different `ai_policy.mode`.
 
-When the learner is about to query an AI tool (any tool, any model), the skill requires this exact three-part structure. The skill produces it on demand and asks the learner to paste it before sending. Free-form questions ("can you explain X?" / "what does this mean?") are blocked at the dialogue level.
+## The recommended template
+
+When the learner is about to query an AI tool (any tool, any model), the skill recommends this three-part structure. The skill produces it on demand and asks the learner to paste it before sending. Free-form questions ("can you explain X?" / "what does this mean?") are surfaced as the high-stakes default refusal at the dialogue level; the learner can override per-turn with `ai_freeform_override: true` and a one-line reason. *[evidence: operational-heuristic — the three-part structure is operational; the underlying neutralization is rct-strong but does not name *this specific* template.]*
 
 ```
 ## Context
@@ -40,8 +42,8 @@ The template's three parts each load-bearing:
 
 When the learner says "I'll just ask ChatGPT" / "let me check with Claude" / "I'll have NotebookLM summarize this" mid-session:
 
-1. **Surface the rule once per session** (not every turn — that is form fatigue):
-   > "Free-form AI chat during a learning session is one of the skill's hard rules — Bastani 2025 + 7 other RCTs measured 11-20pp retention loss with free chat, neutralized only by scaffolded prompting. Use this template instead and paste your output back here so I can log the AI usage:"
+1. **Surface the recommendation once per session** (not every turn — that is form fatigue):
+   > "Free-form AI chat during a learning session is the skill's high-stakes default refusal — Bastani 2024 SCALE + 7 other studies measured 11-20pp retention loss with free chat, neutralized by scaffolded prompting. Use this template and paste your output back here so I can log the AI usage; if you want to override and free-chat anyway, say so and I'll log `ai_freeform_override: true`."
 
 2. **Generate the template** with the chapter context pre-filled:
    ```

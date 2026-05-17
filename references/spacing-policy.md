@@ -1,19 +1,21 @@
-# Spacing Policy — Forced Cadence, Behavioral Retrieval, Deadline Anchor, Self-Diagnostic
+# Spacing Policy — Opt-in Commitment, Behavioral Retrieval, Deadline Anchor, Self-Diagnostic
 
-When invoked: the chapter just transitioned to `phase-3-pending` or `phase-3-complete`, and the skill is composing the spaced re-engagement schedule. This file defines what the skill **commits the user to** (not "suggests"), how it counts a retrieval (behavior, not exposure), how it anchors discipline against intrinsic-motivation drift, and how it surfaces the FCI/BEMA-style self-diagnostic that tells the user whether the protocol is working at all.
+Evidence labels: see `references/evidence-labels.md`. The cadence numbers in this file are `operational-heuristic` or `placeholder` and are *guidelines* for the user to set their own floor against, not hard rules.
+
+When invoked: the chapter just transitioned to `phase-3-pending` or `phase-3-complete`, and the skill is composing the spaced re-engagement schedule. This file defines what the skill **invites the user to commit to** (opt-in, default off), how it counts a retrieval (behavior, not exposure), how it anchors discipline against intrinsic-motivation drift, and how it surfaces the FCI/BEMA-style self-diagnostic that tells the user whether the protocol is working at all.
 
 The four shifts vs. an earlier suggestion-based spacing module:
 
-1. Spacing schedule is **forced cadence**, not "suggested" intervals.
-2. Retrieval is counted as a **behavior** (closed-book recall executed), not an **exposure** (e-book reopened).
-3. Discipline is anchored to an **external deadline**, not assumed-intrinsic motivation.
-4. The skill periodically **self-diagnoses** whether the protocol is producing learning at the expected effect-size band, and surfaces failure to the user as a protocol problem (not a learner-blame problem).
+1. Spacing schedule is offered as an **opt-in commitment device** (default off), not "suggested" intervals. *[evidence: observational — YeckehZaare 2025 reports the 94.7%-fail-to-space-spontaneously finding; the commitment-device framing itself is operational.]*
+2. Retrieval is counted as a **behavior** (closed-book recall executed), not an **exposure** (e-book reopened). *[evidence: observational — Hartwig & Malain 2022 app-instrumentation.]*
+3. Discipline is anchored to an **external deadline**, not assumed-intrinsic motivation. *[evidence: observational — Reich 2019 MOOC retention.]*
+4. The skill periodically **self-diagnoses** whether the protocol is producing learning at the expected effect-size band, and surfaces failure to the user as a protocol problem (not a learner-blame problem). *[evidence: operational-heuristic — FCI/BEMA-style normalized-gain bands (0.30–0.40) are observational from physics-education research; their applicability to a solo learner's chapter is operational, not RCT-validated.]*
 
-## Shift 1 — Forced cadence (not suggested intervals)
+## Shift 1 — Opt-in cadence commitment (default off)
 
-### Daily floor commitment device
+### Daily floor commitment device (opt-in)
 
-At the moment a chapter enters `phase-3-pending` or `phase-3-complete`, the skill writes a **daily floor commitment** to `books.yml`:
+At the moment a chapter enters `phase-3-pending` or `phase-3-complete`, the skill **offers** a daily floor commitment and writes it to `books.yml` *only if the user opts in*. The default is no commitment device — the user decides whether the cadence is helpful in their context.
 
 ```yaml
 daily_floor:
@@ -38,17 +40,17 @@ The numbers (`target_distinct_days`, `retrievals_per_day_min`, `window_end`) are
 | math-proof-heavy | 7 | 2 | 21 days |
 | reference | n/a | n/a | n/a (lookup mode skips) |
 
-These placeholders trace to no published cadence study; they are first-cut conservative numbers chosen so the floor is non-trivial without being punishing. **Replace with the user's own commitment** or with R11-validated cadence whichever lands first.
+*All rows above: evidence: placeholder. These trace to no published cadence study; they are first-cut conservative numbers chosen so the floor is non-trivial without being punishing.* **Replace with the user's own commitment** or with R11-validated cadence whichever lands first.
 
 Surface the commitment to the user at chapter close, in user language:
 
-> "Ch.4 closes. Floor: 2 retrievals on each of 5 distinct days within the next 14 days. The skill will count behavior (closed-book recall executed), not exposure (book reopened). On a missed window, you'll see the catch-up cost on the next session."
+> "Ch.4 closes. Would you like to commit to a retrieval floor? Suggested: 2 retrievals on each of 5 distinct days within the next 14 days (opt in or set your own). The skill will count behavior (closed-book recall executed), not exposure (book reopened). If you commit and the window slips, you'll see the catch-up cost on the next session."
 
-This is the YeckehZaare 2025 daily-floor finding: 94.7% of learners fail to space spontaneously when only suggested. A commitment device with explicit cadence and behavioral counting captures the gap.
+This is the YeckehZaare 2025 daily-floor finding: 94.7% of learners fail to space spontaneously when only suggested. A commitment device with explicit cadence and behavioral counting captures the gap — but the device itself is most effective when the user chose it, so opt-in. *[evidence: observational — YeckehZaare 2025 is the source for the 94.7% spontaneous-fail finding; commitment-device-as-fix is operational.]*
 
 ### Cross-chapter touch points
 
-When the skill schedules a new chapter (Ch.N+1) into Phase 1, it inserts a **prior-chapter retrieval** for one or more older chapters into the Phase 1 opening. This is automatic; the user does not opt in. The chapter selected is the oldest one in the spaced re-engagement queue that is due.
+When the skill schedules a new chapter (Ch.N+1) into Phase 1, it inserts a **prior-chapter retrieval** for one or more older chapters into the Phase 1 opening. This is a default behavior the user may decline. The chapter selected is the oldest one in the spaced re-engagement queue that is due. *[evidence: rct-strong — interleaved retrieval is well-supported (Karpicke 2008/2011, Roediger & Butler 2011); the specific "Phase 1 opening" placement is operational.]*
 
 ```yaml
 phase_1_opening:
@@ -65,7 +67,7 @@ Two retrievals max per opening — more than that re-creates form fatigue.
 
 ## Shift 2 — Behavioral retrieval, not exposure
 
-A retrieval **counts** only when the user has executed a closed-book recall (the chapter is not visible; the user has typed or spoken the recall and the skill has captured it). Hartwig & Malain 2022 and similar app-instrumented studies find that "opened the e-book", "scrolled through the chapter PDF", or "tapped the flashcard" are not learning behaviors — they are exposure behaviors that the user mistakes for retrieval.
+A retrieval **counts** only when the user has executed a closed-book recall (the chapter is not visible; the user has typed or spoken the recall and the skill has captured it). Hartwig & Malain 2022 and similar app-instrumented studies find that "opened the e-book", "scrolled through the chapter PDF", or "tapped the flashcard" are not learning behaviors — they are exposure behaviors that the user mistakes for retrieval. *[evidence: observational — Hartwig & Malain 2022 app-instrumentation; converged with other behavior-vs-exposure findings.]*
 
 The skill's counting rule:
 
@@ -111,7 +113,7 @@ The catch-up cost is computed as: how many retrievals per remaining day are need
 
 ## Shift 4 — FCI/BEMA-style self-diagnostic
 
-After the chapter has had a spaced retrieval at +1 month (or after the external deadline arrives, whichever is sooner), the skill runs a **self-diagnostic** that compares the chapter's measured outcomes against an expected effect-size band. This is the Colvin 2014 norm-of-self-study-expectation framing: students need to know whether their effort is producing the standard gain or not, and the answer must be calibrated against an objective expected band, not against their subjective sense of progress.
+After the chapter has had a spaced retrieval at +1 month (or after the external deadline arrives, whichever is sooner), the skill runs a **self-diagnostic** that compares the chapter's measured outcomes against an expected effect-size band. This is the Colvin 2014 norm-of-self-study-expectation framing: students need to know whether their effort is producing the standard gain or not, and the answer must be calibrated against an objective expected band, not against their subjective sense of progress. *[evidence: observational — FCI/BEMA normalized-gain bands (Hake 1998; Colvin 2014) are physics-education observational; their applicability to general study cadence is operational.]*
 
 For each completed chapter, the skill computes:
 
@@ -130,6 +132,8 @@ self_diagnostic:
 | `in_band` (0.30–0.40) | Protocol is working as expected. | "Chapter X's normalized gain is 0.34 — in the expected band. No protocol change recommended." |
 | `above_band` (> 0.40) | Protocol is producing above-expected gain. | "Chapter X's normalized gain is 0.55 — above the expected band. The protocol is doing more than baseline; if you want to scale back, this is a chapter where you could." |
 | `below_band` (< 0.30) | Protocol is **not** working on this chapter for this learner. | "Chapter X's normalized gain is 0.18 — below the expected band. The protocol is not producing the expected gain. **This is a protocol issue, not a learner issue** — re-enter Ch.X with a different micro-task, refutation-text mode, or a worked-example-first variant. See suggested re-entry options." |
+
+*All three diagnosis rows: evidence: observational. The 0.30–0.40 band is from physics-education FCI/BEMA studies (Hake 1998 baseline; subsequent meta-analyses); applying it to chapter-level study outcomes is operational.*
 
 The framing matters: a below-band gain surfaces as **the protocol failed, not the learner failed**. The skill's response is to suggest re-entry options (different micro-task, different mode), not to escalate effort. This is what Colvin's "norm of self-study expectation" gives the learner: an objective benchmark that absorbs the self-blame and turns it into actionable protocol change.
 

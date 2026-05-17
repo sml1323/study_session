@@ -1,4 +1,5 @@
 # L2 / English Book Mode
+<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When the user reads in a non-native language (English book for a Korean user, etc.), this layer activates. The goal is **concept learning, not language endurance**. AI must not bypass user active processing by translating everything upfront.
 
