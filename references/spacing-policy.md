@@ -167,7 +167,7 @@ self_diagnostic:
 
 ## Anti-patterns
 
-- ❌ **"Suggesting" spacing.** The default of suggestion-only fails 94.7% of learners; replace with a daily-floor commitment device with cadence + window.
+- ❌ **"Suggesting" spacing without offering the commitment device.** Suggestion-only fails 94.7% of learners (YeckehZaare 2025); offer the opt-in daily-floor commitment device with cadence + window as part of the suggestion. If the user declines, log it but do not enforce — the device's effectiveness depends on the user choosing it.
 - ❌ **Counting exposure as retrieval.** Opening the file is not a learning event. Only closed-book recall captured by the skill counts.
 - ❌ **Assumed intrinsic motivation.** Without an external deadline anchor, the floor is enforceable only against the user's wish to learn; that is the failure mode.
 - ❌ **Single-cohort effect-size assumptions.** The expected band (0.30–0.40 normalized gain) is from FCI/BEMA literature; learner populations vary. The skill surfaces the band as guidance, not as a verdict on the learner.
