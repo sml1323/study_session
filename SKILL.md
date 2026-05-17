@@ -1,11 +1,30 @@
 ---
 name: study-session
+argument-hint: "[--review --book <slug> --chapter <N> | --review --due | --review --scope chapter | --help] {free-form intent}"
 description: Use for guided book/chapter study, math/science problem-solving (Polya/Newman/Schoenfeld), critical reading (ARQ), closed-book recall + calibration, session resume, and weekly/exam review. Triggers on "study session", "오늘 학습", "이 챕터 같이 공부", "이 문제 같이 풀어보자", "ARQ Ch.X", "Polya 풀이", "내 노트 검토", "복습 퀴즈", "/study-session". Runs a Pre-During-Post loop with delayed retrieval and chapter notes at ~/study-journal/. Distinct from /study (code/libraries) — this is for textbook / argument / problem-solving learning. Use even for short resume queries.
 ---
 
 # Study Session — Runtime Manual
 
 This is a runtime manual. The reasoning, evidence, full policies, and edge-case handling live in `references/`. Load only what the current situation requires.
+
+## Argument Parsing
+
+```
+/study-session                                         # resume default: scan books.yml, route on the oldest pending state
+/study-session {free-form}                             # natural-language entry — book/chapter/problem named in prose
+/study-session --review --book <slug> --chapter <N>    # review-route this specific chapter (status-driven branch)
+/study-session --review --due                          # process the oldest due item on the spaced-retrieval queue
+/study-session --review --scope chapter                # restrict review-routing to chapter scope (skip cross-chapter interleave)
+/study-session --help                                  # show this usage block, do not enter a mode
+```
+
+- **Bare invocation** (`/study-session` alone): scan `~/study-journal/books.yml`; if any `phase-3-pending` chapter is older than 5 days, downgrade to a 3-question quiz; otherwise run calibrate as the opening warmup on the oldest in-window pending chapter; if nothing pending, ask the user what to do.
+- **Free-form intent**: see `When to invoke` below for the trigger lexicon.
+- **`--review` flag family**: full branch logic (per chapter status) lives in `references/review-routing.md`. Natural-language equivalents ("ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈") route through the same logic.
+- **`--help`**: print this `## Argument Parsing` block, do not enter a mode.
+
+If just `/study-session` is invoked and `books.yml` is empty / missing, run setup (`references/setup.md`) and ask what book to study.
 
 > **Runtime assumption — Claude Code PostToolUse hook.** The audit contract (Required-read gates + `scripts/log_reference_read.sh` + `scripts/analyze_references.py`) depends on Claude Code's PostToolUse hook to log every `Read` of a reference file. In Codex or other CLI environments without an equivalent hook, the deterministic read-audit cannot run; a shell-based read-audit replacement is deferred to a separate iteration. Until then, on those environments, the skill's body-level invocation discipline (Required-read gates) still applies but the audit signal is reduced to "model self-reports the Reads it did" rather than "hook log is the ground truth." Compose-mode `references_touched` / `methods_invoked` cannot be system-emitted without the hook log.
 
