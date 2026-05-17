@@ -10,6 +10,28 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
 
   RESOLVE context:
     read ~/study-journal/books.yml
+
+    # Review-routing pre-check (B3 — see references/review-routing.md)
+    # Triggered by natural-language review intent ("ARQ Ch.4 복습하자",
+    # "어제 거 다시 보자", "복습 퀴즈") OR the --review flag.
+    if user_prompt matches review-intent OR --review flag present:
+      resolve target_book + target_chapter from prompt / flag args
+      if no books.yml entry for target:
+        fall through to plan-phase entry (not a review)
+      else:
+        switch on books.yml[target].status:
+          phase-3-pending             → run Phase 3 calibrate (stale-downgrade if > 5d)
+          phase-3-textbase-only       → run Step 2b retry only
+          phase-3-complete / applied  → check review_queue; if due, run spaced retrieval;
+            / scheduled                  else surface upcoming due date + offer voluntary recall
+          in-progress                 → section recap + recommend next pending section
+          phase-2-pending-conversion  → run conversion first; surface gate
+        if books.yml[target].confirm_next_chapter == true:
+          surface confirmation prompt before any chapter-advance recommendation
+        log review_routing.{trigger, branch, downgrade_applied, confirm_next_chapter_surfaced}
+        return from RESOLVE after the review pass (do not run plan/tutor for a new chapter
+        in the same session unless user explicitly requests it; default cap 1 review per opening)
+
     SCAN for any chapters with status: phase-3-pending
     if any pending:
       pick the oldest by phase_2_ended_at

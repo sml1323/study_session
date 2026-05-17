@@ -20,6 +20,7 @@ A chapter produces two distinct representations: **textbase** (what the chapter 
 - User wants ARQ breakdown of any text, or Polya/Schoenfeld walkthrough of a problem
 - User asks for closed-book recall, retrieval quiz, chapter review
 - "어제 어디까지", "내 노트 검토", "복습 퀴즈", weekly review / exam prep
+- **Review-routing surfaces**: "ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈", "Polya Ch.3 review", or the explicit `--review --book <slug> --chapter <N>` / `--review --due` / `--review --scope chapter` flag. Routes by chapter status to Phase 3 calibrate, spaced retrieval, Step 2b retry, in-chapter recap, or conversion (per `references/review-routing.md`).
 
 If unsure, run the skill — it self-routes between modes. Missed invocations skip real learning value.
 
@@ -192,7 +193,8 @@ When the current turn enters one of these situations, the listed file is a hard 
 | PIMEQ marginalia generation; recall-probe label disambiguation (numeric R1..Rn vs letter prefix) | `references/annotation-typology.md` + `references/generative-prompts.md` |
 | Chapter-note frontmatter write/edit; `books.yml chapter_metrics` allow/forbid | `references/state-schema.md` |
 | Section-level chapter tracking; "next chapter" recommendation; chapter-completion gate | `references/section-tracking.md` |
-| Phase 3 calibrate mechanics; SM transfer gate; `abs_gap ≤ 20` illusion check; stale-calibrate downgrade; per-type thresholds | `references/calibration.md` |
+| Phase 3 calibrate mechanics; SM transfer gate; `learning_passed` / `calibration_health` split; stale-calibrate downgrade; per-type thresholds | `references/calibration.md` |
+| Review-routing branch (natural-language or `--review` flag); status-based routing to Phase 3 / spaced retrieval / Step 2b retry / in-chapter recap / conversion | `references/review-routing.md` |
 | Failure-mode flag set on session close (any of the 6 tiers) | `references/failure-modes.md` |
 | L2 / English book tier + narrow-reading mode + glossary policy | `references/l2-mode.md` |
 | Medium choice (paper / paginated / scrollable) for a chapter | `references/medium-policy.md` |
