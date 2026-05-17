@@ -30,7 +30,7 @@ Each transition gets all three questions. Capture answers in the polya_logs `car
 
 ## Why this works
 
-Schoenfeld 1985, 1992 video-protocol research showed expert problem solvers *spontaneously* ask these questions during execution; novices do not. Novices execute procedures mechanically, drifting from the plan, accumulating computation that doesn't connect to the goal.
+Schoenfeld 1985 (*Mathematical Problem Solving*, Academic Press) and 1992 ("Learning to think mathematically," in *Handbook of Research on Mathematics Teaching and Learning*) video-protocol research showed expert problem solvers *spontaneously* ask these questions during execution; novices do not. Novices execute procedures mechanically, drifting from the plan, accumulating computation that doesn't connect to the goal. *[evidence: observational — video-protocol study, not RCT; *citation: verified*.]*
 
 The 3 questions force the user to maintain plan-execution coherence: each computation must serve a purpose connected to the goal.
 

@@ -5,7 +5,7 @@ When invoked: user gets a problem wrong. Walk back through 5 stages in reverse t
 
 ## The 5 stages (verbatim)
 
-Anne Newman's research with elementary math students generalizes well to any problem solving. The stages are sequential dependencies — if stage *k* fails, stages *k+1...n* cannot succeed.
+Anne Newman's research with elementary math students (Newman 1977, *Victorian Institute for Educational Research Bulletin* — *citation: verified*) generalizes well to any problem solving. The stages are sequential dependencies — if stage *k* fails, stages *k+1...n* cannot succeed. *[evidence: observational — Newman 1977 is the original 5-stage source; subsequent work (Casey, Clements, Ellerton, Watson) extended and refined the protocol.]*
 
 | Stage | Question | What it tests |
 |-------|----------|---------------|

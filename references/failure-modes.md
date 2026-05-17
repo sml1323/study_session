@@ -1,7 +1,7 @@
 # Failure Modes — Detection and Mitigation
 <!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-LLM tutoring can make learning *worse* than no tutor. Bastani 2025 PNAS: vanilla GPT chat tutoring produced **−17%** on closed-book transfer tests vs control. Engineered (guardrailed, step-decomposed) tutors hit ITS-level d=0.73. The difference is the patterns documented here.
+LLM tutoring can make learning *worse* than no tutor. Bastani 2024 SCALE (Stanford working paper; *previously cited here as "Bastani 2025 PNAS" — that attribution was incorrect and is corrected in A2 fact-check*): vanilla GPT chat tutoring produced **−17%** on closed-book transfer tests vs control. Engineered (guardrailed, step-decomposed) tutors hit ITS-level d=0.73. The difference is the patterns documented here. *[evidence: rct-strong for the direction and the −17% number; d=0.73 ITS-level cross-cites VanLehn 2011 meta-analysis.]*
 
 Treat each failure mode as a hypothesis the skill should actively test against during and after each session.
 
@@ -26,7 +26,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: user requests full answers (hint level 4) frequently; struggle window shrinks across sessions; user can't proceed without scaffolding.
 
-**Evidence**: Roll & Aleven 2011 Cognitive Tutor help-seeking taxonomy (avoidance / abuse / hint abuse). Bastani 2025: GPT-Base arm with no scaffolding produced HARM, partly via hint abuse. VanLehn 2011 interaction granularity: help that arrives too early at too low effort suppresses learning.
+**Evidence**: Roll & Aleven 2011 Cognitive Tutor help-seeking taxonomy (avoidance / abuse / hint abuse). Bastani 2024 SCALE: GPT-Base arm with no scaffolding produced HARM, partly via hint abuse. VanLehn 2011 interaction granularity: help that arrives too early at too low effort suppresses learning.
 
 **Detection signals**:
 - `hint_level_4_count_per_session > 3`
@@ -39,7 +39,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 - **After session, surface hint trend**: "오늘 level 4를 5번 호출. 평균 hint level 2.4 (지난 세션 1.6 → 1.9 → 2.4). 다음 세션은 productive failure window 30분으로 늘릴까?"
 - **For problem-driven chapters**: hints disabled in first 15 min (productive failure window). User must explicitly override with "I really am stuck, override".
 
-**The Bastani exception**: refusing all hints is also wrong (Tutor arm in Bastani was ~0, neutral). When struggle is unproductive (user repeats wrong schema, time exhausted), escalate. The judgment is *productive* struggle, not heroic suffering.
+**The Bastani exception**: refusing all hints is also wrong (Tutor arm in Bastani 2024 was ~0, neutral). When struggle is unproductive (user repeats wrong schema, time exhausted), escalate. The judgment is *productive* struggle, not heroic suffering.
 
 ---
 

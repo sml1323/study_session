@@ -1,7 +1,7 @@
 # Generative Prompts — Verbatim Library
 <!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-Verbatim wording matters. Bisra 2018 found "anticipate" prompts at g=1.37 vs generic "summarize" at near-null. Use the exact words below; do not paraphrase. Translate to Korean only when delivering to the user (not when planning internally).
+Core-meaning preservation matters; "anticipate" / "predict" / "self-explain" elicit different cognitive moves than "summarize" / "review." Bisra et al. 2018 self-explanation meta (Bisra, Liu, Nesbit, Salimi & Winne, *Educ Psychol Rev*) reports overall self-explanation effect of approximately g=0.55; specific sub-conditions (including "anticipatory / predictive" prompts) are reported in the meta but the exact g=1.37 figure cited here is not verifiable against the published meta — *citation: unverified*. Use the canonical English wording from the source for the prompt, translate to Korean for delivery. *[evidence: observational — Bisra 2018 meta-analysis aggregates non-RCT and RCT studies; cited effect sizes are best treated as observational. Specific g=1.37 figure: placeholder until citation verified.]*
 
 Each prompt has:
 - **Purpose**: what learning move it serves
@@ -125,7 +125,7 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 ### concept_define
 
 - **Purpose**: targeted self-explanation in own words; high-leverage retention move
-- **Source**: Bisra 2018 self-explanation meta — g=0.87 for "conceptualize"
+- **Source**: Bisra 2018 self-explanation meta — overall g~0.55; specific sub-condition g=0.87 for "conceptualize" *[citation: unverified — exact figure not confirmed against published meta]*
 - **Verbatim**: "Define [concept] in your own words. Where does it apply? Give one example."
 - **Korean**: "[개념]을 본인 말로 정의해봐. 어디에 적용되나? 예시 하나."
 - **Trigger**: every new technical term in the section; every chapter section break
@@ -134,7 +134,7 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 ### next_predict
 
 - **Purpose**: anticipate next derivation/argument step before reading it
-- **Source**: Bisra 2018 — anticipatory g=1.37 (highest in meta)
+- **Source**: Bisra 2018 — anticipatory/predictive sub-condition reported in meta as larger than the overall g~0.55; "highest in meta" claim and exact g=1.37 figure *[citation: unverified — verify against published meta before next major release]*
 - **Verbatim**: "Predict what the next [step / paragraph / proof line] will conclude. Why?"
 - **Korean**: "다음 [단계/문단/증명줄]이 무엇을 결론낼지 예측해봐. 왜?"
 - **Trigger**: at section break in conceptual/problem-driven; before each derivation step
@@ -262,7 +262,7 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 ### transfer_attempt
 
 - **Purpose**: far transfer; the most stringent learning evidence
-- **Source**: Bisra 2018 g=0.53 transfer; Bartz transfer literature
+- **Source**: Bisra 2018 self-explanation meta — transfer sub-condition; specific g=0.53 figure *[citation: unverified]*. Bartz transfer literature is a general anchor, not a specific citation.
 - **Verbatim**: "Apply [chapter's principle / method] to a different domain you know — work, hobby, prior reading. Where does it map? Where does it break?"
 - **Korean**: "[챕터의 원리/방법]을 본인이 아는 다른 도메인 — 일/취미/이전에 읽은 것 — 에 적용해봐. 어디서 매핑되고 어디서 깨지나?"
 - **Trigger**: end of every fully-completed chapter (Phase 1-3 done)
