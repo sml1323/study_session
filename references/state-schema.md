@@ -159,6 +159,50 @@ Per book entry:
 | `chapter_structure` | object `{N: {title, sections: [...]}}` | per-chapter section list; populated at init (full ToC) or lazily on first entry; full schema + section status enum in `references/section-tracking.md` |
 | `chapter_metrics` | object | per-chapter metrics — **metadata-only** (enums/numbers/dates/status maps/short anchors). Long-form narrative is forbidden; see § "books.yml `chapter_metrics` — allowed and forbidden fields" below |
 | `review_queue` | list | per-book spaced retrieval queue |
+| `language` | enum | source language code (e.g., `en`, `de`, `ja`); used by L2 mode trigger |
+| `l2_mode` | bool | `on` when L2 / English book mode is active for this book; mutually exclusive with `translation_mode.active`. See `references/l2-mode.md` |
+| `l2_coverage_estimate` | int 0–100 | first-page coverage estimate (%); set at plan phase when `l2_mode: on` |
+| `l2_tier` | enum | `must-scaffold` / `assisted` / `flow`; auto-derived from `l2_coverage_estimate` |
+| `translation_mode` | object `{active, source, original_language, ...}` | set when `--llm-translate` is active for this book; mutually exclusive with `l2_mode`. See § "`translation_mode` field" below |
+| `translation_loss_chapters` | list[int] | optional; chapter numbers where reading the original is recommended despite `translation_mode.active: true` (e.g., meta-chapters where loaded language is the topic itself, like ARQ Ch.5). Triggers the loaded-language alert at chapter entry. Empty / unset = no automatic alert |
+
+## `translation_mode` field
+
+Set per book when the user activates `--llm-translate` (see `references/translation-mode.md`). **Mutually exclusive with `l2_mode: on`** — activating one forces the other off in the same `books.yml` edit. The lint script rejects coexistence; if both are detected (e.g., from a manual edit or legacy state), the more recently set mode wins and the other is force-cleared with a logged auto-correction.
+
+```yaml
+<book-slug>:
+  translation_mode:
+    active: true
+    source: llm | official_kr_translation     # asked once at plan-phase activation
+    original_language: en                     # source language of the original book; drives loaded-language alerts
+    activated_at: 2026-05-18                  # ISO date; set on first activation; informational
+    translator: "<name or edition>"           # optional; set only if source = official_kr_translation and user volunteers it
+  translation_loss_chapters: [5]              # optional; alert fires on chapter entry
+  l2_mode: off                                # MUST be off (or unset) when translation_mode.active: true
+```
+
+Field semantics:
+
+| Subfield | Required? | Values | Notes |
+|---|---|---|---|
+| `translation_mode.active` | yes | `true` / `false` | `true` activates the mode for the book; `false` (or unset) means the mode is off |
+| `translation_mode.source` | yes when `active: true` | `llm` / `official_kr_translation` | Asked once at activation. If `llm`, the activation flow surfaces a one-line nuance-flattening warning. The skill does not measure translation quality (out of scope) |
+| `translation_mode.original_language` | recommended | language code (`en`, `de`, `ja`, …) | Used to scope the loaded-language alert mechanism. Defaults to the book's `language:` field if unset |
+| `translation_mode.activated_at` | optional | ISO 8601 date | Set on first activation; informational, useful for audit/history |
+| `translation_mode.translator` | optional | string | Only meaningful when `source: official_kr_translation` |
+| `translation_loss_chapters` | optional | list of int | Chapter numbers where loaded language is *the topic itself* (e.g., ARQ Ch.5). Entry triggers a one-line alert recommending 5–10 min of original-text stretch. User can decline; the alert is informational, not a block |
+
+When `translation_mode.active: true`, the following downstream effects are mandatory (full protocol: `references/translation-mode.md`):
+
+- `l2_mode` MUST be `off` (or unset). Lint rejects coexistence.
+- L2 paragraph loop steps 1–2 (English read → Korean from-memory summary) are skipped — undefined when source language ≠ reading language.
+- Vocabulary policy (7-vocab cap, A/B/C buckets, bilingual glossary entries) is disabled.
+- Chunk-boundary closed-book recall (in Korean) remains MANDATORY — this is the mode's load-bearing learning event and skipping it is the primary anti-pattern.
+- Citation cap: 0–1 English original quote per chapter (tighter than L2 mode's 1–2).
+- Intensity caps from L2 tier (must-scaffold → light, assisted → standard) do **not** apply — `light` / `standard` / `deep` are all user-choice in translation mode.
+
+Persists across sessions. The skill reads `translation_mode` from `books.yml` at session start and applies the protocol without re-asking. To deactivate mid-book, the user must explicitly toggle (manual edit, or future `--llm-translate=off` flag).
 
 ## books.yml `chapter_metrics` — allowed and forbidden fields
 
@@ -255,6 +299,7 @@ Top-level `books.yml`:
 2. Every `chapter_status:` map entry value is in the canonical enum, the deprecated list (which fails), or the aggregate alias `complete` (only inside `chapter_status:` blocks).
 3. Documents that *describe* the schema (this file, `chapter-template.md`, `calibration.md`, `pdp-loop.md`, `annotation-typology.md`, `SKILL.md`) may mention deprecated names only inside fenced code or explicit "deprecated" tables — the linter only reports plain prose mentions, with this SOT and the deprecated table whitelisted.
 4. Required chapter-note frontmatter fields (`title`, `book`, `chapter`, `type`, `status`, `created`) are present in every fixture chapter note; missing fields are warnings.
+5. `books.yml` per-book mutex: `l2_mode: on` AND `translation_mode.active: true` cannot coexist for the same book. When both are detected (e.g., a manual edit, or legacy state from before `--llm-translate` existed), the more recently set mode wins (compare `activated_at` if both have it; otherwise prefer `translation_mode` as the more explicit setting) and the other is force-cleared; lint surfaces the auto-correction as a warning, not a hard error, until the affected book is re-saved by the next session. See `references/translation-mode.md § Mutex with L2 mode — enforcement`.
 
 The lint runs without external packages (Python standard library only). Run from skill root:
 
@@ -271,4 +316,6 @@ Exit code 0 = clean; non-zero = violations found.
 - `references/calibration.md` — Step 2a/2b mechanics, gate thresholds, status transitions in calibrate
 - `references/annotation-typology.md` — defines when `phase-2-pending-conversion` applies
 - `references/pdp-loop.md` — pseudocode for state transitions
+- `references/l2-mode.md` — `l2_mode` / `l2_coverage_estimate` / `l2_tier` semantics; mutex partner with `translation_mode`
+- `references/translation-mode.md` — `translation_mode` / `translation_loss_chapters` semantics and the L2 mutex enforcement contract
 - `evals/fixtures/**` — must conform to this enum

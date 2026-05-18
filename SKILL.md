@@ -1,6 +1,6 @@
 ---
 name: study-session
-argument-hint: "[--review --book <slug> --chapter <N> | --review --due | --review --scope chapter | --help] {free-form intent}"
+argument-hint: "[--review --book <slug> --chapter <N> | --review --due | --review --scope chapter | --llm-translate | --help] {free-form intent}"
 description: Use for guided book/chapter study, math/science problem-solving (Polya/Newman/Schoenfeld), critical reading (ARQ), closed-book recall + calibration, session resume, and weekly/exam review. Triggers on "study session", "오늘 학습", "이 챕터 같이 공부", "이 문제 같이 풀어보자", "ARQ Ch.X", "Polya 풀이", "내 노트 검토", "복습 퀴즈", "/study-session". Runs a Pre-During-Post loop with delayed retrieval and chapter notes at ~/study-journal/. Distinct from /study (code/libraries) — this is for textbook / argument / problem-solving learning. Use even for short resume queries.
 ---
 
@@ -16,12 +16,14 @@ This is a runtime manual. The reasoning, evidence, full policies, and edge-case 
 /study-session --review --book <slug> --chapter <N>    # review-route this specific chapter (status-driven branch)
 /study-session --review --due                          # process the oldest due item on the spaced-retrieval queue
 /study-session --review --scope chapter                # restrict review-routing to chapter scope (skip cross-chapter interleave)
+/study-session --llm-translate                         # activate translation-read mode on the current book (book-level persistent; mutex with L2 mode)
 /study-session --help                                  # show this usage block, do not enter a mode
 ```
 
 - **Bare invocation** (`/study-session` alone): scan `~/study-journal/books.yml`; if any `phase-3-pending` chapter is older than 5 days, downgrade to a 3-question quiz; otherwise run calibrate as the opening warmup on the oldest in-window pending chapter; if nothing pending, ask the user what to do.
 - **Free-form intent**: see `When to invoke` below for the trigger lexicon.
 - **`--review` flag family**: full branch logic (per chapter status) lives in `references/review-routing.md`. Natural-language equivalents ("ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈") route through the same logic.
+- **`--llm-translate` flag**: book-level persistent mode for reading a non-native book via Korean translation (LLM or official). On first invocation per book, plan phase asks `translation_mode.source` once and persists to `books.yml`; subsequent sessions inherit. Forces `l2_mode: off` (mutually exclusive — L2 paragraph loop steps 1-2 are undefined when the user reads Korean directly). Vocabulary policy off; chunk-boundary recall preserved (non-negotiable, in Korean); intensity uncapped. Full protocol: `references/translation-mode.md`.
 - **`--help`**: print this `## Argument Parsing` block, do not enter a mode.
 
 If just `/study-session` is invoked and `books.yml` is empty / missing, run setup (`references/setup.md`) and ask what book to study.
@@ -97,6 +99,7 @@ Cross-cutting policies (load when triggered):
 - Medium pick (paper / paginated / scrollable) — `references/medium-policy.md` (4-cell matrix)
 - Spacing as opt-in cadence commitment (default off) — `references/spacing-policy.md` (daily-floor opt-in + deadline anchor + behavioral retrieval counting)
 - L2 / English book mode — `references/l2-mode.md` (tier-conditional defaults; deep not allowed on first-pass)
+- Translation-read mode (book-level; mutex with L2) — `references/translation-mode.md` (`--llm-translate`; vocab policy off; L2 paragraph loop steps 1-2 off; chunk-boundary recall mandatory in Korean; intensity uncapped; citation cap 0-1)
 - Failure mode signals — `references/failure-modes.md` (3 always-on + 2 type-conditional + 1 dashboard)
 
 ## Calibrate as opening of the next session
@@ -226,6 +229,7 @@ When the current turn enters one of these situations, the listed file is a hard 
 | Review-routing branch (natural-language or `--review` flag); status-based routing to Phase 3 / spaced retrieval / Step 2b retry / in-chapter recap / conversion | `references/review-routing.md` |
 | Failure-mode flag set on session close (any of the 6 tiers) | `references/failure-modes.md` |
 | L2 / English book tier + narrow-reading mode + glossary policy | `references/l2-mode.md` |
+| `--llm-translate` mode activation / mutex toggle with `l2_mode` / loaded-language chapter alert firing / plan-phase `translation_mode.source` question | `references/translation-mode.md` |
 | Medium choice (paper / paginated / scrollable) for a chapter | `references/medium-policy.md` |
 | Spacing scheduler invocation; daily-floor commitment; behavioral retrieval counting | `references/spacing-policy.md` |
 | Note-taking system reframe (Zettelkasten / PARA / sketchnoting) | `references/note-taking-policy.md` |

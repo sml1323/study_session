@@ -103,4 +103,5 @@ medium:
 - `references/calibration.md` — situation-model transfer scoring; the gate that screen-reading self-reports cannot substitute for; v4 adds `medium_used × actual_score` cross-tab to long-term metrics
 - `references/book-types.md` — narrative ↔ expository orthogonal axis (used to fill `content_type` here)
 - `references/l2-mode.md` — L2 medium policy intersects with vocabulary scaffolding (separate decision)
+- `references/translation-mode.md` — translation-read mode (`--llm-translate`) is **orthogonal** to medium choice. The 4-cell pagination × device-class matrix applies independently of source-language choice; a user can read a Korean translation on any cell, and the cell's `force_chunk_boundary_recall` recommendation still applies (and is in fact extra load-bearing in translation mode, where chunk-boundary recall is the sole protected learning event)
 - `references/ai-policy.md` — AI usage and medium choice are independent axes; both captured at plan

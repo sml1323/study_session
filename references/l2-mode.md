@@ -13,6 +13,8 @@ Activate when any of the following:
 
 Confirm activation once per book; persist as `l2_mode: on` in book metadata. Do not re-prompt on every chapter — once a book is L2, every chapter inherits.
 
+**Mutex with `--llm-translate` (translation-read mode)**: L2 mode is mutually exclusive with translation-read mode (`references/translation-mode.md`). The two cannot coexist in `books.yml` for the same book. Activating `--llm-translate` forces `l2_mode: off` in the same edit; conversely, activating L2 on a book that has `translation_mode.active: true` requires explicitly deactivating translation mode first. The reason: L2 mode's paragraph loop (steps 1–2: read English original → write Korean summary from memory) is *undefined* when the user reads a Korean translation directly — there is no separate L1 to translate into. The two modes encode opposite stances toward up-front translation, so silent coexistence would mask which protocol is actually running. If both flags ever appear set together (legacy state, manual edit), the more recent mode wins and the other is force-cleared; log the auto-correction.
+
 ## Vocabulary coverage tiers (95% / 98% two-tier)
 
 The first decision in L2 mode is **what tier the user is at for this specific book**, because that drives whether scaffolding is mandatory, optional, or off. The two thresholds (Laufer & Ravenhorst-Kalovski two-tier) are operational, not absolute cliffs — replication work shows the variance explained is smaller than the original single-source figure suggested. Treat these as defaults that the skill applies; surface to the user on activation.
@@ -195,6 +197,8 @@ L2 mode caps maximum intensity by tier:
 
 ## Anti-patterns
 
+> **Exception for `--llm-translate` mode**: When translation-read mode (`references/translation-mode.md`) is active on the book, the first anti-pattern below ("translating the entire passage before the user attempts a summary") does **not** apply — that mode deliberately accepts up-front translation as the *primary text* (not as a crutch around an English source) and shifts the learning event from L2 paragraph-summary-from-memory to chunk-boundary closed-book recall (in Korean, non-negotiable). The L2 paragraph loop steps 1–2 are *undefined* in translation mode and the entire L2 paragraph loop is bypassed there. The remaining anti-patterns below (citation inflation, skipping recall, etc.) still apply in spirit: translation mode caps English citations at 0–1 per chapter (tighter than L2's 1–2), and "marking a chapter complete without closed-book recall" is *the* primary anti-pattern of translation mode itself. See `references/translation-mode.md § Anti-patterns (this mode)` for the rationale and the protocol elements that are preserved vs discarded.
+
 - ❌ **Translating the entire passage before the user attempts a summary.** Defeats the active processing the layer is designed to preserve.
 - ❌ **Extracting every unknown word into the glossary.** Vocabulary overload + form fatigue.
 - ❌ **Skipping the user's Korean summary because "the passage is easy" or "it would be faster."** The summary is the learning event.
@@ -207,6 +211,7 @@ L2 mode caps maximum intensity by tier:
 ## Cross-references
 
 - `SKILL.md` § Session Intensity (L2 default = light/standard, never deep on first read)
+- `references/translation-mode.md` — mutex partner (`--llm-translate`); when the user opts to read a Korean translation as the primary text, L2 mode is force-disabled and the L2 paragraph loop is bypassed
 - `references/methods/arq.md` § ARQ Trigger Discipline (ARQ at argument unit, not paragraph)
 - `references/calibration.md` (closed-book recall in user's native language; the recall language ≠ source language is fine)
 - `references/generative-prompts.md` § paragraph_capture (selective only) and other generative prompts
