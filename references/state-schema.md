@@ -212,9 +212,19 @@ Do not silently delete. Snapshot first, then slim:
 1. Create `books/<slug>/_archived/books-yml-snapshot-<YYYY-MM-DD>.md`
 2. Dump every forbidden field verbatim as markdown sections (preserves the YAML string value as a blockquote so the user can later re-narrativize into chapter note prose)
 3. Remove the forbidden fields from `books.yml`
-4. Add `archived: books/<slug>/_archived/books-yml-snapshot-<date>.md` inside the relevant `chapter_metrics[N]` so future sessions can find the dump
+4. Add `archived: books/<slug>/_archived/books-yml-snapshot-<date>.md` inside the relevant `chapter_metrics[N]` so future sessions can find the dump (or extend to a list `archived: [...]` if a previous snapshot already exists)
 
 The compose step at session end **must enforce this**: when populating `chapter_metrics[N]`, surface any narrative string as a candidate spill into the chapter note instead of writing it into `books.yml`.
+
+### Compose-mode contract on `books.yml`
+
+The 2026-05-18 audit found a compose session that performed **7 Edits to `books.yml`**, several of which injected forbidden narrative qualifiers under `session_health.*` and per-session `_scoped` / `_lockin` / `_sub_task` variants. Both are anti-patterns. The contract now reads:
+
+1. **At most one `books.yml` Edit per session.** Batch every `chapter_metrics[N]` update into a single Edit at the end of compose. Each additional Edit causes `books.yml` to be re-cached.
+2. **Pre-Edit allowlist self-check.** Before the Edit, verify every new key is on the allowlist in this file's table above. Keys not on the allowlist belong in the chapter note body or in `_archived/books-yml-snapshot-<date>.md`.
+3. **session_health values are bool.** Hyphen-glued narrative tokens like `illusion: corrected-in-recall-session-9` are forbidden — the narrative goes to the chapter note body.
+4. **spaced_retrievals[].anchors is forbidden.** Keep only `{date, type, q_count, score}` per row; narrative anchor lists go to the chapter note body.
+5. **Verify with the lint script.** Run `python3 scripts/lint_state.py . --books-yml <path-to-books.yml>` after compose to catch any regression. Errors block — fix them in a second Edit only after spilling the narrative to the chapter note.
 
 ## Canonical section status enum (orthogonal to chapter status)
 

@@ -159,7 +159,15 @@ Top-level invariants:
 - **End of Phase 2** sets `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at: <ISO8601>`.
 - **`session_health`** captures all six failure-mode flags after every session (see `references/failure-modes.md`).
 - **Concept-level tracking** is trigger-deferred — populate `concept_candidates: [...]` in frontmatter; bootstrap separate `~/study-journal/concepts/` files only after the activation trigger (≥ 2 chapters AND ≥ 5 candidates).
-- **`books.yml` is metadata-only.** During compose, write only enums / numbers / dates / status maps / short anchors into `chapter_metrics[N]`. Long-form session narrative (progress strings, `*_recall_notes`, `*_progress_archive`, `section_progress_notes`, `next_session_warmup_anchors`, `*_note` health qualifiers, `counter_feedback_event`, narrative `misconceptions_active`) goes into the chapter note body — never into `books.yml`. Reason: `books.yml` is re-cached on every Edit; narrative there inflates `cache_create` ~30–40% of session token cost. Full allow/forbid list: `references/state-schema.md § books.yml chapter_metrics — allowed and forbidden fields`.
+- **`books.yml` is metadata-only AND Edited at most once per session.** During compose, write only enums / numbers / dates / status maps / short anchors into `chapter_metrics[N]`. Long-form session narrative (progress strings, `*_recall_notes`, `*_progress_archive`, `section_progress_notes`, `next_session_warmup_anchors`, `*_note` health qualifiers, `counter_feedback_event`, narrative `misconceptions_active`, per-session narrative key variants like `*_session_N_scoped` / `*_session_N_lockin`) goes into the chapter note body — never into `books.yml`. Reason: `books.yml` is re-cached on every Edit; narrative there inflates `cache_create` ~30–40% of session token cost. Full allow/forbid list: `references/state-schema.md § books.yml chapter_metrics — allowed and forbidden fields`.
+
+  **Pre-Edit self-check** (run before EVERY `books.yml` Edit during compose):
+    1. Is this the only `books.yml` Edit this session? Compose mode batches *all* `chapter_metrics[N]` updates into a single Edit. Multiple per-session Edits is an anti-pattern — observed 2026-05-18 to burn ~5KB extra cache_create per redundant Edit.
+    2. For every new key being added, verify it is on the allowlist in `references/state-schema.md § books.yml chapter_metrics`. If not, the value belongs in the chapter note body or `_archived/books-yml-snapshot-<date>.md`, not `books.yml`.
+    3. `session_health.*` keys: enum/bool only. Narrative qualifiers like `illusion: <hyphen-glued-narrative>` are forbidden — the enum value is `true | false`; the narrative belongs in the chapter note Session-N block.
+    4. `spaced_retrievals[].anchors` (narrative list) is forbidden in `books.yml`. Keep only `{date, type, q_count, score}` per row.
+
+  After the single Edit, optionally run `python3 scripts/lint_state.py . --books-yml ~/study-journal/books.yml` to catch any violations before the session closes.
 
 ## Required-read gates
 
