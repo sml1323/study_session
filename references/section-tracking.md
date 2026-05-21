@@ -54,9 +54,9 @@ A section is in **exactly one** of the following states. This enum is distinct f
 | Status | Meaning | Set by |
 |---|---|---|
 | `pending` | Not yet processed. Default for a freshly extracted section. | init / lazy extraction |
-| `in-progress` | Current chunk is inside this section; session ended before the section's chunk-boundary recall + PIMEQ closed out. | tutor mode (mid-section session close) |
-| `covered` | Closed-book recall **and** PIMEQ annotation both ran on the section's narrative content. | tutor mode (clean section close) |
-| `used-as-exercise` | The section's *prose was used as training material* for some method (ARQ application, Polya target, etc.) but the section's *own narrative claims* (the surrounding conceptual paragraphs that frame the example) were not processed via recall + PIMEQ. **This is learning debt.** | tutor mode (when the chunk targeted the embedded artifact, not the surrounding narrative) |
+| `in-progress` | Current chunk is inside this section; session ended before the section's chunk-boundary recall + active margin notes closed out. | tutor mode (mid-section session close) |
+| `covered` | Closed-book recall **and** active margin notes both ran on the section's narrative content. | tutor mode (clean section close) |
+| `used-as-exercise` | The section's *prose was used as training material* for some method (ARQ application, Polya target, etc.) but the section's *own narrative claims* (the surrounding conceptual paragraphs that frame the example) were not processed via recall + active margin notes. **This is learning debt.** | tutor mode (when the chunk targeted the embedded artifact, not the surrounding narrative) |
 | `skipped` | User explicitly chose to bypass this section. The reason goes in the chapter note's Section progress block (see below). | explicit user request |
 
 `covered` and `used-as-exercise` are *not interchangeable*. The latter means the user practiced a technique on the section's example but never wrote down or recalled what the section's own argument was. Treat it as a debt that surfaces at the next session-start.
@@ -83,7 +83,7 @@ if uncovered:
         recommend resuming `next` from where the previous chunk stopped
     elif next.status == "used-as-exercise":
         surface learning debt: "Section <id> was used as an exercise but its
-        narrative ¶ was not processed. Next chunk = closed-book recall + PIMEQ
+        narrative ¶ was not processed. Next chunk = closed-book recall + active margin notes
         on the section's own claims."
         recommend that as the next chunk
     else:  # pending
@@ -107,7 +107,7 @@ At the end of every chunk, the skill updates section status:
 
 | Chunk shape | Section status set to |
 |---|---|
-| Closed-book recall + PIMEQ both ran on the section's narrative | `covered` |
+| Closed-book recall + active margin notes both ran on the section's narrative | `covered` |
 | Section's prose was used as training material; narrative ¶ not processed | `used-as-exercise` |
 | Session ended mid-section (no clean close) | `in-progress` |
 | User said "이 섹션 건너뛸래" | `skipped` (record the reason in Section progress) |

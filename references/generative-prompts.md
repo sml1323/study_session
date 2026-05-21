@@ -59,9 +59,9 @@ Each prompt has:
 
 #### recall_probe_schema — book-type-specific probe categories (numeric labels)
 
-The 30-60s closed-book recall is *free* in form but *structured* in what it probes for. A free recall (`"무엇 읽었지?"`) measures a noisy union of textbase + situation model + open-question; making the probe categories explicit lets the next chunk's encoding focus and the chapter-end calibrate compare like with like (Karpicke & Blunt 2011; Kintsch construction-integration). Without an explicit schema the recall row is a schema vacuum and the model fills it on the fly — historically by borrowing the PIMEQ first-letter (`R-P / R-I / R-M`), which then drifted across sessions into hallucinated "book-type-specific PIMEQ" tables. See `references/annotation-typology.md § Reserved letters` for the structural fix.
+The 30-60s closed-book recall is *free* in form but *structured* in what it probes for. A free recall (`"무엇 읽었지?"`) measures a noisy union of textbase + situation model + open-question; making the probe categories explicit lets the next chunk's encoding focus and the chapter-end calibrate compare like with like (Karpicke & Blunt 2011; Kintsch construction-integration). Without an explicit schema the recall row is a schema vacuum and the model fills it on the fly — historically by inventing letter-prefixed labels (`R-P / R-I / R-M`) tied to the probe category first letters, which then drifted across sessions into mis-labeled tables (the recall row's category word getting re-used as a margin annotation label in the next session). See `references/annotation-typology.md § Recall-table row labels` for the structural rule and the legacy migration path.
 
-**Row labels are numeric: `R1`, `R2`, `R3`, ...** The descriptive word (proposition / paraphrase / setup / …) is a subscript on the label key (`R1_proposition`) and an aide-mémoire in the schema definition. In the *output* recall, write the label as `R1` (optionally with the category in parentheses: `R1 (proposition)`). Do **not** write `R-P`, `R-I`, `R-M`, `R-E`, `R-Q` — single-letter forms collide with margin PIMEQ prefixes and re-induce the hallucination. P/I/M/E/Q single letters are reserved for margin prefixes only.
+**Row labels are numeric: `R1`, `R2`, `R3`, ...** The descriptive word (proposition / paraphrase / setup / …) is a subscript on the label key (`R1_proposition`) and an aide-mémoire in the schema definition. In the *output* recall, write the label as `R1` (optionally with the category in parentheses: `R1 (proposition)`). Do **not** write `R-P`, `R-I`, `R-M`, `R-E`, `R-Q`; numeric labels are unambiguously recall rows and append-only-safe across sessions.
 
 Pick the schema by chapter `type` (and `genre_lean` where the table calls it out). The schema rows are the *targets* — actual recall rows are populated by the user; rows where the chunk has nothing relevant are omitted (`R4_equation` for a non-mathy chunk, etc.).
 
@@ -118,9 +118,9 @@ recall_probe_schema:
 
 PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall probe 자체가 부적합.
 
-**Why numeric labels** — across the 6 schemas the row words (proposition / paraphrase / setup / statement / thesis) all begin with letters that overlap PIMEQ first-letters or near-overlap (P → Predict, I → Infer/Inference, M → Monitor/Mechanism). A single-letter row label is a structural attractor: shared first letter induces post-hoc generalization across sessions, and the recall row's *category word* gets re-labeled as a margin prefix in the *next* session. The `R1..R5` convention forces the surface label to be unambiguously a recall row, never a margin prefix. The category word lives as a subscript or parenthetical aide-mémoire, never as the row's primary label.
+**Why numeric labels** — single-letter row labels are a structural attractor: across sessions the prefix part falls off and the surface form drifts, and the category word can be silently reinterpreted. The `R1..R5` convention forces the surface label to be unambiguously a recall row, append-only-safe, and stable across sessions. The category word lives as a subscript or parenthetical aide-mémoire, never as the row's primary label.
 
-**Avoid**: writing `R-P`, `R-I`, `R-M`, `R-E`, `R-Q`; redefining PIMEQ as "Proposition / Image / Mechanism / Equation / Question" or "Paraphrase / Inference / Misconception / Example / Question" — these are recall *probe categories*, not the margin PIMEQ vocabulary. Margin PIMEQ is permanently `P=Predict / I=Infer / M=Monitor / E=Evaluate / Q=Question` regardless of book type. See `references/annotation-typology.md § Reserved letters` for the structural ban + anti-pattern fixtures.
+**Avoid**: writing `R-P`, `R-I`, `R-M`, `R-E`, `R-Q` row labels in the recall table. The 6 per-book-type schemas above use category words (proposition / paraphrase / setup / statement / thesis / image / mechanism / equation / open_q / …) as *subscripts on numeric keys*, never as standalone single-letter labels. See `references/annotation-typology.md § Recall-table row labels` and § "Legacy migration" for the structural rule and the policy for chapter notes that still carry the legacy `R-P` form.
 
 ### concept_define
 
@@ -159,19 +159,19 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 
 ### graphic_organizer_required (intensity ≥ standard)
 
-- **Purpose**: integrate the chapter's local PIMEQ notes into one cross-chunk relational structure. Constructed organizers outperform consumed ones; the structure must come from the user.
+- **Purpose**: integrate the chapter's local active margin notes into one cross-chunk relational structure. Constructed organizers outperform consumed ones; the structure must come from the user.
 - **Verbatim** (instruction to user): "Build one mind map / matrix / hierarchy / comparison table / sequence diagram for this chapter. 3-9 nodes. Edges have labeled relationships. Include at least one cross-reference to a prior chapter or concept."
 - **Trigger**: chapter end, before chapter complete, on standard or deep intensity sessions. Light intensity may skip — in that case `chapter_complete` is restricted to `phase-3-textbase-only`.
 - **Spec details**: see `references/annotation-typology.md` § "Graphic organizer requirement".
 - **Avoid**: skill generates the organizer for the user (loses the construction effect); >9 nodes (over-decomposition).
 
-### selective_annotation (PIMEQ — bare highlights are deprecated)
+### selective_annotation (active margin notes — bare highlights are deprecated)
 
-- **Purpose**: capture 1-2 *constructive* margin notes per page tagged with one of the five PIMEQ prefixes (Predict / Infer / Monitor / Evaluate / Question). Bare highlights — selecting passages without an accompanying generative move — do not improve comprehension and are deprecated as a default; if used, they must be converted at chapter end.
-- **Verbatim** (instruction to user): "Mark up to 2 places on this page with a PIMEQ prefix — P (predict what comes next), I (infer the implication), M (monitor your confusion), E (evaluate / object), Q (question). Each note has the prefix and one short sentence. Bare highlights without text don't count."
-- **Korean**: "이 페이지에서 PIMEQ prefix 붙인 마진노트 최대 2개 — P(다음 예측) / I(함의 추론) / M(모르겠음 표시) / E(평가·반박) / Q(질문). prefix + 한 문장. 그냥 색칠은 카운트 안 함."
-- **Trigger**: at the chunk boundary, **after** the closed-book recall, never before. See `references/annotation-typology.md` for the order rule + per-prefix examples + the chapter-end conversion contract.
-- **Avoid**: bare highlights as final state; annotating before recall (this is the dominant fluency-illusion pattern); more than 2 PIMEQ notes per page (signal of either over-dense chunk or revert to highlight-everything mode).
+- **Purpose**: capture 1-2 *constructive* margin notes per page — short prose that goes beyond highlighting (generates new content, marks a question, flags a confusion, records an inference or evaluation). Bare highlights without accompanying prose do not improve comprehension and are deprecated as a default; if used, they must be converted at chapter end.
+- **Verbatim** (instruction to user): "Add up to 2 active margin notes on this page — short prose, beyond highlighting. Could be a prediction, an inference, a question, a confusion flag, an evaluation, or any other constructive move. No prefix required; one short sentence each. Bare highlights without text don't count."
+- **Korean**: "이 페이지에서 active margin note 최대 2개 — 짧은 한 문장씩. 예측 / 추론 / 질문 / 모르겠는 지점 / 평가·반박 등 highlight보다 한 발 더 나간 noted. prefix 안 붙여도 됨. 그냥 색칠은 카운트 안 함."
+- **Trigger**: at the chunk boundary, **after** the closed-book recall, never before. See `references/annotation-typology.md` for the order rule + move examples (Pressley & Afflerbach 1995) + the chapter-end conversion contract.
+- **Avoid**: bare highlights as final state; annotating before recall (this is the dominant fluency-illusion pattern); more than 2 active margin notes per page (signal of either over-dense chunk or revert to highlight-everything mode); reintroducing per-note prefix classification at write time (the Cut B simplification deliberately moved categorization to chapter end — classifying at write time generated overhead without retention benefit).
 
 ---
 

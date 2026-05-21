@@ -11,8 +11,8 @@ A chapter is always in **exactly one** of the following states:
 
 | Status | Meaning | Set by | Next transition |
 |---|---|---|---|
-| `in-progress` | Plan done; Phase 2 reading underway across one or more sessions; chapter not yet read end-to-end | tutor mode (during Phase 2) | → `phase-2-pending-conversion` (raw PIMEQ marginalia exist at end of Phase 2) **or** → `phase-3-pending` (Phase 2 ended cleanly with conversion done in-session) |
-| `phase-2-pending-conversion` | Reading done; raw PIMEQ marginalia or bare highlights still need to be converted to source / concept / retrieval cards | end of tutor mode if conversion deferred | → `phase-3-pending` once the conversion pass runs |
+| `in-progress` | Plan done; Phase 2 reading underway across one or more sessions; chapter not yet read end-to-end | tutor mode (during Phase 2) | → `phase-2-pending-conversion` (raw active margin notes exist at end of Phase 2) **or** → `phase-3-pending` (Phase 2 ended cleanly with conversion done in-session) |
+| `phase-2-pending-conversion` | Reading done; raw active margin notes or bare highlights still need to be converted to source / concept / retrieval cards | end of tutor mode if conversion deferred | → `phase-3-pending` once the conversion pass runs |
 | `phase-3-pending` | Phase 2 fully complete (including conversion); calibrate has **not** run yet | end of tutor mode (post-conversion) **or** end of conversion pass | → `phase-3-textbase-only` (Step 2b skipped) **or** → `phase-3-complete` (Step 2b ran and SM gate passed) **or** stays here on Step 2b retry/SM-fail |
 | `phase-3-textbase-only` | Calibrate Step 2a (textbase recall) ran; Step 2b (situation-model transfer) was skipped (typically light intensity); `chapter_complete` is **false** | calibrate mode (light path) | → `phase-3-pending` once Step 2b is queued for next session, **or** → `phase-3-complete` when Step 2b runs and passes |
 | `phase-3-complete` | Calibrate fully ran; `situation_model_transfer_score` met the book-type gate; `chapter_complete: true` | calibrate mode (full path, gate passed) | → `applied` after Phase 4 transfer attempt logged, **or** → `scheduled` if no transfer attempt and chapter enters spaced re-engagement |
@@ -127,7 +127,7 @@ Health and meta:
 | `related_chapters` | list of `{book, chapter, relation}` | cross-refs |
 | `evergreen_extracts` | list of paths | `~/study-journal/evergreen/*.md` |
 | `concept_candidates` | list of strings | trigger-deferred concept tracking |
-| `session_health.label_migration` | enum or `null` | one of `pending` / `renamed` / `left-as-is` / `null`; flagged when a chapter note's existing recall rows use `R-P / R-I / R-M / R-E / R-Q` form and migration was surfaced. See `references/annotation-typology.md § Reserved letters` |
+| `session_health.label_migration` | enum or `null` | one of `pending` / `renamed` / `left-as-is` / `null`; flagged when a chapter note's existing recall rows use the legacy `R-P / R-I / R-M / R-E / R-Q` form **or** margin notes carry the legacy `P:` / `I:` / `M:` / `E:` / `Q:` prefix form (both predate the Cut B simplification to prose margin notes + numeric recall rows). See `references/annotation-typology.md § Legacy migration` |
 | `references_touched` | list[string] | per-response self-declared refs, append-only with dedup; `file§section` form (e.g., `pdp-loop.md§TUTOR`); see `SKILL.md § Per-response context surfacing` |
 | `methods_invoked` | list[string] | per-response self-declared method sub-routines, append-only with dedup; bare filename or `file§section` form (e.g., `arq.md§Step-4-steelman`); `methods/` prefix omitted |
 
@@ -139,7 +139,7 @@ Closed-book recall tables in the chapter note body (Phase 2 chunk-boundary recal
 
 - Row keys: `R1`, `R2`, `R3`, ... — *never* `R-P`, `R-I`, `R-M`, `R-E`, `R-Q`.
 - The probe category word lives as a subscript on the schema key (`R1_proposition`) and is optional as a parenthetical in surface output (`R1 (proposition): ...`).
-- Single-letter `P / I / M / E / Q` is reserved for margin PIMEQ prefixes (see `references/annotation-typology.md`). Recall rows must not collide with margin prefix letters because shared first letters induce structural hallucination across sessions (the recall row's category word leaks into the next session's margin PIMEQ vocabulary).
+- Numeric labels are unambiguously recall rows and append-only-safe across sessions. Letter labels tied to category first letters are a structural attractor: across sessions the prefix part falls off and the surface form drifts. (Historically the colliding partner was the margin `P / I / M / E / Q` prefix system removed in Cut B; the numeric-label rule remains regardless because append-only stability matters on its own.)
 - Per-book-type probe schemas: `references/generative-prompts.md § recall_probe_schema`.
 
 The lint script does **not** currently enforce this convention (it's a content rule, not a status-enum rule). Detected via the chapter-note rendering pattern at session resume; surfaced under `session_health.label_migration` for affected legacy notes.
@@ -278,8 +278,8 @@ Sections inside a chapter carry their own status, defined here as the SOT. This 
 |---|---|
 | `pending` | Default; not yet processed |
 | `in-progress` | Mid-section session close; current chunk lives here |
-| `covered` | Closed-book recall + PIMEQ both ran on the section's narrative |
-| `used-as-exercise` | Section's prose was used as training material for some method, but the section's own narrative claims were not processed via recall + PIMEQ — **learning debt** |
+| `covered` | Closed-book recall + active margin notes both ran on the section's narrative |
+| `used-as-exercise` | Section's prose was used as training material for some method, but the section's own narrative claims were not processed via recall + active margin notes — **learning debt** |
 | `skipped` | Explicit user bypass; reason recorded in chapter-note Section progress block |
 
 `covered` and `used-as-exercise` are **not** interchangeable. Phase-3 advancement and any "next chapter" recommendation requires every section to be `covered` or `skipped`.

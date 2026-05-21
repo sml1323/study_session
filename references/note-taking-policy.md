@@ -72,8 +72,8 @@ If the user is committed to a refused system (already has 2,000 Zettelkasten car
 | **Zettelkasten cards** | "Each card is a retrieval-practice cue. The card's title is the prompt; the card's body is the answer." | Generate spaced retrieval queue from cards (1d/1w/1m); track per-card recall accuracy; do not micromanage card linking. |
 | **PARA Projects folder** | "PARA Projects is your spaced re-engagement queue. Each project's chapter notes are the items." | Hook the spaced-retrieval scheduler into the Projects folder; ignore Areas/Resources/Archive for learning purposes. |
 | **Sketchnotes** | "Drawing for key-term encoding (Wammes 2016)." Limit to 3-5 key terms per chapter, drawn after Phase 3 textbase recall. | Replace whole-page sketches with key-term drawings; the chapter's sketchnote becomes a 5-term icon set, not a 1-page narrative. |
-| **Adler-style chapter marking** | "Selective annotation with PIMEQ prefixes (`references/annotation-typology.md`)." Adler's marking discipline is one source of the underlying behavior; rename it and align the prefixes. | Convert any existing un-prefixed annotations to PIMEQ at chapter end; do not run Adler's analytical-reading 4-stage as a separate ritual. |
-| **Highlight-only (no prefix)** | "Bare highlights without a PIMEQ prefix do not satisfy chapter annotation." | Conversion at chapter end is required; raw highlights are intermediate state, not the end state. |
+| **Adler-style chapter marking** | "Active margin notes per `references/annotation-typology.md` (short prose, no prefix required at write time)." Adler's marking discipline is one source of the underlying behavior; rename it to the skill's active-margin-note vocabulary. | Treat any existing constructive annotations as active margin notes; convert at chapter end per the conversion contract; do not run Adler's analytical-reading 4-stage as a separate ritual. |
+| **Highlight-only (no margin note)** | "Bare highlights without accompanying prose do not satisfy chapter annotation." | Conversion at chapter end is required; raw highlights are intermediate state, not the end state. |
 
 The reframe is the move. Do not lecture the user about why the system is empirically thin — name the mechanism, show how their existing artifacts feed it, move on.
 
@@ -116,7 +116,7 @@ The single recommendation with direct Korean STEM evidence is: **mock exams as t
 
 ## Cross-references
 
-- `references/annotation-typology.md` — PIMEQ prefix discipline (the skill's own annotation system, which is what Adler-style marking gets reframed to)
+- `references/annotation-typology.md` — active margin notes (the skill's own annotation system, which is what Adler-style marking gets reframed to; short prose with no enforced prefix at write time, categorization at chapter end)
 - `references/spacing-policy.md` — daily floor, deadline anchor, FCI/BEMA self-diagnostic
 - `references/methods/backward-fading.md` — what to do after a worked example
 - `references/calibration.md` — retrieval practice as the load-bearing learning move

@@ -60,7 +60,7 @@ Each mode below names *when it runs* and *what it owns*, but not *how its body u
 | Mode | When it runs | What it owns | Required Read before running |
 |------|--------------|--------------|------------------------------|
 | **plan** | Pre-reading | Book classification + medium + AI policy + expectations + learner profile | `references/book-types.md` (classification), `references/medium-policy.md` (medium), `references/ai-policy.md` (AI policy), `references/generative-prompts.md` (expectation + misconception prompts) |
-| **tutor** | During-reading | Chunked reading, chunk-boundary recall, PIMEQ marginalia, on-demand hints, method sub-routines | `references/pdp-loop.md` (chunk loop), `references/annotation-typology.md` + `references/generative-prompts.md` (recall + PIMEQ), plus the specific method's reference (see *Method sub-routines* table) before any method invoke |
+| **tutor** | During-reading | Chunked reading, chunk-boundary recall, active margin notes, on-demand hints, method sub-routines | `references/pdp-loop.md` (chunk loop), `references/annotation-typology.md` + `references/generative-prompts.md` (recall + active margin notes), plus the specific method's reference (see *Method sub-routines* table) before any method invoke |
 | **calibrate** | Post-reading — default: opening of the *next* session | Confidence + score prediction (BEFORE recall), recall, situation-model transfer on NEW scenario, gap, exam Qs; `chapter_complete` gate | `references/calibration.md` — the per-step protocol, thresholds, gate definition (`abs_gap`, SM transfer score), and per-book-type variations are non-obvious and only canonical there |
 | **compose** | Session end | Auto-generate chapter note + update `books.yml` + run system-emit frontmatter + schedule spaced re-engagement | `references/chapter-template.md` (body schema), `references/state-schema.md` (allowed fields + status enum), `references/spacing-policy.md` (re-engagement scheduling) |
 
@@ -72,7 +72,7 @@ Always run in this order. The step names below are *navigation only* — the int
 
 1. **RESOLVE context** — open `books.yml`; check for `phase-3-pending` chapters and stale ones (handling: `references/pdp-loop.md`, `references/calibration.md § stale-calibrate-downgrade`).
 2. **PLAN** — book classification + medium + AI policy + expectations (driven by intensity; references in *The four modes* table).
-3. **TUTOR** — chunked reading + chunk-boundary closed-book recall *before* PIMEQ annotation + method sub-routines (driven by chapter content; per-method references in *Method sub-routines* table).
+3. **TUTOR** — chunked reading + chunk-boundary closed-book recall *before* active margin notes + method sub-routines (driven by chapter content; per-method references in *Method sub-routines* table).
 4. **End of Phase 2** — set status + timestamp and close session (allowed values: `references/state-schema.md`).
 5. **CALIBRATE** (next session opening) — full per-step protocol, ordering rule (confidence/score_prediction BEFORE recall), and `chapter_complete` gate live in `references/calibration.md`.
 6. **APPLY** (optional) — one transfer attempt to a different domain.
@@ -84,7 +84,7 @@ These protect the learning signal. Don't paraphrase them. Each rule's full reaso
 
 1. **Mode priority**: `calibrate > tutor > plan > compose`. If user explicitly asks for a lower-signal mode, do it; otherwise lean upward.
 2. **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min` (working-memory contamination floor). Below 30 min, refuse with the remaining time.
-3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → PIMEQ marginalia. Annotate-first is the dominant fluency-illusion pattern. **Label collision is a documented structural attractor** (recall rows getting `R-P / R-I / R-M / R-E / R-Q` letter prefixes that shadow the margin PIMEQ letters), so two rails are non-negotiable: PIMEQ uses five fixed single-letter prefixes and is invariant across book types; recall-probe rows use *numeric* labels (`R1`, `R2`, …). Beyond those two rails, the SKILL.md summary is intentionally insufficient. **Before generating PIMEQ marginalia OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the prefix expansions, the per-book-type R1-Rn schema, and the worked label tables live only there.
+3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → 1–2 active margin notes (prose). Annotate-first is the dominant fluency-illusion pattern. Recall-probe rows use *numeric* labels (`R1`, `R2`, …) — never single letters tied to category first letters — because numeric labels are append-only-safe across sessions. Margin notes are prose with no enforced prefix; categorization happens at chapter end during conversion, not at write time. (Earlier versions of this skill required `P / I / M / E / Q` letter prefixes on each margin note bundled as "PIMEQ"; that prefix discipline was removed in the Cut B simplification because per-note classification at write time generated overhead without retention benefit. The 5 underlying moves — predict / infer / monitor / evaluate / question — survive as canonical *examples* of active margin notes, attributed to Pressley & Afflerbach 1995.) **Before generating active margin notes OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the move examples, the per-book-type `R1..Rn` schema, the worked tables, and the legacy-prefix migration policy live only there.
 4. **`chapter_complete` = `learning_passed` (SM transfer ≥ book-type gate).** Textbase recall is advisory. *Calibration health is tracked separately* via `calibration_health` enum (`well_calibrated` / `loose` / `over_confident` / `under_confident` / `unknown`) and `calibration_gap_abs`; large gaps no longer hard-block `chapter_complete`. An `abs_gap > 20` surfaces as `over_confident` (or `under_confident`) with a *recommended* 24-hr Step 2b retry on a fresh scenario; `abs_gap > 30` additionally sets `confirm_next_chapter: true` so the next session opening asks the user to confirm advance before queueing the next chapter. If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. Per-book-type SM thresholds + the B1 split rationale: `references/calibration.md`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
 5. **Hints are event-based, on-demand, paraphrase-gated** — proactive or time-based hint-offering is the documented dependency-amplification pattern (Roll & Aleven 2011 help abuse). Each escalation asks the user to paraphrase the previous hint before next-level unlocks. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
 6. **No generic praise.** Banned: "Great!", "잘했어요", "Perfect!", "Good job", "Awesome", "Excellent question". Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Full banned list + replacements: `references/llm-tutor-design.md`.
@@ -198,7 +198,7 @@ This is not a politeness rule; it is the audit contract. The PostToolUse hook (`
 - *Method names with step counts*: "Newman 5-stage", "Polya 4-step", "Schoenfeld 3 Qs", "Browne–Keeley criticals", "ARQ depth 0–3", "backward-fading fade-1/2/3", "Tao 7 moves"
 - *Hint protocol*: "L0–L4 ladder", "paraphrase gate", "level-4 reflection", "time-on-hint"
 - *Calibration*: "abs_gap ≤ 20", "score_prediction", "SM transfer score", "textbase recall", "stale-calibrate downgrade", "learning_passed", "calibration_health", "over_confident / under_confident / well_calibrated / loose / unknown", "confirm_next_chapter"
-- *Marginalia / probe*: "PIMEQ", "P / I / M / E / Q expansion", "R1 / R2 / R3 recall-probe row", "recall_probe_schema"
+- *Marginalia / probe*: "active margin note", "predict / infer / monitor / evaluate / question example list", "R1 / R2 / R3 recall-probe row", "recall_probe_schema", "legacy `P:` / `R-P` prefix migration"
 - *AI policy*: "ai_policy mode", "scaffold / refuse-chat / refuse-all", "scaffolded AI prompt template", "Context / Request / Constraint"
 - *Annotation / state*: "section_progress status enum", "used-as-exercise", "phase-2-pending-conversion"
 
@@ -222,7 +222,7 @@ When the current turn enters one of these situations, the listed file is a hard 
 | Code-reading or non-linear chapter (5-stage protocol, orientation pass) | `references/methods/code-reading.md` |
 | Refutation text for non-politically-contested misconception removal | `references/methods/refutation-text.md` |
 | AI-assisted study query (any AI tool call during a learning session) | `references/ai-policy.md` + `references/methods/scaffolded-ai-prompting.md` |
-| PIMEQ marginalia generation; recall-probe label disambiguation (numeric R1..Rn vs letter prefix) | `references/annotation-typology.md` + `references/generative-prompts.md` |
+| Active margin-note generation; recall-probe row labeling (numeric `R1..Rn` convention); legacy chapter notes that carry `P:` margin prefixes or `R-P` recall rows | `references/annotation-typology.md` + `references/generative-prompts.md` |
 | Chapter-note frontmatter write/edit; `books.yml chapter_metrics` allow/forbid | `references/state-schema.md` |
 | Section-level chapter tracking; "next chapter" recommendation; chapter-completion gate | `references/section-tracking.md` |
 | Phase 3 calibrate mechanics; SM transfer gate; `learning_passed` / `calibration_health` split; stale-calibrate downgrade; per-type thresholds | `references/calibration.md` |
@@ -271,8 +271,8 @@ User: "ARQ Ch.1부터 같이 공부하고 싶어"
 
 1. Check `~/study-journal/` — absent. Run setup. Convert ARQ EPUB → PDF if needed. Bootstrap `books.yml`.
 2. Plan phase (standard default): classify ARQ as **methodology** + **expository-leaning**; pick medium; declare AI policy; generate 3 textbase + 2 SM expectations; PKA + prediction + goal_question.
-3. Tutor phase: chunked reading (5–10 min) → 30–60s closed-book recall → PIMEQ annotation; ARQ sub-routine at argument units.
-4. Chapter end: convert PIMEQ marginalia + one graphic organizer.
+3. Tutor phase: chunked reading (5–10 min) → 30–60s closed-book recall → 1–2 active margin notes (prose); ARQ sub-routine at argument units.
+4. Chapter end: convert margin notes (post-hoc bucket per `references/annotation-typology.md § Conversion contract`) + one graphic organizer.
 5. End Phase 2: set `phase_2_ended_at` + `status: phase-3-pending`; close session. Calibrate runs as next session's warmup.
 
 ### Resume — calibrate as opening warmup

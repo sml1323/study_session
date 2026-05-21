@@ -58,7 +58,7 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
         recommend resuming next_section from where the previous chunk stopped
       elif next_section.status == "used-as-exercise":
         surface as learning debt; recommend that section's narrative ¶
-        (closed-book recall + PIMEQ) as the next chunk before any other move
+        (closed-book recall + active margin notes) as the next chunk before any other move
       else:  # pending
         recommend starting next_section as a fresh chunk
       # If the user says "다음 phase 가자" / "Ch.X 끝났어" while uncovered exists,
@@ -92,16 +92,18 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
       30-60s closed-book recall of what the chunk just said (forward effect)
         pick recall_probe_schema for chapter.type from
           references/generative-prompts.md § recall_probe_schema
-        label recall rows R1, R2, R3, ... (numeric only)
-        NEVER write R-P, R-I, R-M, R-E, R-Q — single letters P/I/M/E/Q are
-          reserved for margin PIMEQ prefixes (see references/annotation-typology.md
-          § Reserved letters); letter collision is a structural attractor that
-          produces hallucinated "book-type-specific PIMEQ" tables across sessions
-      then PIMEQ annotation of the chunk (canonical 5 prefixes — see references/annotation-typology.md):
+        label recall rows R1, R2, R3, ... (numeric only — append-only-safe across sessions)
+        NEVER write R-P, R-I, R-M, R-E, R-Q — letter labels on recall rows are
+          a structural attractor (across sessions the prefix part falls off and
+          the surface form drifts); see references/annotation-typology.md
+          § "Recall-table row labels" and § "Legacy migration"
+      then active margin notes on the chunk (see references/annotation-typology.md):
         annotate AFTER recall, never before
-        prefix every margin note with P / I / M / E / Q
-          (Predict / Infer / Monitor / Evaluate / Question — invariant across book types)
-        respect 1-2 PIMEQ notes per page cap
+        each note is short prose (one sentence); no enforced prefix at write time
+        examples of constructive moves (Pressley & Afflerbach 1995):
+          predict / infer / monitor (confusion flag) / evaluate / question
+        respect 1-2 active margin notes per page cap
+        categorization happens at chapter end (conversion contract), not at write time
       pick one of: concept_define / next_predict / monitoring_check
       ask the user
       receive answer
@@ -116,12 +118,12 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
       if user fails problem: invoke Newman error analysis (references/methods/newman.md)
       if section contains a proof: invoke proof-comprehension facets (references/methods/proof-comprehension.md)
     chapter end: graphic organizer construction (intensity ≥ standard) — references/annotation-typology.md
-    chapter end: convert raw PIMEQ marginalia to source/concept/retrieval cards
-      (see references/annotation-typology.md § "Conversion contract")
+    chapter end: convert raw margin notes to source/concept/retrieval cards
+      (post-hoc bucket per references/annotation-typology.md § "Conversion contract")
 
     # At chunk close: update section status (references/section-tracking.md)
     for each section touched in this chunk:
-      if recall + PIMEQ ran on the section's own narrative: status = covered
+      if recall + active margin notes ran on the section's own narrative: status = covered
       elif section's prose was used as training material only:    status = used-as-exercise
       elif chunk ended mid-section:                               status = in-progress
       elif user explicitly skipped:                               status = skipped

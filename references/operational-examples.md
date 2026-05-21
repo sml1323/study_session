@@ -63,7 +63,7 @@ User: "Behave Ch.3 시작" (book classified as conceptual + expository-leaning)
 Action:
 1. Plan phase: PKA dump, prediction, goal_question — standard.
 2. **Additional**: explicitly elicit user's prior misconceptions on the topic before reading: "이 주제에 대해 흔히 잘못 알려진 생각 2-3개 — 본인이 갖고 있을 수도 있는 것 — 적어보자."
-3. Tutor phase: read with PIMEQ. Mark with `E:` prefix any passage that explicitly contradicts a misconception the user wrote in step 2 ("저자가 X라고 생각했는데 실제로 Y라고 명시함"). See `references/methods/refutation-text.md`.
+3. Tutor phase: read with active margin notes (prose; see `references/annotation-typology.md`). For any passage that explicitly contradicts a misconception the user wrote in step 2, write an evaluation-style margin note ("저자가 X라고 생각했는데 실제로 Y라고 명시함"). See `references/methods/refutation-text.md` for the specific format.
 4. Phase 3: in addition to standard textbase + SM transfer, write a refutation-style paragraph: "나는 X로 알았는데, 실제로는 Y. 그 이유는 Z." This becomes a high-value retrieval card.
 
 ## Example 9: L2 sub-threshold reader — narrow reading sub-mode

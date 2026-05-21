@@ -47,7 +47,7 @@ argument_structure:
       chapter_response: "<...>"
 ```
 
-**Forbidden during Step 1**: paraphrasing the chapter's full content, taking PIMEQ notes, evaluating, agreeing or disagreeing. The structure pass is structure only. Eval comes in Step 4.
+**Forbidden during Step 1**: paraphrasing the chapter's full content, taking active margin notes, evaluating, agreeing or disagreeing. The structure pass is structure only. Eval comes in Step 4.
 
 If the user cannot identify the central claim after one structure pass, that is itself a signal — surface it: "Central claim was not identified on structure pass. Skip ahead to Step 4 dialogic; you'll re-read targeted passages there."
 
@@ -132,4 +132,4 @@ For high-stakes argument chapters, also include a structural transfer:
 - `references/methods/refutation-text.md` — alternative for non-political conceptual chapters
 - `references/calibration.md` — Step 2b transfer template for argument-driven chapters
 - `references/failure-modes.md` — Failure 6 (echo chamber) is structurally enforced by Step 4 of this protocol
-- `references/annotation-typology.md` — `E` (Evaluate) and `Q` (Question) PIMEQ prefixes are used during Step 1's structure pass
+- `references/annotation-typology.md` — active margin notes capturing evaluations and questions are used during Step 1's structure pass (and at every chunk boundary throughout the protocol); no prefix required at write time

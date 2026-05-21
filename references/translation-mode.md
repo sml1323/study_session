@@ -70,7 +70,7 @@ The reason this matters: L2 mode's anti-pattern table forbids "translating the p
 | Mechanic | Translation mode | Reason |
 |---|---|---|
 | **Chunk-boundary closed-book recall** (30–60 s in Korean) | MANDATORY | This is the PDP loop's learning event. Reading without recall = passive consumption. Skipping this *is* the mode's primary anti-pattern — see below. |
-| PIMEQ marginalia (P / I / M / E / Q letter prefixes) | per default mode | The marginalia work in any language |
+| Active margin notes (short prose; see `references/annotation-typology.md`) | per default mode | The constructive moves work in any language |
 | Recall-probe table numeric labels (`R1`, `R2`, …) | per default mode | Same |
 | ARQ depth 0–3 at argument-unit boundaries (or other method sub-routines) | per default mode | Methods are language-independent cognitive moves; ARQ's 10 critical questions apply to Korean text directly |
 | Phase 3 calibrate (confidence → recall → SM transfer) | MANDATORY | Calibration measures concept learning, not language — and concept learning is what this mode targets |
@@ -85,7 +85,7 @@ The L2 paragraph loop (7 steps) collapses to the standard PDP chunk loop because
 1. user reads the chunk (Korean translation)
 2. CHUNK BOUNDARY:
    a. close the book → 30–60 s closed-book recall (in Korean) → reopen
-   b. PIMEQ marginalia on what was just read
+   b. 1–2 active margin notes (prose, in Korean) on what was just read
 3. method sub-routine fires at its trigger (ARQ at argument-unit boundary, Polya
    at a problem, etc.) — invoke per its reference file in Korean
 4. proceed to next chunk

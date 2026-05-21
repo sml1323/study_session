@@ -41,13 +41,13 @@ If the user genuinely cannot name any (very low PKA), this sub-routine doesn't a
 
 ### Phase 2 (Tutor) — Contradiction marking
 
-During reading, the user marks any passage where the chapter explicitly contradicts a prior misconception. Use the PIMEQ `E` (Evaluate) prefix with a specific format:
+During reading, the user marks any passage where the chapter explicitly contradicts a prior misconception. Write it as an evaluation-flavored active margin note (see `references/annotation-typology.md`) using the following format:
 
-> "E: 나는 [misconception-1을 짧게]로 알았는데, 저자는 [the chapter's correction]을 명시. 그 이유는 [the chapter's reason / mechanism]."
+> "나는 [misconception-1을 짧게]로 알았는데, 저자는 [the chapter's correction]을 명시. 그 이유는 [the chapter's reason / mechanism]."
 
-If the chapter does not explicitly refute the misconception but the corrected view can be inferred from the chapter content, mark it `I` (Infer) with the same format. The point is to name the contrast between prior belief and chapter content, not to require the chapter to be written in refutation form.
+If the chapter does not explicitly refute the misconception but the corrected view can be inferred from the chapter content, write the same-format note as an inference-flavored margin note instead. The point is to name the contrast between prior belief and chapter content, not to require the chapter to be written in refutation form.
 
-If the chapter contradicts a misconception that the user did **not** list in Phase 1 (the chapter surfaced a misconception the user didn't know they had), add it to `prior_misconceptions` retroactively and mark it `E` — this is high-value learning and should be logged.
+If the chapter contradicts a misconception that the user did **not** list in Phase 1 (the chapter surfaced a misconception the user didn't know they had), add it to `prior_misconceptions` retroactively and write the same-format margin note — this is high-value learning and should be logged.
 
 ### Phase 3 (Calibrate) — Refutation paragraph generation
 
