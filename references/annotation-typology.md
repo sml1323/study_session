@@ -1,11 +1,10 @@
 # Annotation Typology — Active Margin Notes + Order + Conversion
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 Highlighting alone — selecting passages without an accompanying generative move — does not improve comprehension on standardized testing. The signal that *does* predict learning is the *constructive* move that follows the highlight: a margin question, a paraphrase, an objection, an inferred connection. This file specifies what an "active margin note" is, the order in which it must come (recall first), and the chapter-end conversion contract.
 
 This file is referenced from `SKILL.md` § "Generative prompts" and from `references/generative-prompts.md` § "selective_annotation".
 
-> **History note (Cut B simplification, 2026-05-21).** Earlier versions of this skill required each margin note to carry one of five single-letter prefixes — **P / I / M / E / Q** — bundled into a synthesized "PIMEQ" acronym. The 5 underlying *moves* (predict / infer / monitor / evaluate / question) are research-grounded — they are the verbal-protocol categories Pressley & Afflerbach 1995 mapped in expert adult readers. But the "PIMEQ" acronym wrapper itself was a skill-internal coinage from the source wiki's design-suggestion notes, not a published label, and the per-note prefix classification at write time generated cognitive overhead that did not translate to retention benefit. The current rule keeps the 5 moves as **examples of what an active margin note looks like**, drops the enforced prefix, and moves all categorization to chapter end (where it can be done in one pass, post-hoc, based on what each note actually says). Legacy chapter notes that used the prefix system remain valid (append-only; see § "Legacy migration" below).
+> **History note (Cut B simplification, 2026-05-21).** The pre-Cut-B per-note prefix system (P/I/M/E/Q, bundled as the skill-coined "PIMEQ" acronym) was dropped because write-time prefix classification added cognitive overhead without retention benefit; the 5 moves (predict/infer/monitor/evaluate/question, from Pressley & Afflerbach 1995) survive as examples and all categorization moved to chapter end.
 
 ## Active margin notes — the constructive move that satisfies annotation
 
@@ -75,31 +74,17 @@ If the user ends a chapter with **unresolved margin notes or unconverted bare hi
 
 The conversion pass is fast (~5 min for a 1-hour chapter at proper density); if it feels long, the user has over-annotated and the next chapter should reduce density.
 
-### Optional: Bloom distribution check at conversion
+**Optional Bloom check (soft, not a gate):** if a chapter's margin notes are all "monitor"/confusion-flags, nudge toward inference/evaluation next chapter; skip if it adds friction (heuristic is unsourced, retained on plausibility).
 
-While running the conversion pass, glance across the chapter's margin notes and note the distribution of move-types (predict / infer / monitor / evaluate / question — informally; no enforced labels). A chapter whose margin notes are entirely "monitor" / confusion-flag is a low-Bloom chapter and the user can be nudged toward inference and evaluation on the next chapter. This is a soft signal at compose time, not a gate; skip if it adds friction. (The Bloom-distribution heuristic itself is unsourced — it predates Cut B and is retained because the underlying intuition is plausible, not because it has cited evidence.)
+## Recall-table row labels
 
-## Recall-table row labels — `R1`, `R2`, ... (numeric, append-only-safe)
-
-Closed-book recall tables in the chapter note body (Phase 2 chunk-boundary recalls, Phase 3 calibrate textbase recall) use **numeric row labels**: `R1`, `R2`, `R3`, ...
-
-The descriptive category word (proposition / paraphrase / setup / statement / thesis / image / mechanism / equation / open_q / …) lives as a subscript on the schema key (`R1_proposition`) and is optional as a parenthetical aide-mémoire in surface output (`R1 (proposition): ...`). Per-book-type probe schemas live in `references/generative-prompts.md § recall_probe_schema`.
-
-**Why numeric, not letter labels** — numeric labels are unambiguously recall rows, never confusable with any other annotation in the chapter note. Letter labels (`R-P`, `R-I`, etc.) tied to category first letters are a structural attractor: across sessions the `R-` falls off and the surface form drifts, and the same letters can be silently reinterpreted by book type. Numeric labels are stable across sessions and append-only-safe.
-
-This rule is independent of the Cut B simplification — even without margin-prefix letters in play, numeric recall row labels remain the convention because the append-only stability matters on its own.
+Numeric `R1..Rn` recall-row labels are owned by `references/generative-prompts.md § recall_probe_schema` — see there for the convention and rationale.
 
 ## Legacy migration — chapter notes that used the prefix system
 
-Chapter notes written before Cut B (2026-05-21) may carry margin notes prefixed with `P:` / `I:` / `M:` / `E:` / `Q:`, or recall rows labeled `R-P` / `R-I` / `R-M` / `R-E` / `R-Q`. These are **valid history**, not violations — chapter notes are append-only. Do not rewrite them silently.
-
-On first re-entry to a chapter that contains either legacy form, surface the affected lines in one short message:
+Pre-Cut-B notes may carry `P:`/`I:`/`M:`/`E:`/`Q:` margin prefixes or `R-P`/`R-I`/… recall labels — valid append-only history, never auto-rewrite. On first re-entry to an affected chapter, surface the lines once (do not block the session), let the user pick rename vs. leave-as-is, and log to `session_health.label_migration: pending | renamed | left-as-is`:
 
 > "Ch.X Session N에 옛 prefix 포맷 보임 (`P:` margin 또는 `R-P` recall). 새 컨벤션은 prose margin note + 숫자 recall row. 둘 중 하나 골라: (a) in-place rename (히스토리 손실), (b) 그대로 두고 새 chunk부터 새 컨벤션 사용."
-
-Log the user's choice in `session_health.label_migration: pending | renamed | left-as-is`.
-
-Do not auto-rename without user confirm. Do not block the session on this — surface once per affected chapter and proceed.
 
 ## Anti-patterns
 

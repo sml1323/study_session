@@ -1,5 +1,4 @@
 # Note-Taking Policy — Refusal List, Reframe Map, Recommended Set
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: the user mentions a popular note-taking system, asks "should I use [system]?", or describes a workflow built around one. This policy file defines what the skill **refuses to recommend**, **how to reframe** when the user is already using a refused system, and **what the skill recommends instead**.
 
@@ -11,45 +10,7 @@ The skill's stance is:
 - **Do not refuse the user** when they are already invested in one of these systems.
 - **Reframe** their existing practice in mechanism terms, so the parts that produce learning are kept and the ritual overhead is dropped.
 - **Recommend** only the moves with direct evidence.
-- **Do not adopt a single default workflow.** R11 ethnography of 6 first-party power-user voices found load-bearing disagreements on highlighting, organization, AI use, and even on whether the apparatus is the problem. The defensible recommendations are *operations*, not tool stacks. See "The 6 power-user voices" below.
-
-## The 6 power-user voices (R11 power-user-ethnography-extended)
-
-The convergence Round 9 reported on PKM workflow shape is **shallower than it appears**. Round 11 widened the sample to 6 first-party voices that disagree with each other on load-bearing questions:
-
-| Voice | Capture stance | Highlight stance | Organization | AI use |
-|---|---|---|---|---|
-| **Sönke Ahrens** | pen-paper while reading | reject — no marking books | atomic permanent notes (Zettels), sentence-embedded links | none named |
-| **Maggie Appleton** | mobile inbox → Craft/Obsidian → public garden | implicit (notes carry stage markers) | stage (seedling / budding / evergreen) + content-type stratification | none named |
-| **Linus Lee** | Pico (ephemeral) + Ligature (long-term) | build-your-own AI overlay on the reading surface | collapse task/notes binary — unit is "thing-I-might-act-on" | self-built (Notation, Monocle, Reverie) |
-| **Cal Newport** | minimal — monthly reading-list reflection | reject — book in your hand is the system | none — depth-first cognitive practice | **anti-AI-summary on principle** |
-| **Steph Ango (Obsidian CEO)** | unique-note hotkey, timestamped | implicit | self vs other (vault root vs References vs Clippings) — anti-PARA | none named |
-| **Eleanor Konik** | Readwise Reader as universal funnel | embrace, tagged with action-tags at capture | LLM converts highlights → claim statements → Obsidian atomic notes | LLM as middle layer; Version History Diff for verification |
-
-### Where they agree (the operations)
-
-- **Capture surface must be one place.** Multi-app capture loses material. The specific app does not matter; the *one place* property does.
-- **Source notes and personal-thought notes must be separable**, regardless of which split semantics you use.
-- **Review is required.** None treat highlights or saved articles as the final state.
-
-### Where they disagree (the disagreements are the point — do not paper over)
-
-- **Highlighting**: Ahrens and Newport reject outright. Forte (R9), Konik, Readwise users embrace. Half the canonical voices reject the "highlight everything then process" pattern.
-- **Organization**: PARA, Zettelkasten ID schemes, self-vs-other, stage-based, action-readiness, and "no system / just deep work" all coexist among practitioners with strong outcomes. Wiki's prior implication that "MOC + tag + project structure" is the convergent answer is **overstated**.
-- **AI**: Konik integrates LLMs as a middle layer with explicit verification. Lee builds his own AI-overlay reading interface. **Newport treats AI summaries as actively harmful** to the cognitive rewards of slow reading. The "AI co-reader is inevitable" stance has at least one strong dissenter.
-- **The system itself**: Newport is the strongest contrarian. He uses almost no PKM apparatus and asserts that the dominant tooling **may itself substitute for the deep work it claims to support**. Round 9's silence on this critique was a gap.
-
-### The Newport critique (quote when the user wants to add tools)
-
-> Power users frequently report that the apparatus they built to support their reading has become the work itself — they spend more time tending the system than reading. The Newport position is that this is not a bug; it is the central failure mode of the entire PKM category. When the skill is asked to recommend "what tool should I add," the honest answer often is "none."
-
-Surface this critique once per session when the user asks the skill to recommend a new tool / system / workflow layer. Do not lecture; one short paraphrase is enough.
-
-### Implications for skill recommendations
-
-- The skill **does not recommend a single default workflow**. The defensible recommendations are the *operations* (atomic rewriting, reflection forcing function, single capture surface, anti-throughput) — not specific tool stacks.
-- The skill **respects strict-no-PKM as a first-class choice** (Newport mode), not a fallback.
-- Highlighting-first workflows carry an empirical caveat: popular but annotation alone is null on comprehension without layered mechanisms (see `references/annotation-typology.md`).
+- **Do not recommend a single default workflow.** First-party power-user voices disagree on load-bearing questions (highlighting, organization, AI use, and even whether the apparatus is the problem at all — Newport's strict-no-PKM is a first-class choice, not a fallback). The defensible recommendations are *operations* (single capture surface, source/personal-thought separation, required review, atomic rewriting, anti-throughput), not tool stacks. Highlighting-first workflows carry an empirical caveat: annotation alone is null on comprehension without layered mechanisms (see `references/annotation-typology.md`).
 
 ## Refusal list — systems the skill will not recommend
 
@@ -79,17 +40,7 @@ The reframe is the move. Do not lecture the user about why the system is empiric
 
 ## Recommended set — the moves with direct evidence
 
-These are the moves the skill recommends affirmatively. Each is grounded in the citations in `references/calibration.md` and `references/llm-tutor-design.md`.
-
-| Move | Evidence anchor | Where the skill applies it |
-|---|---|---|
-| **Retrieval practice (closed-book recall)** | Karpicke & Blunt 2011; Roediger & Karpicke testing-effect literature | Chunk-boundary recall every 5-10 min during Phase 2; Phase 3 textbase recall (Step 2a); spaced retrievals at 1d/1w/1m. |
-| **Spacing** | Cepeda et al. 2008 (spacing-effect meta) | Phase 3 default = next-session warmup; spaced re-engagement queue; daily-floor commitment device (`references/spacing-policy.md`). |
-| **Interleaving** | Rohrer & Taylor 2007; problem-driven cross-chapter mixing | `references/book-types.md` problem-driven and methodology — interleave related chapters before starting a new one. |
-| **Drawing for KEY TERMS / definitions** | Wammes et al. 2016 (drawing-effect on isolated-word free recall; *QJEP*) — *citation: verified* | Phase 3 optional sub-step: pick 3-5 key terms from the chapter and sketch each. Not whole-chapter sketchnoting. |
-| **Refutation text reading (for prior-misconception topics)** | Tippett 2010 meta on refutation texts | `references/methods/refutation-text.md` — invoked on conceptual chapters where the user has known prior misconceptions and the topic is not politically/identity-laden. |
-| **Backward fading worked examples** | Renkl & Atkinson worked-example research | `references/methods/backward-fading.md` — runs after every worked example before unguided practice. |
-| **Reading rate ceiling 250-300 wpm for prose with comprehension** | Reading-rate empirical literature | Speed-reading app claims above this are flagged; default skill pace assumes ~250 wpm for expository prose. |
+The moves the skill recommends affirmatively (retrieval practice, spacing, interleaving, drawing for key terms, refutation text, backward fading, the 250–300 wpm prose ceiling) are owned and specified where they are applied: `references/calibration.md` (retrieval practice), `references/spacing-policy.md` (spacing + daily floor), `references/book-types.md` (interleaving), `references/methods/refutation-text.md`, `references/methods/backward-fading.md`, and the reading-rate evidence. Recommend the mechanism, never the tool.
 
 ## How to handle the user's "what should I use?"
 
@@ -121,5 +72,4 @@ The single recommendation with direct Korean STEM evidence is: **mock exams as t
 - `references/methods/backward-fading.md` — what to do after a worked example
 - `references/calibration.md` — retrieval practice as the load-bearing learning move
 - `references/methods/refutation-text.md` — when refutation reading is invoked
-- `references/ai-policy.md` — Konik's LLM middle layer (one of the 6 voices) is reframed as `scaffolded-only` AI use, not as note-taking-system endorsement
-- wiki concept `power-user-ethnography-extended` — the source for the 6-voice table
+- `references/ai-policy.md` — an LLM-as-middle-layer workflow is reframed as `scaffolded-only` AI use, not as note-taking-system endorsement

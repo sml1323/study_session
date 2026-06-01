@@ -1,7 +1,6 @@
 # Generative Prompts — Verbatim Library
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-Core-meaning preservation matters; "anticipate" / "predict" / "self-explain" elicit different cognitive moves than "summarize" / "review." Bisra et al. 2018 self-explanation meta (Bisra, Liu, Nesbit, Salimi & Winne, *Educ Psychol Rev*) reports overall self-explanation effect of approximately g=0.55; specific sub-conditions (including "anticipatory / predictive" prompts) are reported in the meta but the exact g=1.37 figure cited here is not verifiable against the published meta — *citation: unverified*. Use the canonical English wording from the source for the prompt, translate to Korean for delivery. *[evidence: observational — Bisra 2018 meta-analysis aggregates non-RCT and RCT studies; cited effect sizes are best treated as observational. Specific g=1.37 figure: placeholder until citation verified.]*
+Core-meaning preservation matters; "anticipate" / "predict" / "self-explain" elicit different cognitive moves than "summarize" / "review." Bisra et al. 2018 self-explanation meta (Bisra, Liu, Nesbit, Salimi & Winne, *Educ Psychol Rev*) reports overall self-explanation effect of approximately g~0.55. Anticipatory / predictive sub-conditions are reported as *directionally* larger than the overall effect, but no specific magnitude is asserted here (the previously cited g=1.37 figure was not externally verifiable and is dropped). Use the canonical English wording from the source for the prompt, translate to Korean for delivery.
 
 Each prompt has:
 - **Purpose**: what learning move it serves
@@ -118,14 +117,14 @@ recall_probe_schema:
 
 PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall probe 자체가 부적합.
 
-**Why numeric labels** — single-letter row labels are a structural attractor: across sessions the prefix part falls off and the surface form drifts, and the category word can be silently reinterpreted. The `R1..R5` convention forces the surface label to be unambiguously a recall row, append-only-safe, and stable across sessions. The category word lives as a subscript or parenthetical aide-mémoire, never as the row's primary label.
+**Why numeric labels** — single-letter row labels are a structural attractor that drifts across sessions, so the `R1..R5` convention forces an unambiguous, append-only-safe recall row with the category word as a subscript or parenthetical aide-mémoire only.
 
 **Avoid**: writing `R-P`, `R-I`, `R-M`, `R-E`, `R-Q` row labels in the recall table. The 6 per-book-type schemas above use category words (proposition / paraphrase / setup / statement / thesis / image / mechanism / equation / open_q / …) as *subscripts on numeric keys*, never as standalone single-letter labels. See `references/annotation-typology.md § Recall-table row labels` and § "Legacy migration" for the structural rule and the policy for chapter notes that still carry the legacy `R-P` form.
 
 ### concept_define
 
 - **Purpose**: targeted self-explanation in own words; high-leverage retention move
-- **Source**: Bisra 2018 self-explanation meta — overall g~0.55; specific sub-condition g=0.87 for "conceptualize" *[citation: unverified — exact figure not confirmed against published meta]*
+- **Source**: Bisra 2018 self-explanation meta — overall g~0.55 (verified anchor). "Conceptualize" sub-condition is directionally favorable; no specific sub-condition magnitude asserted.
 - **Verbatim**: "Define [concept] in your own words. Where does it apply? Give one example."
 - **Korean**: "[개념]을 본인 말로 정의해봐. 어디에 적용되나? 예시 하나."
 - **Trigger**: every new technical term in the section; every chapter section break
@@ -134,7 +133,7 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 ### next_predict
 
 - **Purpose**: anticipate next derivation/argument step before reading it
-- **Source**: Bisra 2018 — anticipatory/predictive sub-condition reported in meta as larger than the overall g~0.55; "highest in meta" claim and exact g=1.37 figure *[citation: unverified — verify against published meta before next major release]*
+- **Source**: Bisra 2018 — anticipatory/predictive sub-condition is *directionally* larger than the overall g~0.55. No specific magnitude is asserted (the prior g=1.37 "highest in meta" ranking driver was not externally verifiable and is dropped).
 - **Verbatim**: "Predict what the next [step / paragraph / proof line] will conclude. Why?"
 - **Korean**: "다음 [단계/문단/증명줄]이 무엇을 결론낼지 예측해봐. 왜?"
 - **Trigger**: at section break in conceptual/problem-driven; before each derivation step
@@ -159,19 +158,11 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 
 ### graphic_organizer_required (intensity ≥ standard)
 
-- **Purpose**: integrate the chapter's local active margin notes into one cross-chunk relational structure. Constructed organizers outperform consumed ones; the structure must come from the user.
-- **Verbatim** (instruction to user): "Build one mind map / matrix / hierarchy / comparison table / sequence diagram for this chapter. 3-9 nodes. Edges have labeled relationships. Include at least one cross-reference to a prior chapter or concept."
-- **Trigger**: chapter end, before chapter complete, on standard or deep intensity sessions. Light intensity may skip — in that case `chapter_complete` is restricted to `phase-3-textbase-only`.
-- **Spec details**: see `references/annotation-typology.md` § "Graphic organizer requirement".
-- **Avoid**: skill generates the organizer for the user (loses the construction effect); >9 nodes (over-decomposition).
+Full spec (verbatim prompt, node bounds, edge labels, cross-reference requirement, intensity rule) is owned by `references/annotation-typology.md` § "Graphic organizer requirement". Do not duplicate it here.
 
 ### selective_annotation (active margin notes — bare highlights are deprecated)
 
-- **Purpose**: capture 1-2 *constructive* margin notes per page — short prose that goes beyond highlighting (generates new content, marks a question, flags a confusion, records an inference or evaluation). Bare highlights without accompanying prose do not improve comprehension and are deprecated as a default; if used, they must be converted at chapter end.
-- **Verbatim** (instruction to user): "Add up to 2 active margin notes on this page — short prose, beyond highlighting. Could be a prediction, an inference, a question, a confusion flag, an evaluation, or any other constructive move. No prefix required; one short sentence each. Bare highlights without text don't count."
-- **Korean**: "이 페이지에서 active margin note 최대 2개 — 짧은 한 문장씩. 예측 / 추론 / 질문 / 모르겠는 지점 / 평가·반박 등 highlight보다 한 발 더 나간 noted. prefix 안 붙여도 됨. 그냥 색칠은 카운트 안 함."
-- **Trigger**: at the chunk boundary, **after** the closed-book recall, never before. See `references/annotation-typology.md` for the order rule + move examples (Pressley & Afflerbach 1995) + the chapter-end conversion contract.
-- **Avoid**: bare highlights as final state; annotating before recall (this is the dominant fluency-illusion pattern); more than 2 active margin notes per page (signal of either over-dense chunk or revert to highlight-everything mode); reintroducing per-note prefix classification at write time (the Cut B simplification deliberately moved categorization to chapter end — classifying at write time generated overhead without retention benefit).
+Full spec (verbatim prompt + Korean delivery, the recall-first order rule, move examples from Pressley & Afflerbach 1995, density cap, and the chapter-end conversion contract) is owned by `references/annotation-typology.md`. Do not duplicate it here.
 
 ---
 
@@ -198,16 +189,24 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
   4. Identify wrong claims in recall (factual errors)
   5. Output: `{ missed: [...], wrong: [...], coverage: 0-1 }`
 - **Korean delivery**: "비교해보자. 빠진 것: [...]. 틀린 것: [...]. Coverage: 65%."
-- **Critical**: do not soften the gap. Yang 2023 r=0.18 means most users overestimate their understanding by 30-50%.
+- **Critical**: do not soften the gap. Learners systematically overestimate their understanding relative to delayed recall (directional only; the prior "r=0.18 → 30-50% overestimate" figure was retracted as not externally verifiable).
+
+### score_prediction (the ±10pt calibration GATE input)
+
+- **Purpose**: behavioral score forecast — the input to the ±10pt calibration gate. This is the gated metacomprehension signal (per `references/calibration.md` Step 1 / Step 4a). Distinct from affective confidence: it forces the user to reason against a specific imagined task.
+- **Verbatim**: "If you sat an exam on this chapter right now, what score would you predict — out of 100?"
+- **Korean**: "이 챕터 내용으로 시험을 본다면 100점 만점에 몇 점 받을 것 같아요?"
+- **Trigger**: at the start of Phase 3, **BEFORE** closed_book_recall (capture after is contaminated by the recall attempt). Captured back-to-back with confidence_check; both are pre-recall anchors.
+- **Output**: `score_prediction` (int, 0-100). This is the value fed to the ±10pt gate (`score_prediction_gap` / `calibration_gap_abs` in `references/calibration.md`). Both anchors are captured; score_prediction is the gate.
 
 ### confidence_check
 
-- **Purpose**: measure confidence-accuracy gap; detect illusion of understanding
-- **Source**: Aslanov 2025 (AI mediation amplifies IOED); Yang 2023
-- **Verbatim**: "Before I show you the gap analysis: how confident are you that your recall is accurate? Give a percentage 0-100."
-- **Korean**: "Gap 보여주기 전에 묻는다: 본인 recall이 정확하다고 얼마나 자신해? 0-100으로."
-- **Trigger**: after closed_book_recall, BEFORE gap_calibration
-- **Output**: `confidence_accuracy_gap = confidence - actual_coverage`. If > 30%, surface as illusion signal.
+- **Purpose**: measure diffuse confidence-accuracy gap; detect illusion of understanding. Captured alongside score_prediction but is the *legacy/trend* anchor, not the gate — `score_prediction` (above) is the gate input.
+- **Source**: Aslanov 2025 (AI mediation amplifies IOED); Ratnayake 2023 (affective vs behavioral distinction)
+- **Verbatim**: "Before you recall: how confident are you that you can reproduce this chapter's main ideas right now? Give a percentage 0-100."
+- **Korean**: "Recall 하기 전에 묻는다: 지금 이 챕터 핵심을 다시 재현할 수 있다고 얼마나 자신해? 0-100으로."
+- **Trigger**: at the start of Phase 3, BEFORE closed_book_recall (paired with score_prediction)
+- **Output**: `confidence_self_report` (int). Trend signal; `confidence_accuracy_gap = confidence_self_report - actual_coverage`. If > 30%, surface as illusion signal.
 
 ### feynman_explain
 
@@ -275,7 +274,7 @@ PDP 미적용 책 — `recall_probe_schema` 없음. lookup 패턴에는 recall p
 1. **Use the verbatim source wording in the planning prompt to yourself**, then translate to Korean naturally for the user. Do not invent new wording.
 2. **Avoid yes/no framing**. "Did you understand X?" yields yes-bias. Replace with "Define X."
 3. **Avoid hedge language**. "Maybe try to predict..." weakens the prompt. Use imperative.
-4. **Avoid generic praise after answers**. "Great!" / "잘했어요!" / "Perfect!" are banned. Replace with specific feedback (see `references/llm-tutor-design.md`).
+4. **Avoid generic praise after answers**. Replace with specific feedback. Banned-praise list: see SKILL.md Decision rules.
 5. **Push back on short answers**. If user gives 4-word concept_define, that's not a definition. "More — give me one full sentence and an example."
 
 ## Anti-patterns (DO NOT use)
@@ -307,8 +306,8 @@ Phase 2 (25-30 min, single block):
 [END PHASE 2 — session ends; status: phase-3-pending]
 
 Phase 3 (15 min, opens the *next* session by default):
+  score_prediction + confidence_check   (BOTH before recall; score_prediction is the ±10pt gate input)
   closed_book_recall
-  confidence_check
   gap_calibration
   feynman_explain
   concept_map_build (optional, recommended)

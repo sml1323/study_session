@@ -1,11 +1,24 @@
 # Code Reading — Non-Linear 5-Stage Protocol
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter or session contains **code, formal proofs, or dense scientific papers** as the load-bearing reading unit. The chapter is non-linear by necessity — top-to-bottom + highlight + review (the consumer-tool default) does not work for these domains. The protocol below is the workflow that senior developers, mathematicians, and code auditors converge on independently.
 
-The empirical anchor is the Code Review as Decision-Making (CRDM) study (n=10 senior developers averaging 8 years of review experience, 1,159 coded segments from 34 real reviews). 27% of segments were the orientation phase (linear); 73% were the analytical phase (iterative). The "selecting next action" sub-step was itself a primary cognitive activity even at 8 years of experience — code-base navigation is its own load. Tao's 2017 "On Compilation Errors in Mathematical Reading" gives the same shape for proof reading.
+The empirical anchor is the Code Review as Decision-Making (CRDM) study (n=10 **senior** developers averaging 8 years of review experience, 1,159 coded segments from 34 real reviews). 27% of segments were the orientation phase (linear); 73% were the analytical phase (iterative). The "selecting next action" sub-step was itself a primary cognitive activity even at 8 years of experience — code-base navigation is its own load. Tao's 2017 "On Compilation Errors in Mathematical Reading" gives the same shape for proof reading.
+
+**Read the 73%-analytical / autonomous-navigation profile as the EXPERT target state, not the novice default.** CRDM measured n=10 *experts*; the heavy analytical-loop, self-directed-navigation pattern is what expertise looks like, not what scaffolding a novice should impose on day one. By expertise-reversal (Kalyuga), the orientation + worked-example scaffolding that *helps* a novice becomes redundant load for an expert, and the autonomous navigation that *fits* an expert leaves a novice lost. See `## Expertise gate` before setting stage intensities. *[evidence: CRDM n=10 experts is the source for the 73%/autonomous-navigation profile; reading it as the novice default is an expertise-reversal error (Kalyuga).]*
 
 This file is the cross-domain protocol. Math-specific micro-tasks (circle hypothesis / mark contradiction / quantifier scope) live in `references/methods/math-text-reading.md` and run *inside* the analytical loop here.
+
+## Expertise gate
+
+Set the protocol's intensity to the reader's expertise in *this* domain before running the 5 stages. The autonomous, navigation-heavy profile is the expert *target*; novices are scaffolded toward it, not dropped into it.
+
+| Reader profile (in this domain) | Orientation (Stage 1) | Strategic entry (Stage 2) | Analytical loop (Stage 3) | Worked-example scaffolding |
+|---|---|---|---|---|
+| **Novice** | MORE: walk all 5 questions explicitly, skill helps answer 4-5 | skill *suggests* the 1-2 entry points | skill names the sub-mode and proposes the next target most turns | **YES** — start from a worked example (a passage the author/maintainer already explained, or a fully-traced reference path) before self-directed navigation |
+| **Intermediate** | full 5 questions, reader answers, skill checks | reader picks, skill confirms | reader names sub-mode; skill prompts only on stalls | fade: worked example only on the hardest unit |
+| **Expert (CRDM target)** | quick 5-question gut check | reader navigates autonomously | reader runs the loop; skill stays out unless asked | none — autonomous navigation is the point |
+
+By expertise-reversal (Kalyuga), forcing the expert profile onto a novice (drop them in, let them navigate) produces exactly the lost-topology failure this protocol warns about; forcing the novice profile onto an expert (mandatory worked examples, skill-driven navigation) is redundant load. Pick the row that matches the reader's standing in *this* domain, which may differ from their general programming experience.
 
 ## The 5 stages
 

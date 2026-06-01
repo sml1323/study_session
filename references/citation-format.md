@@ -1,7 +1,6 @@
 # Citation Format — Discriminated Union by Source Kind
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-When the user wants to quote a passage from a book during analysis (especially in ARQ extracts and Polya log entries), use a unified citation schema. The schema discriminates by source kind so future books (audio, EPUB, HTML) drop in without redesign.
+When the user wants to quote a passage from a book during analysis (especially in ARQ extracts and Polya log entries), use a unified citation schema. The skill reads via the Read tool (EPUB is converted to PDF first), so the two reachable source kinds are `pdf` and `chapter_split`.
 
 ## Inline compact form
 
@@ -33,9 +32,7 @@ citations:
   - quote_id: rc-3
     book: arq
     source_kind: pdf
-    api_type: page_location           # Anthropic Citations API type if used
     file_path: ~/wiki/tmp_books/arq.pdf
-    document_index: 0                 # for Citations API
     start_page: 142                   # PDF page index
     end_page: 143
     printed_page: "p.138"             # printed page differs from PDF page (front matter)
@@ -45,13 +42,10 @@ citations:
 
 ## Source kinds
 
-| source_kind | locator structure | api_type (if Anthropic Citations API) | example inline |
-|-------------|-------------------|--------------------------------------|----------------|
-| `pdf` | `{start_page, end_page, printed_page, chapter}` | `page_location` | `[arq §7 p.138 #qid]` |
-| `chapter_split` | `{part, section, section_number, para}` | `content_block_location` | `[polya II/auxprob ¶3 #qid]` |
-| `html` | `{section, url_fragment, heading}` | `char_location` | `[htdp §1.2.3 #qid]` |
-| `epub` | `{chapter, para, cfi}` | `char_location` (after conversion) | `[book Ch.4 ¶12 #qid]` |
-| `audio` | `{chapter_index, start_ms, end_ms}` | `none` | `[book ch.7 17:14 #qid]` |
+| source_kind | locator structure | example inline |
+|-------------|-------------------|----------------|
+| `pdf` | `{start_page, end_page, printed_page, chapter}` | `[arq §7 p.138 #qid]` |
+| `chapter_split` | `{part, section, section_number, para}` | `[polya II/auxprob ¶3 #qid]` |
 
 ## Critical gotchas
 
@@ -72,10 +66,6 @@ arq:
 ```
 
 When recording a citation, compute and store both. Display compact form uses printed page (`p.138`) since that's what humans look up.
-
-### Citations API structured-outputs incompatibility
-
-If skill uses Anthropic Citations API for automated quote extraction: citations + structured outputs returns 400 errors. Capture citations from streaming `citations_delta` or in a separate non-structured turn.
 
 ### Scanned PDFs
 
@@ -112,35 +102,9 @@ Inline compact form is *self-decoding* — given just `[arq §7 p.138 #rc-3]`, a
 
 This makes partial-context retrieval work. If the next session reads only the body of the chapter note (not the appendix), citations remain interpretable.
 
-## Footnote pattern — DO NOT use
+## Capturing a citation
 
-Markdown footnote `[^1]` style is rejected because:
-- Requires resolving the footnote table to identify the source
-- Ambiguous in partial context (grep result missing the footnote table)
-- Tied to one book / one source — doesn't generalize across kinds
-
-Use inline compact form.
-
-## Capturing from Anthropic Citations API
-
-If citations are produced via Citations API (when document is loaded with `cache_control` and `citations.enabled`), Claude returns a structured citation object. Map to the schema:
-
-```python
-# pseudocode
-def capture_citation(api_citation, book_meta):
-    return {
-        "quote_id": slugify(api_citation["cited_text"][:40]),
-        "book": book_meta["slug"],
-        "source_kind": book_meta["source_kind"],
-        "api_type": api_citation["type"],
-        "file_path": book_meta["path"],
-        "document_index": api_citation["document_index"],
-        "cited_text": api_citation["cited_text"],
-        "locator": build_locator(api_citation, book_meta),  # source_kind-specific
-    }
-```
-
-When skill is running natively in Claude Code (Read tool, no Citations API), citations are captured manually:
+Running natively in Claude Code (Read tool), citations are captured manually:
 
 1. User pastes a passage they want to cite
 2. Skill asks for the page number (or the user provides it)

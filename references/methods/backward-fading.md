@@ -1,9 +1,12 @@
 # Backward Fading — Completion Problems After Worked Examples
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: the user just studied a worked example (or the chapter just presented one) and asks for "비슷한 문제 줘" / "another one to practice" / "더 풀어볼 문제". This is the moment that decides whether the worked example produces a transferable schema or a fluency illusion.
 
 The default move — handing the user a parallel **unguided** problem — is wrong. Without scaffolding, surface-feature mapping dominates and the deep structure the worked example just demonstrated does not transfer. The replacement is **backward fading completion problems** (Renkl & Atkinson worked-example research): the next problem the user attempts is structurally identical to the worked example except the **last step** is blanked out. Each successful completion fades one more step from the back. The user reaches an unguided problem only after several faded passes.
+
+## When fading triggers
+
+**Fading triggers after ANY worked example** — whether the example was **chapter-presented** (the chapter just showed a worked solution) or surfaced as a **level-3 hint** (worked example shown during hint escalation; see `references/methods/hint-escalation.md`). Both paths produce a consumed worked example, and both require the fade sequence before the user attempts an unguided variant. There is no worked-example source that is exempt.
 
 ## The fading sequence
 
@@ -18,10 +21,11 @@ Run this sequence after every worked example, problem-driven chapter or otherwis
 | ... | continue fading from the back | self-explanation prompt at every blank |
 | N (unguided) | problem statement only | full solution attempt |
 
-Two invariants:
+Three invariants:
 
 1. **Fade from the back, never from the front.** The first step is the hardest to recover (problem identification + plan); leaving it visible scaffolds the most fragile part. Removing the last step first scaffolds the part the user is most likely to be able to complete and gives a calibration signal: if the user fails the last step, they have not yet encoded the final move; do not advance.
 2. **Self-explanation prompt at every blank.** "Why does this step follow from the previous one? What rule / theorem / move is being applied?" — captured in the polya log alongside the step. A blank without the SE prompt is just hidden work; it does not produce schema.
+3. **Give the early / plan steps MORE faded passes, not fewer.** Because fading runs back-to-front, the early steps (problem identification + plan choice — the schema-critical moves) are blanked *last* and therefore get the *fewest* repetitions by default. That is backwards from where the learning leverage is. Compensate: when the fade sequence reaches the early/plan steps, give them extra faded-practice passes (e.g., re-blank the plan step across several fresh surface instances) before declaring the schema encoded. The final move is easy to recover; the plan is the part that transfers, so it earns the most practice.
 
 ## When to advance vs hold
 
@@ -31,6 +35,15 @@ After each fade pass:
 - **Blank completed but SE missing or surface-paraphrase** → repeat the same fade level with fresh SE prompt; do not advance
 - **Blank wrong** → drop back one fade level (re-show one more step); never fade further until that level passes
 - **User explicitly asks for unguided** → allow it, but log `fading_skipped: true` and do not retroactively credit subsequent attempts as evidence of schema
+
+## Expertise-reversal exit (compress or skip the fade)
+
+The full fade sequence is calibrated for a learner who *did not* already have the schema. For a learner who shows they already do, the dense scaffolding becomes redundant and can even depress learning — the **expertise reversal effect** (Kalyuga; Kalyuga & Sweller): instructional support that helps novices hurts more-expert learners. Exit or compress the sequence when either signal appears:
+
+- The learner **solved the productive-failure attempt at least partially** (got the plan / key move right before studying the example), OR
+- The learner **passes an early fade level on the first try** (completes a deeply-faded pass with correct SE on the first attempt).
+
+On either signal: compress the remaining fade levels (skip intermediate passes) or jump straight to an unguided variant to confirm. Log `expertise_exit: true` with the triggering signal. This is a *different* exit from `fading_skipped` (user-demanded): the expertise exit is evidence-driven and the subsequent unguided attempt *does* count as schema evidence. Note this exit overrides the "give early/plan steps more passes" invariant — extra plan-step practice is for learners who lack the schema, not for those who have demonstrated it.
 
 ## What to log
 
@@ -50,6 +63,7 @@ fading:
       ...
   reached_unguided: true | false
   fading_skipped: false
+  expertise_exit: false   # true if compressed/skipped via expertise-reversal exit; record the triggering signal
 ```
 
 ## Anti-patterns

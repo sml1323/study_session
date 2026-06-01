@@ -1,18 +1,17 @@
 # Polya — Four-Step Problem Solving + Schoenfeld Metacognition
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter contains a problem to solve; user pastes an exercise; problem-driven book type runs Polya as the primary loop. Methodology books that teach Polya (Polya itself) use it during Phase 4 application.
 
-## The four steps (verbatim)
+## The four steps (canonical Polya prompt set)
 
-| # | Step | Verbatim prompt |
-|---|------|-----------------|
+| # | Step | Prompt |
+|---|------|--------|
 | 1 | Understand | "Restate the problem in your own words. What is given? What is the goal? What are the conditions?" |
 | 2 | Plan | "Have you seen a similar problem? Tell me a method you can use to find an answer." |
 | 3 | Carry out | "Execute. At each step transition, ask: What am I doing? Why am I doing it? How does it help me?" (Schoenfeld 3-question, sticky) |
 | 4 | Look back | "What's the principle that made this work? What other problems share this deep structure?" |
 
-Verbatim wording is from Polya. Do not paraphrase. Translate to Korean naturally for delivery.
+This is the canonical Polya prompt set — preserve the cognitive move; translate naturally for delivery (e.g., into Korean).
 
 ## Schoenfeld 3-question (sticky inside step 3)
 
@@ -54,14 +53,27 @@ This is from Newman error analysis (see `references/methods/newman.md`) merged w
 
 ## Look back (step 4) — the highest leverage step
 
-Most students skip this. It's the highest-leverage step.
+Most students skip this. It's the highest-leverage step. Run it in two parts — **4a VERIFY** then **4b GENERALIZE** — and do not collapse them into one.
+
+### 4a — VERIFY (did the result actually hold?)
+
+Before extracting any principle, confirm the answer is correct and the argument is sound:
+- **Check the result** — units, dimensions, boundary/limit cases, order of magnitude, sign.
+- **Check the argument** — does each step actually follow? Any unjustified assumption or division-by-something-that-could-be-zero?
+- **Re-derive differently** — get the same answer by a second method or path. Agreement across methods is the strongest verification.
+
+If verification fails, the problem is not solved — return to Carry Out / Plan, do not proceed to GENERALIZE.
+
+### 4b — GENERALIZE (what transfers?)
+
+Once verified:
 
 > "What's the principle that made this work? What other problems share this deep structure?"
 
 Push for:
-- The *invariant* — the abstract structure stripped of surface details
-- One other problem (in this book or another) that shares the same deep structure
-- A category name for this problem type
+- The *invariant* — the abstract structure stripped of surface details (the deep structure).
+- One other problem (in this book or another) that shares the same deep structure (a related problem).
+- A category name for this problem type.
 
 This is where schema formation happens (Chi & Glaser 1981 expert-novice). Surface-feature problems are forgotten; deep-structure schemas transfer.
 
@@ -120,7 +132,11 @@ polya_logs:
 
 ### Plan step — patterns
 
-- User can't name a similar problem: this is a schema gap. Either drop to level 2 (schema lookup hint) or run reference Polya Part II for a heuristic
+- User can't name a similar problem: this is a schema gap. Do **not** jump straight to a hint. First expose 2-3 more Polya heuristics *by name* and let the user pick one to try:
+  - **Work backward from the goal** — start at the desired result and ask what would have to be true one step before it.
+  - **Solve a simpler / auxiliary problem** — relax a condition, drop a dimension, or solve a special case first; or introduce an auxiliary element/problem that bridges given and goal.
+  - **Specialize, then generalize** — try concrete instances (small n, boundary values) to expose the pattern, then lift it back to the general case.
+  Only if naming these heuristics still produces no plan, drop to level 2 (schema lookup hint) or run reference Polya Part II for the matching heuristic entry.
 - User names strategy too vaguely: "Solve it with calculus" is not a strategy. Push for concrete: "Use auxiliary variable / Substitute / Apply mean value theorem."
 - User wants to start computing: "Plan first. What's the *whole* path from given to goal?"
 

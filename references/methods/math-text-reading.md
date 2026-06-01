@@ -1,6 +1,6 @@
 # Math / Proof-Heavy Text Reading — Micro-Task Protocol
 
-Evidence labels: see `references/evidence-labels.md`. Panse 2018 (eye-tracking) is `observational`; Lohmeyer & Meboldt 2015 two-pass is `observational`; Tao 7 moves is `operational-heuristic` (essay-based, no RCT); the Sinha & Kapur 2021 PF 6-condition list is `placeholder` (reconstructed, not verbatim).
+Evidence labels are applied inline per claim as `[evidence: observational | operational-heuristic | placeholder]`. Panse 2018 (eye-tracking) is `observational`; Lohmeyer & Meboldt 2015 two-pass is `observational`; Tao 7 moves is `operational-heuristic` (essay-based, no RCT).
 
 When invoked: chapter is from a university math, physics, or engineering text where the load-bearing content is **proofs, derivations, or formal definitions** rather than expository prose. Examples: Spivak *Calculus* main text (proofs, not just exercises), Rudin, Griffiths derivations, EE/CS textbook chapters with circuit/signal-flow analysis, theoretical chapters in formal CS texts.
 
@@ -95,7 +95,7 @@ The 7 moves all share a precondition: **the reader noticed that reading stopped 
 
 - **stop-compile (you've re-read the same lines, you can't simulate, the next step doesn't follow) → switch strategies (one of the 7 moves above), do not push harder.**
 
-Push-harder is the dominant failure mode in formal-text reading; the 7 moves are operational alternatives.
+Push-harder is a characteristic failure in formal-text reading (Tao, qualitative); the 7 moves are operational alternatives.
 
 Capture into the chapter note Phase 2 alongside `failure_triggers` (per `references/methods/code-reading.md` Stage 4):
 
@@ -132,18 +132,13 @@ After computation, if the user did not redraw, prompt:
 
 Productive failure (Sinha & Kapur 2021) — letting the user struggle on a problem before any scaffold — is a real effect, but it is not a default.
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) requires "성인 학습자 + 개념 문제 + 6 충실도 조건 충족 가능 → PF 모드", but does NOT enumerate the specific 6 fidelity conditions.** The list below is an operational placeholder reconstructed from typical Sinha & Kapur 2021 protocol descriptions; the exact six items in the source patch are unverified. Treat as a checklist to discuss with the user, not as canon. Replace with the verified list when R11 nails them down. *[evidence: placeholder — Sinha & Kapur 2021 review is observational on PF; the specific 6 conditions are reconstructed and not citation-verified.]*
+Activate PF mode only when all three load-bearing conditions hold: *[evidence: operational-heuristic — Sinha & Kapur 2021 review is observational on PF; the gate below keeps only the conditions the source actually load-bears on (adult learner, conceptual problem, mandatory consolidation) and drops earlier reconstructed extras.]*
 
-Activate PF mode only when the conditions below all hold (placeholder list):
+1. **Adult learner** — the PF effect is conditional; younger-learner literature is mixed.
+2. **Conceptual problem** — not a procedural drill; PF needs a problem with a deep structure to discover.
+3. **Consolidation must follow** — a worked example or expert explanation is non-negotiable after the struggle. **PF without consolidation is just struggle.**
 
-1. **Adult learner** — PF effect is conditional; younger-learner literature is mixed (this and #2 are the two patch-named conditions)
-2. **Conceptual problem** — not a procedural drill; PF needs a problem with a deep structure to discover (this and #1 are the two patch-named conditions)
-3. *(placeholder)* The user has the prerequisite knowledge to attempt the problem at all
-4. *(placeholder)* The problem has a generative-solution structure (multiple plausible attempts, each exposing a piece of the deep structure)
-5. *(placeholder)* The user has explicit time budget for the struggle (15-30 min unguarded)
-6. *(placeholder)* A worked example or expert explanation will follow the struggle (PF without consolidation is just struggle)
-
-Without all six, default to **worked-example-first** (study the example, then run backward-fading per `references/methods/backward-fading.md`).
+Without all three, default to **worked-example-first** (study the example, then run backward-fading per `references/methods/backward-fading.md`).
 
 PF is event-triggered, not time-triggered: do not set a clock and force struggle. The trigger is a problem the chapter presents that meets the conditions.
 
@@ -163,7 +158,7 @@ These are the load-bearing learning behaviors; cutting them produces prose-skip 
 - ❌ **Running every micro-task on every proof.** Pick 1-2 that match structure.
 - ❌ **Pass-2-only diagram reading.** Skim component naming first, always.
 - ❌ **Counting diagrams as a learning signal.** Purpose-label density is the signal.
-- ❌ **Productive failure as the default for any math problem.** PF needs all six fidelity conditions; without them, worked-example-first.
+- ❌ **Productive failure as the default for any math problem.** PF needs adult learner + conceptual problem + mandatory consolidation; without all three, worked-example-first.
 
 ## Cross-references
 

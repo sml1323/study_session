@@ -1,5 +1,4 @@
 # Chapter Note Template
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The chapter note is the *byproduct* of the session, auto-filled by the compose mode from session traces. The user does not face a blank form — the skill captures answers during the session and writes them out.
 
@@ -36,20 +35,20 @@ hint_levels: [0, 1, 1, 2, 0]   # one entry per help moment
 avg_hint_level: 0.8
 avg_answer_length: 35           # words
 
-# Phase 3 metrics (populated after calibrate; textbase, situation model, learning_passed and calibration_health are scored separately — B1 split, 2026-05-17)
-textbase_recall_coverage: 0.65            # 0-1, Step 2a/3 scoring — what the chapter said (advisory)
-situation_model_transfer_score: 0.75      # 0-1, mean of Step 2b transfer questions
-situation_model_transfer_questions_count: 2  # number of Step 2b questions asked (0 if skipped)
-learning_passed: true                     # situation_model_transfer_score >= book-type gate; THE chapter_complete signal
-chapter_complete: true                    # = learning_passed (B1: calibration health no longer hard-blocks this)
-confidence_self_report: 80                # 0-100, Step 1 diffuse confidence (legacy)
-score_prediction: 75                      # 0-100, Step 1 behavioral exam-score forecast — captured BEFORE recall
-actual_score: 70                          # composite: textbase_recall_coverage*50 + situation_model_transfer_score*50
-score_prediction_gap: 5                   # Step 4a, signed (prediction − actual)
-calibration_gap_abs: 5                    # |score_prediction_gap|; drives calibration_health enum below
-calibration_health: well_calibrated       # well_calibrated | loose | over_confident | under_confident | unknown
-confirm_next_chapter: false               # true when calibration_gap_abs > 30 → next session prompts user before chapter advance
-confidence_accuracy_gap: 5                # confidence_self_report - SM*100 (Step 4b, legacy gap kept for trend)
+# Phase 3 metrics (populated after calibrate — B1 split, 2026-05-17). field semantics: see references/state-schema.md
+textbase_recall_coverage: 0.65
+situation_model_transfer_score: 0.75
+situation_model_transfer_questions_count: 2
+learning_passed: true
+chapter_complete: true
+confidence_self_report: 80
+score_prediction: 75                      # Step 1 exam-score forecast — captured BEFORE recall (calibration GATE input)
+actual_score: 70
+score_prediction_gap: 5
+calibration_gap_abs: 5
+calibration_health: well_calibrated       # enum values + triggers: references/state-schema.md
+confirm_next_chapter: false
+confidence_accuracy_gap: 5
 categorization_re_test:                   # populated when Phase 1 ran the Mason-Singh micro-task
   phase_1_grouping: surface               # surface | mixed | principle
   phase_3_grouping: principle
@@ -96,40 +95,8 @@ review_queue:
   - { due: 2026-05-05, type: 1w }
   - { due: 2026-05-28, type: 1m }
 
-# Daily-floor commitment device (see references/spacing-policy.md)
-daily_floor:
-  target_distinct_days: 5                 # computed from book type
-  retrievals_per_day_min: 2
-  window_end: 2026-05-14                  # 14 days from Phase 2 close (problem-driven gets 21)
-  retrievals_executed:                    # behavior-counted, not exposure-counted
-    - { date: 2026-05-01, count: 2, types: [chunk_recall, transfer_attempt] }
-  status: active                          # active | met | missed
-
-# External deadline anchor (see references/spacing-policy.md § Shift 3)
-external_deadline:
-  type: mock-exam | semester-end | self-set | cohort-exam | other | null
-  date: 2026-06-15
-  description: "med school 4th-year mock 2 (KMLE prep)"
-  social_anchor: "study group meets every Monday"   # optional
-
-# FCI/BEMA-style self-diagnostic (computed at +1m or external_deadline.date, whichever first)
-self_diagnostic:
-  metric: normalized_gain
-  pre_score: 0.35                         # Phase 1 baseline on expectations + misconceptions
-  post_score: 0.78                        # +1m spaced retrieval coverage on the same items
-  normalized_gain: 0.66                   # (post-pre) / (1-pre)
-  expected_band: { low: 0.30, high: 0.40 }
-  diagnosis: above_band                   # below_band | in_band | above_band
-  computed_at: 2026-05-30
-
-# Exam-wrapper trace (auto-appended every chapter — Hodges 2020, Ratnayake 2023)
-exam_wrapper_trace:
-  calibration_gap_abs: 5                  # post-B1 field name; legacy notes used `abs_gap`
-  calibration_health: well_calibrated     # post-B1; mirrors the top-level field
-  hint_levels_summary: { max: 2, avg: 0.8, level_4_count: 0 }
-  active_review_attempts: 4               # closed-book recall + transfer attempts during the chapter
-  transfer_attempt_result: success
-  composed_at: 2026-05-03
+# Optional spacing/exam blocks (daily_floor, external_deadline, self_diagnostic, exam_wrapper_trace):
+# field schemas + when populated — see references/spacing-policy.md.
 
 # Cross-refs
 related_chapters:
@@ -139,19 +106,13 @@ related_chapters:
 evergreen_extracts:                # if extract mode pulled atomic principles
   - ../evergreen/arq-rival-causes-checklist.md
 
-# Learner profile (used to differentiate default schedule + flag transfer hypotheses)
-# Most recommendations to Korean STEM learners are TRANSFER HYPOTHESES — direct evidence in
-# Korean STEM populations is sparse. Mark explicitly when surfacing recommendations.
-# Direct evidence anchor: Chung 2024 — Korean med 4th-year mock exam as dominant retrieval signal.
+# Learner profile (differentiates default schedule + flags transfer hypotheses)
 learner_profile:
   ui_language: ko                  # ko | en | other
   textbook_origin: translated      # original | translated | bilingual | mixed
   school_context: med-school       # med-school | engineering | hs-csat | hs-peet | grad | none | other
-  exam_target: KMLE                # KMLE | PEET | CSAT | self-set | none | other
-                                   # (Patch v3 names KMLE/PEET/CSAT only; other Korean STEM exams
-                                   #  go under `other` with a free-text description until R11 expands the enum.)
-  transfer_hypothesis_flag: true   # true if recommendations to this learner are transfer-hypothesis
-                                   # rather than directly evidenced for the population
+  exam_target: KMLE                # KMLE | PEET | CSAT | self-set | none | other (others go under `other` + free text)
+  transfer_hypothesis_flag: true   # true if recommendations are transfer-hypothesis, not directly evidenced
 
 # Reading-mode declaration (R11 v4) — picks linear vs non-linear protocol at plan time
 reading_mode_declaration: linear-deep   # linear-deep | non-linear (code/proof/dense-paper) | triage-then-deep | lookup
@@ -438,17 +399,12 @@ When compose mode runs (end of session or end of phase):
 
 1. Pull session traces from internal state (or transcript if running in Claude Code)
 2. Map each captured response to its frontmatter or body section
-3. Compute derived fields:
-   - `avg_hint_level` from `hint_levels`
-   - `avg_answer_length` from session response lengths
-   - `actual_score` from `textbase_recall_coverage * w_t + situation_model_transfer_score * w_s` (R10 v3; weights per book type or user override)
-   - `learning_passed` = `situation_model_transfer_score` ≥ book-type SM gate
-   - `chapter_complete` = `learning_passed` (B1 split, 2026-05-17)
-   - `score_prediction_gap`, `calibration_gap_abs` from Step 1 + Step 4a
-   - `calibration_health` enum from `calibration_gap_abs` + sign of `score_prediction_gap` (see `references/state-schema.md § calibration_health enum`)
-   - `confirm_next_chapter` = `calibration_gap_abs > 30`
-   - `confidence_accuracy_gap` from `confidence_self_report` + SM transfer (legacy trend)
-   - `session_health.illusion` ← true if `calibration_health` is `over_confident` (post-B1; legacy notes used `abs_gap > 20`)
+3. Compute derived fields (derivation formulas: `references/state-schema.md`):
+   - `avg_hint_level` from `hint_levels`; `avg_answer_length` from session response lengths
+   - `actual_score`, `learning_passed`, `chapter_complete`
+   - `score_prediction_gap`, `calibration_gap_abs`, `calibration_health`, `confirm_next_chapter`
+   - `confidence_accuracy_gap` (legacy trend)
+   - `session_health.illusion` ← true if `calibration_health` is `over_confident`
    - `session_health.*` other flags from detection rules in `references/failure-modes.md`
    - `daily_floor.status` from `retrievals_executed` (behavior-counted) vs `target_distinct_days` × `retrievals_per_day_min`
    - `exam_wrapper_trace` block (always — ritual, not optional; Hodges 2020 dose-response)

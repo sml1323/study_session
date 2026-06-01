@@ -2,7 +2,7 @@
 
 When invoked: the user opens a session expressing intent to *review* an already-touched chapter rather than start a new one. This file defines the UX contract layer between the surface trigger (natural language or `--review` flag) and the underlying behavior (which mode runs, which Phase 3 sequence kicks in, whether the chapter status branches into spaced-retrieval vs full calibrate vs in-chapter recap).
 
-Evidence labels: see `references/evidence-labels.md`. The branch logic is `operational-heuristic` (chosen for actionability); the underlying mechanisms it routes to (Phase 3 calibrate, spaced retrieval, conversion, recap) carry their own evidence tags in their respective references.
+The branch logic is an operational heuristic (chosen for actionability); the underlying mechanisms it routes to (Phase 3 calibrate, spaced retrieval, conversion, recap) carry their own evidence in their respective references.
 
 ## Trigger surfaces
 
@@ -50,21 +50,11 @@ Once review-routing is entered for a specific chapter, the branch is determined 
 
 ### `confirm_next_chapter` interaction
 
-If the chapter being reviewed has `confirm_next_chapter: true` set (B1 split — see `references/calibration.md § B1 split`), the review-routing branch runs **but** prompts the user for confirmation before queueing the next chapter for advance. Specifically:
-
-- For the `phase-3-complete` / `scheduled` branch (spaced retrieval): the skill surfaces "Last Phase 3 showed `calibration_health: over_confident` with gap > 30. Continue with the spaced retrieval pass and confirm chapter advance, or run a fresh Step 2b retry first?"
-- For the `in-progress` branch: no special handling (the chapter has not yet reached Phase 3).
-- For the `phase-3-pending` branch: the Phase 3 sequence runs normally; the new `calibration_health` and `confirm_next_chapter` are recomputed at the end.
+If the chapter being reviewed has `confirm_next_chapter: true` set (the B1 split — owned by `references/calibration.md`), review-routing must honor it: prompt the user for confirmation before queueing the next chapter for advance. It only affects the post-Phase-3 branches — for `phase-3-complete` / `scheduled` (spaced retrieval) the skill surfaces the calibration-health caveat and asks whether to continue or run a fresh Step 2b retry; for `in-progress` and `phase-3-pending` there is no special handling (the flag is recomputed at Phase 3 end).
 
 ## Multiple-due handling
 
-When `--review --due` finds more than one chapter due, the rule mirrors the multiple-pending-chapters rule in `references/calibration.md § Multiple pending chapters`:
-
-- Default: **oldest-due first, one review per opening**. Do not stack multiple full calibrates or full retrieval passes into a single warmup — that re-creates the form-fatigue failure mode.
-- If a chapter is stale beyond 5 days, downgrade it to the 3-question quiz and run a full Phase 3 / spaced retrieval on the next chapter still in window.
-- Surface the queue at session start: "Ch.4 (1d due), Ch.7 (1w due), Ch.2 (5+ day stale). Run Ch.4 as warmup; defer Ch.7 to next session; downgrade Ch.2 to quiz?"
-
-The user can override and run more than one in a single session; log `multiple_reviews_same_session: true` so the form-fatigue trend is visible.
+When `--review --due` finds more than one chapter due, apply the multiple-pending queue + stale-5-day downgrade rules owned by `references/calibration.md § Multiple pending chapters`: oldest-due first, one review per opening, stale-beyond-5-days downgraded to the 3-question quiz. Surface the queue at session start (e.g. "Ch.4 (1d due), Ch.7 (1w due), Ch.2 (5+ day stale). Run Ch.4 as warmup; defer Ch.7; downgrade Ch.2 to quiz?"). The user can override and run more than one; log `multiple_reviews_same_session: true` so the form-fatigue trend is visible.
 
 ## Logging
 

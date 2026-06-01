@@ -1,15 +1,8 @@
 # Spacing Policy — Opt-in Commitment, Behavioral Retrieval, Deadline Anchor, Self-Diagnostic
 
-Evidence labels: see `references/evidence-labels.md`. The cadence numbers in this file are `operational-heuristic` or `placeholder` and are *guidelines* for the user to set their own floor against, not hard rules.
+The cadence numbers in this file are *guidelines* for the user to set their own floor against, not hard rules.
 
 When invoked: the chapter just transitioned to `phase-3-pending` or `phase-3-complete`, and the skill is composing the spaced re-engagement schedule. This file defines what the skill **invites the user to commit to** (opt-in, default off), how it counts a retrieval (behavior, not exposure), how it anchors discipline against intrinsic-motivation drift, and how it surfaces the FCI/BEMA-style self-diagnostic that tells the user whether the protocol is working at all.
-
-The four shifts vs. an earlier suggestion-based spacing module:
-
-1. Spacing schedule is offered as an **opt-in commitment device** (default off), not "suggested" intervals. *[evidence: observational — YeckehZaare 2025 reports the 94.7%-fail-to-space-spontaneously finding; the commitment-device framing itself is operational.]*
-2. Retrieval is counted as a **behavior** (closed-book recall executed), not an **exposure** (e-book reopened). *[evidence: observational — Hartwig & Malain 2022 app-instrumentation.]*
-3. Discipline is anchored to an **external deadline**, not assumed-intrinsic motivation. *[evidence: observational — Reich 2019 MOOC retention.]*
-4. The skill periodically **self-diagnoses** whether the protocol is producing learning at the expected effect-size band, and surfaces failure to the user as a protocol problem (not a learner-blame problem). *[evidence: operational-heuristic — FCI/BEMA-style normalized-gain bands (0.30–0.40) are observational from physics-education research; their applicability to a solo learner's chapter is operational, not RCT-validated.]*
 
 ## Shift 1 — Opt-in cadence commitment (default off)
 
@@ -29,7 +22,7 @@ daily_floor:
 
 The numbers (`target_distinct_days`, `retrievals_per_day_min`, `window_end`) are agreed with the user at plan mode and stored on the chapter, not computed from a hard-coded table.
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the daily-floor commitment device but does NOT specify per-book-type cadence numbers.** The defaults below are conservative placeholders pending Round 11 RCT-grounded values. When operating, surface the placeholder to the user and let them set their own floor against their `external_deadline` instead of treating the defaults as authoritative.
+> ⚠ The per-book-type cadence numbers below are conservative placeholders, not RCT-grounded — surface them as placeholders and let the user set their own floor against their `external_deadline` rather than treating the defaults as authoritative.
 
 | Book type | distinct days (placeholder) | retrievals/day min (placeholder) | window (placeholder) |
 |---|---|---|---|
@@ -99,6 +92,8 @@ external_deadline:
   social_anchor: "study group meets every Monday"   # optional but encouraged
 ```
 
+**Deadline-aware gap derivation.** When `external_deadline.date` is known, do NOT use the fixed 1d/1w/1m `due_type` defaults. Instead derive the schedule from the retention interval: the optimal first gap scales with how long the material must be retained (Cepeda et al. 2008). Set the **first** gap to ~10–20% of the time-to-deadline, then expand each subsequent gap from there (roughly 1.5–2× the prior gap), capping the last retrieval at the deadline itself. Example: a 60-day time-to-deadline gives a first gap of ~6–12 days, then ~15d, ~30d, with the final review landing on the deadline. The 1d/1w/1m `due_type` defaults apply **only when `external_deadline` is null** (no retention interval to scale against).
+
 If the user refuses to set a deadline, log `external_deadline: null` and surface the consequence:
 
 > "No external deadline set. Reich 2019 found that intrinsic-motivation-only learning has high attrition at scale; the skill cannot enforce the daily floor against a deadline that does not exist. The catch-up cost message will be omitted."
@@ -113,7 +108,7 @@ The catch-up cost is computed as: how many retrievals per remaining day are need
 
 ## Shift 4 — FCI/BEMA-style self-diagnostic
 
-After the chapter has had a spaced retrieval at +1 month (or after the external deadline arrives, whichever is sooner), the skill runs a **self-diagnostic** that compares the chapter's measured outcomes against an expected effect-size band. This is the Colvin 2014 norm-of-self-study-expectation framing: students need to know whether their effort is producing the standard gain or not, and the answer must be calibrated against an objective expected band, not against their subjective sense of progress. *[evidence: observational — FCI/BEMA normalized-gain bands (Hake 1998; Colvin 2014) are physics-education observational; their applicability to general study cadence is operational.]*
+After the chapter has had a spaced retrieval at +1 month (or after the external deadline arrives, whichever is sooner), the skill runs a **self-diagnostic** on the chapter's normalized gain. Rather than judging the chapter against an absolute external effect-size band, compare it **within-learner**: against the running median of this learner's own normalized gains across their completed chapters. Absolute FCI/BEMA bands (e.g. 0.30–0.40) are physics-education cohort norms and do not transfer cleanly to one solo learner's chapters; the learner's own running median is the meaningful baseline. The Colvin 2014 norm-of-self-study-expectation framing still applies — the learner needs an objective benchmark rather than a subjective sense of progress — but here the benchmark is their own track record, not a borrowed cohort band.
 
 For each completed chapter, the skill computes:
 
@@ -123,60 +118,25 @@ self_diagnostic:
   pre_score: 0.35                                      # Phase 1 expectations / misconceptions baseline
   post_score: 0.78                                     # +1 month spaced retrieval coverage on the same items
   normalized_gain: 0.66                                # (0.78 - 0.35) / (1 - 0.35)
-  expected_band: { low: 0.30, high: 0.40 }             # FCI/BEMA-style expected normalized gain
-  diagnosis: above_band                                # below_band | in_band | above_band
+  learner_running_median: 0.58                         # median normalized_gain across this learner's completed chapters
+  diagnosis: above_self                                # below_self | near_self | above_self
 ```
+
+The running median needs at least ~3 completed chapters to be meaningful; until then report the raw gain and note that no within-learner baseline exists yet. Classify a chapter as `below_self` only when it is a clear self-outlier (e.g. meaningfully below the running median, not within normal chapter-to-chapter noise).
 
 | Diagnosis | What it means | What the skill says |
 |---|---|---|
-| `in_band` (0.30–0.40) | Protocol is working as expected. | "Chapter X's normalized gain is 0.34 — in the expected band. No protocol change recommended." |
-| `above_band` (> 0.40) | Protocol is producing above-expected gain. | "Chapter X's normalized gain is 0.55 — above the expected band. The protocol is doing more than baseline; if you want to scale back, this is a chapter where you could." |
-| `below_band` (< 0.30) | Protocol is **not** working on this chapter for this learner. | "Chapter X's normalized gain is 0.18 — below the expected band. The protocol is not producing the expected gain. **This is a protocol issue, not a learner issue** — re-enter Ch.X with a different micro-task, refutation-text mode, or a worked-example-first variant. See suggested re-entry options." |
+| `near_self` | Gain is around this learner's usual. | "Chapter X's normalized gain is 0.56 — about your usual (running median 0.58). No protocol change recommended." |
+| `above_self` | Gain is above this learner's usual. | "Chapter X's normalized gain is 0.74 — above your usual (median 0.58). The protocol is doing more than your baseline here; if you want to scale back, this is a chapter where you could." |
+| `below_self` | Gain is a clear outlier below this learner's usual. | "Chapter X's normalized gain is 0.31 — below your usual (median 0.58). **This is below your own track record, not a verdict on you** — consider re-entering Ch.X with a different micro-task, refutation-text mode, or a worked-example-first variant. See suggested re-entry options." |
 
-*All three diagnosis rows: evidence: observational. The 0.30–0.40 band is from physics-education FCI/BEMA studies (Hake 1998 baseline; subsequent meta-analyses); applying it to chapter-level study outcomes is operational.*
-
-The framing matters: a below-band gain surfaces as **the protocol failed, not the learner failed**. The skill's response is to suggest re-entry options (different micro-task, different mode), not to escalate effort. This is what Colvin's "norm of self-study expectation" gives the learner: an objective benchmark that absorbs the self-blame and turns it into actionable protocol change.
-
-## What the chapter note carries
-
-Add to frontmatter:
-
-```yaml
-daily_floor:
-  target_distinct_days: 5
-  retrievals_per_day_min: 2
-  window_end: 2026-05-14
-  retrievals_executed:                # behavior-counted; exposure does not appear here
-    - { date: 2026-05-01, count: 2, types: [chunk_recall, transfer_attempt] }
-    - { date: 2026-05-03, count: 3, types: [chunk_recall, self_test, transfer_attempt] }
-  status: active                      # active | met | missed
-external_deadline:
-  type: mock-exam
-  date: 2026-06-15
-  description: "med school 4th-year mock 2"
-  social_anchor: "study group Mondays"
-self_diagnostic:
-  metric: normalized_gain
-  pre_score: 0.35
-  post_score: 0.78
-  normalized_gain: 0.66
-  expected_band: { low: 0.30, high: 0.40 }
-  diagnosis: above_band
-  computed_at: 2026-05-30
-```
+The framing matters: a below-self gain surfaces as **below your usual — try a different micro-task**, not as the learner failing. The skill's response is to suggest re-entry options (different micro-task, different mode), not to escalate effort. The within-learner median absorbs the self-blame and turns it into actionable protocol change.
 
 ## Anti-patterns
 
 - ❌ **"Suggesting" spacing without offering the commitment device.** Suggestion-only fails 94.7% of learners (YeckehZaare 2025); offer the opt-in daily-floor commitment device with cadence + window as part of the suggestion. If the user declines, log it but do not enforce — the device's effectiveness depends on the user choosing it.
 - ❌ **Counting exposure as retrieval.** Opening the file is not a learning event. Only closed-book recall captured by the skill counts.
 - ❌ **Assumed intrinsic motivation.** Without an external deadline anchor, the floor is enforceable only against the user's wish to learn; that is the failure mode.
-- ❌ **Single-cohort effect-size assumptions.** The expected band (0.30–0.40 normalized gain) is from FCI/BEMA literature; learner populations vary. The skill surfaces the band as guidance, not as a verdict on the learner.
-- ❌ **Below-band as learner blame.** Re-frame as a protocol failure with re-entry suggestions; do not push the user to "try harder."
+- ❌ **Judging a chapter against a borrowed absolute band.** Absolute FCI/BEMA bands (e.g. 0.30–0.40) are physics-education cohort norms; for one solo learner, compare within-learner against their own running median instead.
+- ❌ **Below-self as learner blame.** Re-frame as "below your usual — try a different micro-task," with re-entry suggestions; do not push the user to "try harder."
 - ❌ **Stacking 5+ retrievals on a single day to "catch up".** The window's `retrievals_per_day_min` is a floor, not a target; piling many retrievals onto one day defeats the spacing mechanism. Catch-up is more days, not more per day.
-
-## Cross-references
-
-- `references/calibration.md` — Phase 3 mechanics; spaced retrieval log fields
-- `references/note-taking-policy.md` — refusal list and reframe map; spacing is one of the recommended-set moves
-- `references/methods/hint-escalation.md` — paraphrase gate; behavior-not-exposure is the same principle (time-on-hint as behavior)
-- `references/state-schema.md` — `phase-3-pending` / `phase-3-complete` transitions that trigger commitment-device write

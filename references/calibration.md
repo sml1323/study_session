@@ -1,7 +1,5 @@
 # Calibration — Phase 3 Mechanics
 
-Evidence labels: see `references/evidence-labels.md`. Hard-rule citation gate is defined there — thresholds tagged `operational-heuristic` / `placeholder` below are guidelines, not hard gates, when cited from SKILL.md.
-
 Phase 3 is the **measurement step**. Without it, learning is invisible and self-report substitutes for evidence — and self-reports of understanding are systematically miscalibrated against delayed recall. The skill should not mark a chapter complete without Phase 3. [evidence: placeholder — exact citation pending; the previously cited "Yang 2023, r=0.18" was not externally verifiable; replace with a verified metacomprehension source before next major release.]
 
 ## The delay: cross-session by default
@@ -107,7 +105,7 @@ score_prediction_gap = score_prediction - actual_score                          
 abs_gap = |score_prediction_gap|
 ```
 
-> ⚠ **Patch source caveat — `study-session-skill-patch-v3-2026-04-30.md` (Round 10) names the ±10pt calibration gate (Ratnayake 2023) but does NOT specify how to compute `actual_score` from textbase + SM scores.** The composite weighting below is a conservative first-cut, not RCT-validated. Per-book-type splits await R11. *[evidence: operational-heuristic — w_t/w_s table is operational; ±10pt gate name from Ratnayake 2023 is observational.]*
+The composite weighting below is a conservative first-cut **[operational; weighting not RCT-validated]** — the ±10pt gate name comes from Ratnayake 2023, but the `w_t`/`w_s` split is operational.
 
 | Book type | `w_t` (textbase weight) | `w_s` (SM weight) | Rationale (placeholder) |
 |---|---|---|---|
@@ -290,7 +288,7 @@ Round to the nearest 0.25; half-steps (0.6, 0.85) are allowed when the recall st
 
 ### Pass threshold by book type
 
-`chapter_complete` is gated on situation-model transfer; textbase recall is an advisory cue (low textbase makes transfer measurement noisier, but a strong transfer answer with weak textbase still passes — durable usable learning lives in the situation model). Step B (diagnostic MCQ) does **not** substitute for either.
+`chapter_complete` is gated on situation-model transfer; textbase recall is an advisory cue (low textbase makes transfer measurement noisier, but a strong transfer answer with weak textbase still passes — see the dissociation rationale under "The Phase 3 sequence"). Step B (diagnostic MCQ) does **not** substitute for either.
 
 | Book type | `textbase_recall_coverage` advisory floor | `situation_model_transfer_score` gate | Additional |
 |---|---|---|---|
@@ -336,7 +334,8 @@ The default is therefore: **one careful read + chunk-boundary retrievals** (see 
 | Phase 3 transfer score below gate but textbase passes | only the section(s) that contain the chapter's central mechanism / framework — not the full chapter; then attempt Step 2b again | next session |
 | Argument-reading Step 5 (targeted re-reading on identified gap) | the specific passage where Step 4 dialogic surfaced an unaddressed counterclaim | within the same Phase 2 session, OK |
 | Low-PK reader, chapter incoherent on first pass | the full chapter, **massed second pass within same session** (low-PK readers benefit from immediate cohesion-building; spaced re-read on a low-PK first pass leaves the model under-formed) | same session |
-| Spaced re-read for retention reinforcement | the full chapter or sections | ≥ 1 week later |
+
+Spaced re-read for retention reinforcement (≥ 1 week later) and how a retrieval is **counted** (behavior, not exposure) are spacing concerns, not calibrate concerns: see `references/spacing-policy.md`.
 
 ### When re-reading is *not* allowed
 
@@ -384,40 +383,18 @@ If more than one chapter is `phase-3-pending` (the user studied across several s
 
 ## Metrics that go on books.yml after each chapter
 
-```yaml
-arq:
-  chapter_metrics:
-    4:
-      textbase_recall_coverage: 0.65          # Step 2a / 3
-      situation_model_transfer_score: 0.75    # Step 2b mean (learning_passed input)
-      situation_model_transfer_questions_count: 2
-      learning_passed: true                   # SM >= book-type gate; B1 split
-      chapter_complete: true                  # = learning_passed (B1 split, 2026-05-17)
-      confidence_self_report: 80              # Step 1 diffuse confidence (legacy)
-      score_prediction: 75                    # Step 1 behavioral forecast
-      actual_score: 70                        # composite: textbase*50 + SM*50
-      score_prediction_gap: 5                 # Step 4a; |gap| ≤ 10 = well-calibrated
-      calibration_gap_abs: 5
-      calibration_health: well_calibrated     # well_calibrated | loose | over_confident | under_confident | unknown
-      confirm_next_chapter: false             # true when calibration_gap_abs > 30
-      confidence_accuracy_gap: 5              # confidence - SM*100 (Step 4b, legacy)
-      categorization_re_test:
-        phase_1_grouping: surface
-        phase_3_grouping: principle
-        shift: surface_to_principle
-      hint_levels: [0, 1, 1, 2, 0]
-      avg_hint_level: 0.8
-      avg_answer_length: 35
-      transfer_attempt: success
-      session_count: 2
-      session_health:
-        hint_abuse: false
-        illusion: false                       # set true when calibration_health == over_confident (post-B1)
-        surface: false
-        struggle_skip: false
-        form_fatigue: false
-        echo: false
-```
+Phase 3 writes these calibration-specific fields into `chapter_metrics.<n>`:
+
+- `textbase_recall_coverage` (Step 2a/3)
+- `situation_model_transfer_score` (Step 2b mean; `learning_passed` input)
+- `score_prediction` (Step 1 behavioral forecast — the ±10pt gate input)
+- `actual_score` (composite: textbase·w_t + SM·w_s)
+- `calibration_gap_abs` (= `|score_prediction − actual_score|`)
+- `calibration_health` (Step 4a enum)
+- `confirm_next_chapter` (true when `calibration_gap_abs > 30`)
+- `confidence_accuracy_gap` (Step 4b legacy trend)
+
+Full frontmatter STRUCTURE, the complete field list (incl. `learning_passed`, `chapter_complete`, `confidence_self_report`, `categorization_re_test`, `session_health`, …), field semantics, and allow/forbid: `references/state-schema.md`.
 
 These are the inputs to weekly review and progress dashboard.
 
@@ -496,13 +473,3 @@ If a spaced retrieval drops below 50%, re-add chapter to active review (not just
 - **User wants to redo Phase 3 after seeing the gap**: log the redo (`phase_3_attempts: 2`). Coverage on retry is contaminated; don't replace original; append.
 - **User insists on same-session calibrate**: check `now - phase_2_ended_at`. If less than 30 min, refuse with the remaining time plus a one-line reason (working-memory contamination). If at or above 30 min, proceed and log `calibrate_same_session: true`. Do not silently allow this path — the log is what makes the trend visible.
 - **Calibrate window has aged out (5+ days)**: downgrade to 3-question retrieval quiz; do not run full Phase 3 by default. If the user explicitly wants full Phase 3 anyway, run it but flag the result in the chapter note: "coverage at this delay is dominated by long-term decay, not Phase 2 encoding."
-
----
-
-## Why this matters
-
-Without calibration, you're optimizing on the wrong signal. The user feels they understand; the LLM tells them they understand; the chapter note shows completed forms. Months later, the material is gone.
-
-With calibration measured along *both* dimensions, the only signals that survive are the ones that matter: can you reproduce what the chapter said (textbase) and can you use it on something new (situation model). The two are dissociable; measuring only one masks the other. The *feeling* of understanding is well-known to be miscalibrated; the explicit two-rubric scoring is what breaks the illusion-of-explanatory-depth loop that AI mediation amplifies.
-
-This is the single highest-leverage move the skill makes. Everything else can be skipped without breaking learning; Phase 3 cannot.

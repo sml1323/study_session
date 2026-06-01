@@ -57,12 +57,14 @@ A session moves through four surface modes — **plan → tutor → calibrate �
 
 Each mode below names *when it runs* and *what it owns*, but not *how its body unfolds*. The internal sequence (which probe runs in which order, what `chapter_complete` requires beyond the gate name, what the chapter note auto-fill looks like) lives only in the referenced files — SKILL.md intentionally omits the body so the only way to drive a mode correctly is to Read its reference in the current session.
 
-| Mode | When it runs | What it owns | Required Read before running |
-|------|--------------|--------------|------------------------------|
-| **plan** | Pre-reading | Book classification + medium + AI policy + expectations + learner profile | `references/book-types.md` (classification), `references/medium-policy.md` (medium), `references/ai-policy.md` (AI policy), `references/generative-prompts.md` (expectation + misconception prompts) |
-| **tutor** | During-reading | Chunked reading, chunk-boundary recall, active margin notes, on-demand hints, method sub-routines | `references/pdp-loop.md` (chunk loop), `references/annotation-typology.md` + `references/generative-prompts.md` (recall + active margin notes), plus the specific method's reference (see *Method sub-routines* table) before any method invoke |
-| **calibrate** | Post-reading — default: opening of the *next* session | Confidence + score prediction (BEFORE recall), recall, situation-model transfer on NEW scenario, gap, exam Qs; `chapter_complete` gate | `references/calibration.md` — the per-step protocol, thresholds, gate definition (`abs_gap`, SM transfer score), and per-book-type variations are non-obvious and only canonical there |
-| **compose** | Session end | Auto-generate chapter note + update `books.yml` + run system-emit frontmatter + schedule spaced re-engagement | `references/chapter-template.md` (body schema), `references/state-schema.md` (allowed fields + status enum), `references/spacing-policy.md` (re-engagement scheduling) |
+| Mode | When it runs | What it owns |
+|------|--------------|--------------|
+| **plan** | Pre-reading | Book classification + medium + AI policy + expectations + learner profile |
+| **tutor** | During-reading | Chunked reading, chunk-boundary recall, active margin notes, on-demand hints, method sub-routines |
+| **calibrate** | Post-reading — default: opening of the *next* session | Confidence + score prediction (BEFORE recall), recall, situation-model transfer on NEW scenario, gap, exam Qs; `chapter_complete` gate |
+| **compose** | Session end | Auto-generate chapter note + update `books.yml` + run system-emit frontmatter + schedule spaced re-engagement |
+
+Required Read per situation: see Required-read gates > Situation → required Read.
 
 **Defaults**: new chapter → plan; open chapter → tutor (resume from last section); after Phase 2 → end session (calibrate runs as next session's opening).
 
@@ -84,10 +86,10 @@ These protect the learning signal. Don't paraphrase them. Each rule's full reaso
 
 1. **Mode priority**: `calibrate > tutor > plan > compose`. If user explicitly asks for a lower-signal mode, do it; otherwise lean upward.
 2. **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min` (working-memory contamination floor). Below 30 min, refuse with the remaining time.
-3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → 1–2 active margin notes (prose). Annotate-first is the dominant fluency-illusion pattern. Recall-probe rows use *numeric* labels (`R1`, `R2`, …) — never single letters tied to category first letters — because numeric labels are append-only-safe across sessions. Margin notes are prose with no enforced prefix; categorization happens at chapter end during conversion, not at write time. (Earlier versions of this skill required `P / I / M / E / Q` letter prefixes on each margin note bundled as "PIMEQ"; that prefix discipline was removed in the Cut B simplification because per-note classification at write time generated overhead without retention benefit. The 5 underlying moves — predict / infer / monitor / evaluate / question — survive as canonical *examples* of active margin notes, attributed to Pressley & Afflerbach 1995.) **Before generating active margin notes OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the move examples, the per-book-type `R1..Rn` schema, the worked tables, and the legacy-prefix migration policy live only there.
+3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → 1–2 active margin notes (prose). Annotate-first is the dominant fluency-illusion pattern. Recall-probe rows use *numeric* labels (`R1`, `R2`, …) — never single letters tied to category first letters — because numeric labels are append-only-safe across sessions. Margin notes are prose with no enforced prefix; categorization happens at chapter end during conversion, not at write time. (Per-note P/I/M/E/Q prefixes were dropped in Cut B; the 5 moves survive as examples of active margin notes — Pressley & Afflerbach 1995.) **Before generating active margin notes OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the move examples, the per-book-type `R1..Rn` schema, the worked tables, and the legacy-prefix migration policy live only there.
 4. **`chapter_complete` = `learning_passed` (SM transfer ≥ book-type gate).** Textbase recall is advisory. *Calibration health is tracked separately* via `calibration_health` enum (`well_calibrated` / `loose` / `over_confident` / `under_confident` / `unknown`) and `calibration_gap_abs`; large gaps no longer hard-block `chapter_complete`. An `abs_gap > 20` surfaces as `over_confident` (or `under_confident`) with a *recommended* 24-hr Step 2b retry on a fresh scenario; `abs_gap > 30` additionally sets `confirm_next_chapter: true` so the next session opening asks the user to confirm advance before queueing the next chapter. If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. Per-book-type SM thresholds + the B1 split rationale: `references/calibration.md`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
 5. **Hints are event-based, on-demand, paraphrase-gated** — proactive or time-based hint-offering is the documented dependency-amplification pattern (Roll & Aleven 2011 help abuse). Each escalation asks the user to paraphrase the previous hint before next-level unlocks. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
-6. **No generic praise.** Banned: "Great!", "잘했어요", "Perfect!", "Good job", "Awesome", "Excellent question". Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Full banned list + replacements: `references/llm-tutor-design.md`.
+6. **No generic praise. This is the SOLE canonical banned-praise list — other references point here.** Banned (do not use unless immediately paired with specific justifying feedback; even then prefer the specific feedback alone): "Great!", "Perfect!", "Awesome!", "Excellent!", "Excellent question", "Good job!", "Nice!", "You got it!", "잘했어요", "정확해요!" (when used alone), "맞아요!" (when used alone). Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Tutor-design rationale + replacement patterns: `references/llm-tutor-design.md`.
 7. **Methods are sub-routines, not forms — and their bodies live only in their reference.** Step counts (e.g., "Polya 4 steps", "Newman 5 stages", "Schoenfeld 3 Qs", "Browne–Keeley criticals"), prompt wording, and gates are *not* in SKILL.md by design — quoting any of them from memory is the documented hallucination pattern. Invoke a method only after Reading `references/methods/<method>.md` in the current session; preserve the core meaning of canonical prompts (check the reference for the exact wording, then translate if needed for delivery). Depth scales with intensity (see *Session intensity*).
 8. **Chapter-completion gate is section-level.** Advancement to `phase-3-pending` (and any "next chapter" recommendation) requires every section in the chapter to be `covered` or `skipped`. `pending` / `in-progress` / `used-as-exercise` blocks the gate. `used-as-exercise` is learning debt — surface it and recommend processing the section's narrative ¶ as the next chunk before any phase advance. If the user says "다음 phase 가자" / "Ch.X 끝났어" while uncovered sections remain, interpret it as "next section within the current chapter", not a phase advance — only honor a literal next-chapter request when uncovered is empty. Schema, status enum, init flow (lazy-first ToC extraction), chapter-note sync: `references/section-tracking.md`.
 
@@ -122,11 +124,11 @@ Classify both axes on first session per book; confirm with the user; store in `b
 
 Invoked from within the tutor phase when chapter content calls for them. **Preserve core meaning of canonical prompts** — check the Reference file for the exact wording and translate for delivery as needed; paraphrased rewordings that drift from the original cognitive move (e.g., "summarize" in place of "anticipate") weaken the effect. Each method's full body (steps, prompts, gates, examples) lives only in its Reference file; SKILL.md intentionally omits the canonical shape so the only way to invoke a method correctly is to Read its Reference in the current session. Reconstructing a method body from memory drifts in ways that look right but aren't.
 
-| Sub-routine | When to invoke | Reference (REQUIRED Read before invoke) |
+| Sub-routine | When to invoke | Reference (REQUIRED Read this session before invoke) |
 |---|---|---|
 | **ARQ** | argument unit (not paragraph); depth 0–3 picked at section boundary | `references/methods/arq.md` |
 | **Polya** | chapter contains a problem to solve | `references/methods/polya.md` |
-| **Schoenfeld** | every step transition inside Polya | `references/methods/schoenfeld.md` |
+| **Schoenfeld** | every step transition inside Polya | `references/methods/schoenfeld.md` — **Schoenfeld runs *inside* Polya: if `polya.md` was not Read this session, Read it first** |
 | **Newman** | user got a problem wrong; runs *before* level-3 worked-example escalation | `references/methods/newman.md` |
 | **Hint escalation** | every help moment in tutor mode; event-triggered, paraphrase-gated, time-on-hint logged | `references/methods/hint-escalation.md` |
 | **Backward fading** | after any worked example, before any unguided variant | `references/methods/backward-fading.md` |
@@ -136,6 +138,8 @@ Invoked from within the tutor phase when chapter content calls for them. **Prese
 | **Refutation text** | conceptual chapter with prior misconceptions, non-politically-contested topic | `references/methods/refutation-text.md` |
 | **Proof comprehension** | chapter contains formal proofs | `references/methods/proof-comprehension.md` |
 | **Argument reading** | argument-driven chapter, *or* conceptual chapter on politically/identity-laden topic | `references/methods/argument-reading.md` |
+
+The "## The four modes" mode→file mappings and the full per-situation gate live in **Required-read gates > Situation → required Read** (the single comprehensive source); this table keeps the method→file path inline because methods are the highest-frequency, highest-hallucination-risk invocation.
 
 `arq_depth: 0–3` (method depth) is distinct from `hint_level: 0–4` (dialogue help) — different axes.
 
@@ -176,6 +180,8 @@ Top-level invariants:
 
 The skill's runtime contract: **the canonical spec is the file, not your memory of it, and not the one-line summaries in this SKILL.md.** Method bodies, hint ladders, schemas, and gates evolve; reconstructing them from memory drifts in ways the SKILL.md summary will not catch because the summary "sounds right."
 
+**Default to SKILL.md alone. Read exactly ONE reference at the moment you ENTER its situation — never pre-load a batch at session start.** The point is to Read on *entry* to a situation. A heavy chapter typically pulls 3–4 method files plus 2–3 policy files across 60 min; a light chapter often pulls 0–1. If a situation lists two required Reads and you've only Read one this session, Read the second before proceeding — don't cite both and hope.
+
 Before doing any of the following, `Read` the canonical reference in the **current session**:
 
 - describe the method body, steps, or rule as if quoting the spec,
@@ -183,11 +189,7 @@ Before doing any of the following, `Read` the canonical reference in the **curre
 - name a numbered protocol, ladder, or gate by spec terms (e.g., "L0-L4 ladder", "Newman 5-stage", "Polya 4 steps", "abs_gap ≤ 20", "paraphrase gate"),
 - claim a refusal/gate exists "per the spec".
 
-SKILL.md summaries and prior-session reads do not satisfy the gate. If you have not Read it this session:
-
-- **Do not** describe the spec body or steps as canonical.
-- **Do not** say "the spec says ..." or "per the canonical X".
-- Either Read it now, or label the substance as `SKILL.md summary only` and acknowledge the spec body is unverified.
+SKILL.md summaries and prior-session reads do not satisfy the gate. If you have not Read it this session, either Read it now, or label the substance as `SKILL.md summary only` and acknowledge the spec body is unverified — do not describe the spec body or steps as canonical, and do not say "the spec says ...".
 
 (Chapter-note `references_touched` / `methods_invoked` is system-emitted from the hook log at compose time — you don't author it directly. See `Per-response context surfacing` below.)
 
@@ -202,8 +204,6 @@ This is not a politeness rule; it is the audit contract. The PostToolUse hook (`
 - *AI policy*: "ai_policy mode", "scaffold / refuse-chat / refuse-all", "scaffolded AI prompt template", "Context / Request / Constraint"
 - *Annotation / state*: "section_progress status enum", "used-as-exercise", "phase-2-pending-conversion"
 
-Familiar academic names are the highest-risk hallucination attractor — the friendlier the name, the faster memory-reconstruction fires before the Read. If you cannot point to the matching Read in this session's hook log, Read the canonical file now or label the substance as `SKILL.md summary only` and acknowledge it is unverified.
-
 ### Situation → required Read
 
 When the current turn enters one of these situations, the listed file is a hard prerequisite. If it has already been Read this session, no new Read is needed; if not, Read before the substantive move.
@@ -214,7 +214,7 @@ When the current turn enters one of these situations, the listed file is a hard 
 | After any worked example, before any unguided / parallel problem; generating a fade-N completion | `references/methods/backward-fading.md` |
 | Polya 4-step invocation (preserve core wording from the reference); `hint_level: 4` reveal requiring the level-4 reflection record | `references/methods/polya.md` |
 | Newman 5-stage error walk-back after a failed problem attempt | `references/methods/newman.md` |
-| Schoenfeld 3-question prompt at a Polya step transition | `references/methods/schoenfeld.md` |
+| Schoenfeld 3-question prompt at a Polya step transition | `references/methods/schoenfeld.md` (+ `references/methods/polya.md` — Schoenfeld runs inside Polya; if Polya was not Read this session, Read it first) |
 | ARQ depth 0-3 invocation; argument-unit segmentation; Browne-Keeley criticals | `references/methods/arq.md` |
 | Argument-driven echo-chamber detection; steelman requirement | `references/methods/argument-reading.md` + `references/failure-modes.md` |
 | Math-proof-heavy chapter micro-tasks; ε-δ; diagram two-pass; mode-label rejection | `references/methods/math-text-reading.md` |
@@ -240,12 +240,6 @@ When the current turn enters one of these situations, the listed file is a hard 
 | PDP loop pseudocode + edge cases (when the spine itself is in question) | `references/pdp-loop.md` |
 
 These are *gates*, not a reading list. A turn that only confirms a session plan or restates a goal triggers nothing; a turn that explains why a level-4 hint was refused triggers `hint-escalation.md`.
-
-### Pre-session read budget
-
-Do **not** Read all the listed files at session start. The point is to Read on *entry* to a situation. A heavy chapter typically pulls 3–4 method files plus 2–3 policy files across 60 min; a light chapter often pulls 0–1. SKILL.md plus the single method/policy file the current chapter calls for is usually enough.
-
-If a situation lists two required Reads and you've only Read one this session, the right move is to Read the second before proceeding — not to cite both and hope.
 
 ## Per-response context surfacing
 

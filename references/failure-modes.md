@@ -1,5 +1,4 @@
 # Failure Modes — Detection and Mitigation
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 LLM tutoring can make learning *worse* than no tutor. Bastani 2024 SCALE (Stanford working paper; *previously cited here as "Bastani 2025 PNAS" — that attribution was incorrect and is corrected in A2 fact-check*): vanilla GPT chat tutoring produced **−17%** on closed-book transfer tests vs control. Engineered (guardrailed, step-decomposed) tutors hit ITS-level d=0.73. The difference is the patterns documented here. *[evidence: rct-strong for the direction and the −17% number; d=0.73 ITS-level cross-cites VanLehn 2011 meta-analysis.]*
 
@@ -26,7 +25,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: user requests full answers (hint level 4) frequently; struggle window shrinks across sessions; user can't proceed without scaffolding.
 
-**Evidence**: Roll & Aleven 2011 Cognitive Tutor help-seeking taxonomy (avoidance / abuse / hint abuse). Bastani 2024 SCALE: GPT-Base arm with no scaffolding produced HARM, partly via hint abuse. VanLehn 2011 interaction granularity: help that arrives too early at too low effort suppresses learning.
+*[evidence: Roll & Aleven 2011 help-seeking taxonomy; Bastani 2024 SCALE no-scaffold HARM; VanLehn 2011 granularity.]*
 
 **Detection signals**:
 - `hint_level_4_count_per_session > 3`
@@ -49,7 +48,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: user says "got it" / "이해했어" but cannot recall on closed-book test. AI's smooth explanation produces a *feeling* of understanding without the substance.
 
-**Evidence**: Yang et al. 2023 metacomprehension meta — confidence-accuracy correlation r≈0.18 (most readers wildly overestimate their understanding). Aslanov 2025 — AI mediation *amplifies* the illusion of explanatory depth (IOED). Lee et al. CHI 2025 — high AI trust correlates negatively with critical engagement.
+*[evidence: Yang et al. 2023 metacomprehension r≈0.18; Aslanov 2025 AI-amplified IOED; Lee et al. CHI 2025 trust↔critical-engagement inverse.]*
 
 **Detection signals**:
 - `confidence - actual_coverage > 30%` after closed-book recall
@@ -71,7 +70,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: user gives 4-word answers; LLM responds with "great!" — both parties signal completion without learning.
 
-**Evidence**: Wang et al. 2024 Tutor CoPilot RCT — generic praise correlates *negatively* with student outcomes; specific feedback correlates positively. Probing questions ↑, direct answers ↓.
+*[evidence: Wang et al. 2024 Tutor CoPilot RCT — generic praise correlates negatively, specific feedback positively.]*
 
 **Detection signals**:
 - `avg_answer_length < 30 words` across the session
@@ -79,7 +78,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 - LLM responses (your responses) contain banned strings: "great", "perfect", "잘했어요"
 
 **Mitigation**:
-- **Banned strings list** (enforce on yourself): "Great!", "Perfect!", "Awesome!", "잘했어요", "Excellent!", "Good job!", "You got it!", "정확해요!" (when used alone)
+- **Banned-praise list: see SKILL.md Decision rules** (enforce on yourself).
 - **Replace with specific feedback**: "[X]는 정확. [Y]는 [구체적 오류]." Always name the part and the error. Bare correctness checks don't teach.
 - **Push back on short answers**: "4 단어로는 자기설명 안 됨. 한 문단으로 다시 — 정의 + 어디 적용 + 예시 하나."
 - **Track avg answer length per session**; if dropping, surface: "오늘 평균 답변 12단어. 지난 세션 28단어. 자기설명 효과는 길이/구체성과 비례 (Bisra 2018) — 시간 더 들이는 게 맞아."
@@ -92,7 +91,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: on problem-driven chapters, user requests hint within minutes; never sits with a problem long enough for desirable difficulty to fire.
 
-**Evidence**: Kapur 2008 productive failure (53-study meta — PS-I beats I-PS on conceptual transfer). Desirable difficulties (Bjork). Kestin 2025 *also* warns of pure-Socratic over-refusal — give answers when warranted, after the window.
+*[evidence: Kapur 2008 productive failure (53-study meta, PS-I > I-PS); Bjork desirable difficulties; Kestin 2025 warns of pure-Socratic over-refusal.]*
 
 **Detection signals**:
 - `time_on_problem_before_hint < 10 min` on problem-driven type
@@ -113,7 +112,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: user stops completing chapter notes; required field fill rate drops; sessions become "just read the book", journal abandoned. 12-week retention 30-40% per ESM compliance meta.
 
-**Evidence**: ESM compliance meta-analysis (PMC6925392, n=8013) — 1pp/prompt drop. Self-monitoring meta — 25% steady-state at 12 weeks. Form-length completion curves.
+*[evidence: ESM compliance meta (PMC6925392, n=8013, ~1pp/prompt drop); self-monitoring meta ~25% at 12wk; form-length completion curves.]*
 
 **Detection signals**:
 - `required_field_fill_rate < 70%`
@@ -135,7 +134,7 @@ Each Failure section below carries its tier in a `**Tier**:` line so the skill k
 
 **Symptom**: on argument-driven chapters, user reads, agrees, moves on. Never engages opposing view at full strength. AI doesn't challenge.
 
-**Evidence**: Lee et al. CHI 2025 — AI trust ↔ critical thinking inverse. Browne & Keeley critical question framework specifically targets this; without forcing it, default reading is acceptance.
+*[evidence: Lee et al. CHI 2025 AI-trust ↔ critical-thinking inverse; Browne & Keeley critical-question framework targets default acceptance.]*
 
 **Detection signals**:
 - `steelman_attempt: missing` on argument-driven chapter notes

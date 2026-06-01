@@ -1,5 +1,4 @@
 # Newman Error Analysis — 5-Stage Walk-Back
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: user gets a problem wrong. Walk back through 5 stages in reverse to identify which stage broke. Diagnosis informs which sub-skill needs work.
 
@@ -16,6 +15,8 @@ Anne Newman's research with elementary math students (Newman 1977, *Victorian In
 | 5. Encoding | "Write down the answer in the form the problem asks." | Reporting in the asked-for form |
 
 ## How to use
+
+The backward walk below is **an adult-learner efficiency variant of Newman**. Canonical Newman administers the 5 questions *forward* (Reading → Comprehension → Transformation → Process → Encoding) and localizes the *first* stage that breaks. The backward walk is an optimization for adult learners — it starts from the stages most likely to break in textbook contexts and avoids re-administering trivially-passed early stages — but if you are ever unsure where the break is, fall back to the canonical forward administration and stop at the first failing stage.
 
 When a user's final answer is wrong, walk *backward* through the stages:
 
@@ -35,7 +36,7 @@ optional:
   newman_diagnosis:
     answer_was: "..."
     correct_answer: "..."
-    failed_stage: transformation  # 1-5 numeric or named
+    failed_stage: transformation  # 1-5 numeric or named; or "careless_motivation" (6th category) when all 5 stages pass on re-prompt
     diagnosis: "Chose to integrate when separation of variables was needed; missed that the equation was non-separable in the original form"
     correction: "Re-attempt with integrating factor method"
 ```
@@ -49,6 +50,9 @@ optional:
 | Transformation | Schema gap — no internalized template for this problem type | Worked examples + interleaved practice |
 | Process | Computation / procedural slip | More practice problems of same type, focus on careful execution |
 | Encoding | Knew the answer but reported wrong | Read problem statement format more carefully; usually one-time |
+| Careless / Motivation | Learner can perform all 5 stages correctly on re-prompt but still erred (rushed, attention lapse, low engagement) | **Slow down / attention check** — NOT more drill. A careless slip is not a skill gap; piling on practice problems mistreats it as a Process deficit |
+
+**The standard 6th category — Careless/Motivation.** Beyond the 5 cognitive stages, the established Newman-extension literature adds a sixth: the learner who, when re-prompted, can execute every one of the 5 stages correctly, yet got it wrong the first time. The error is not in any stage — it is carelessness, rushing, or low motivation/attention. **Do not miscode this as a Process deficit.** The remediation is to slow down and run an attention check, not to assign more drill. To distinguish: re-administer the stages; if all 5 pass cleanly on the second pass, the original error was Careless/Motivation, not a stage failure.
 
 The most pedagogically rich is **Transformation**. Transformation errors mean the user lacks the schema; this is where worked examples (Renkl) + interleaving (Rohrer) have highest leverage.
 

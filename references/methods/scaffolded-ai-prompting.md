@@ -1,10 +1,16 @@
 # Scaffolded AI Prompting — Template + Rationale
 
-Evidence labels: see `references/evidence-labels.md`. The 8-study free-chat-damage finding is `rct-strong`; the specific template structure (Context/Request/Constraint) is `operational-heuristic` — derived from Bastani GPT Tutor + MDPI 2025 patterns but not RCT-validated as the *only* working template shape.
+Evidence labels are inlined throughout as `[evidence: ...]` tags. The free-chat-damage *direction and magnitude* is `rct-strong` (derived from the controlled-experiment subset — Bastani SCALE + MDPI mitigation), while the specific template structure (Context/Request/Constraint) is `operational-heuristic` — derived from Bastani GPT Tutor + MDPI 2025 patterns but not RCT-validated as the *only* working template shape.
 
 When invoked: the learner asks the skill to use AI (ChatGPT / Claude / NotebookLM / Custom GPT / etc.) for any part of a study session. This file specifies the **recommended prompt format** the learner should use for the AI tool, and the rationale for why free-form chat is treated as the high-stakes default refusal.
 
-The empirical anchor: 8 studies (Bastani 2024 SCALE — *corrected from "Bastani 2025 PNAS"* / Barcaui 2025 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 / Lee Microsoft CHI 2025 / Aslanov 2025 / MDPI 2025) converge that **free-form chat with an LLM during learning produces measurable retention damage of 11-20 percentage points**, while **scaffolded prompting templates neutralize the damage**. Bastani's GPT Tutor (scaffolded) showed no exam decline; the same model under free-form access showed −17%. MDPI 2025 demonstrated the mitigation on a different population. The mechanism (cognitive offloading + IOED + EEG connectivity decline + retrieval skipping) is robust across the 8 studies. *[evidence: rct-strong — direction and magnitude of the retention loss is RCT-derived; the template shape that neutralizes it is operational, derived from Bastani GPT Tutor + MDPI 2025.]*
+The empirical anchor: 8 studies (Bastani 2024 SCALE — *corrected from "Bastani 2025 PNAS"* / Barcaui 2025 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 / Lee Microsoft CHI 2025 / Aslanov 2025 / MDPI 2025) converge that **free-form chat with an LLM during learning produces measurable retention damage**, while **scaffolded prompting templates neutralize the damage**. These 8 entries are NOT a homogeneous set of RCTs; they differ by design:
+
+- **Controlled experiments / RCTs** — Bastani 2024 SCALE (randomized; GPT Tutor scaffolded vs free-form access) and MDPI 2025 (mitigation experiment on a different population). **The headline 11-20 percentage-point retention-loss magnitude comes specifically from this controlled-experiment subset.** Bastani's GPT Tutor (scaffolded) showed no exam decline; the same model under free-form access showed −17%. MDPI 2025 demonstrated the mitigation experimentally on a different population.
+- **EEG / neural-connectivity** — Kosmyna MIT 2025 measured reduced brain connectivity (EEG) under LLM-assisted writing. This is converging *mechanism* evidence, not a retention-magnitude RCT.
+- **Survey / field study** — Lee Microsoft CHI 2025 is a survey/field study of knowledge workers (self-reported cognitive offloading and reduced critical engagement). Again converging mechanism evidence, not a controlled retention experiment.
+
+The remaining entries (Barcaui 2025 / Benedek-Sziklai 2025 / Georgiou 2025 / Aslanov 2025) supply additional mechanism and applied-context evidence. The mechanism (cognitive offloading + IOED + EEG connectivity decline + retrieval skipping) is robust across all 8 studies; only the controlled-experiment subset carries the 11-20pp magnitude claim. *[evidence: rct-strong — direction and magnitude of the retention loss is RCT-derived (Bastani SCALE + MDPI mitigation); the EEG (Kosmyna) and survey/field (Lee) entries are converging mechanism evidence; the template shape that neutralizes it is operational, derived from Bastani GPT Tutor + MDPI 2025.]*
 
 The skill's stance: free chat is the high-stakes default refusal in deep-reading work. Scaffolded prompting is the recommended AI usage shape when AI is used at all; the user may override per-chapter by selecting a different `ai_policy.mode`.
 
@@ -35,15 +41,15 @@ After your answer, ask me ONE question that tests whether I actually understood 
 The template's three parts each load-bearing:
 
 - **Context** forces the learner to articulate where they are and what they understand. The articulation is itself a retrieval-practice event (Karpicke). Skipping it converts the AI into a substitute for the chapter.
-- **Request** restricts the AI to a verifying / counter-checking / structural role. The 8 RCTs all measured generative free-form chat; restricted-task chat is empirically untested but mechanistically distinct (no opportunity for offloading the load-bearing thinking).
-- **Constraint** is the IOED counter-move (Aslanov 2025): forcing a NEW-case application question makes IOED detectable. If the learner cannot answer the AI's follow-up question, IOED is amplified — the learner thought they understood; they did not. The session logs this gap.
+- **Request** restricts the AI to a verifying / counter-checking / structural role. The controlled experiments (Bastani SCALE, MDPI mitigation) measured generative free-form chat, and the EEG / survey-field entries (Kosmyna, Lee) corroborate the offloading mechanism; restricted-task chat is empirically untested but mechanistically distinct (no opportunity for offloading the load-bearing thinking).
+- **Constraint** is the IOED counter-move. The Illusion of Explanatory Depth originates with Rozenblit & Keil 2002 (people rate their understanding of how things work far higher than they can actually explain on demand); Aslanov 2025 is the AI-context application of IOED (LLM-mediated answers inflate the same illusion). Forcing a NEW-case application question makes IOED detectable — this probe is an adaptation of the Rozenblit-Keil explanation-then-rerate paradigm (explain, then re-rate / re-test understanding). If the learner cannot answer the AI's follow-up question, IOED is amplified — the learner thought they understood; they did not. The session logs this gap.
 
 ## What the skill does at the dialogue level
 
 When the learner says "I'll just ask ChatGPT" / "let me check with Claude" / "I'll have NotebookLM summarize this" mid-session:
 
 1. **Surface the recommendation once per session** (not every turn — that is form fatigue):
-   > "Free-form AI chat during a learning session is the skill's high-stakes default refusal — Bastani 2024 SCALE + 7 other studies measured 11-20pp retention loss with free chat, neutralized by scaffolded prompting. Use this template and paste your output back here so I can log the AI usage; if you want to override and free-chat anyway, say so and I'll log `ai_freeform_override: true`."
+   > "Free-form AI chat during a learning session is the skill's high-stakes default refusal — controlled experiments (Bastani 2024 SCALE + MDPI 2025 mitigation) measured an 11-20pp retention loss with free chat, with 6 further studies (EEG, survey, and applied-context work) converging on the offloading mechanism; scaffolded prompting neutralizes the damage. Use this template and paste your output back here so I can log the AI usage; if you want to override and free-chat anyway, say so and I'll log `ai_freeform_override: true`."
 
 2. **Generate the template** with the chapter context pre-filled:
    ```

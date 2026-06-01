@@ -1,11 +1,10 @@
 # Proof Comprehension — Math Chapter Sub-routine (7-facet)
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-When invoked: a chapter contains one or more proofs. The sub-routine spec is from Mejía-Ramos et al.'s 7-facet model of mathematical proof comprehension, which decomposes "did you understand this proof?" into 3 local facets (line-by-line) and 4 holistic facets (whole-proof). Reading a proof differently from reading prose is the point: prose is read for content, a proof is read for *warrant verification* (each line must be checked against the line above).
+When invoked: a chapter contains one or more proofs. The sub-routine's facet checklist is the 7-facet **assessment** model of mathematical proof comprehension (Mejía-Ramos, Fuller, Weber, Rhoads & Samkoff 2012), which decomposes "did you understand this proof?" into 3 local facets (line-by-line) and 4 holistic facets (whole-proof). *[evidence: Mejía-Ramos et al. 2012 is the source for the 7-facet assessment model only.]* Reading a proof differently from reading prose is the point: prose is read for content, a proof is read for *warrant verification* (each line must be checked against the line above).
 
 ## Why this sub-routine exists
 
-A reader who is comfortable with prose can often replay the surface of a proof — "the proof shows X using technique Y" — without having actually verified that line N+1 follows from line N. Eye-tracking work on expert vs novice proof reading shows the experts' distinguishing move is **inter-line gaze**: looking at line N+1, then back to line N, then forward again, checking that the warrant holds. Novices stay on the surface (notation, reformulating each line in isolation).
+A reader who is comfortable with prose can often replay the surface of a proof — "the proof shows X using technique Y" — without having actually verified that line N+1 follows from line N. Eye-tracking work on expert vs novice proof reading (Inglis & Alcock 2012) shows the experts' distinguishing move is **inter-line gaze**: looking at line N+1, then back to line N, then forward again, checking that the warrant holds. Novices stay on the surface (notation, reformulating each line in isolation). *[evidence: the inter-line-gaze process finding is Inglis & Alcock 2012 eye-tracking — do NOT source it to Mejía-Ramos, which is the assessment-model paper.]*
 
 The 7 facets give a checklist that splits "I followed the proof" into measurable parts, so the user can self-check at the right granularity instead of vaguely "getting it."
 
@@ -44,22 +43,23 @@ For each proof in the chapter, the sub-routine asks the user to engage with **at
 ### Plan phase (per chapter)
 
 1. Identify each proof in the chapter (locator: `§3.2 Theorem 3.4 proof`, etc.).
-2. For each proof, decide a **facet sample**: 1-3 facets chosen by intensity + chapter centrality.
-   - Light intensity: 1 facet (default: facet 4 — high-level idea).
-   - Standard intensity: 2 facets (default: facets 4 + 6 — high-level idea + technique name; pick a third specific to the proof if it teaches a method).
-   - Deep intensity: 3 facets, including at least one local facet (default: facets 3 + 4 + 6 — chaining at one chosen line + high-level idea + technique).
-3. For the **chapter's central proof** (if any), always include facet 3 (chaining) at one user-chosen line — this is the move that distinguishes proof-reading from prose-reading.
+2. For each proof, decide a **facet sample**: 1-3 facets chosen by intensity + chapter centrality. **Facet 3 (chaining) is the light-intensity default for ANY proof** — it is the discriminating, most-failed, illusion-breaking facet (the one that actually distinguishes verified-the-warrants reading from surface-fluency reading), so it anchors every sample. Facet 4 (high-level idea) is demoted to a **standard-and-up holistic add-on**, not the default.
+   - Light intensity: 1 facet (default: facet 3 — chaining at one chosen line).
+   - Standard intensity: 2 facets (default: facets 3 + 4 — chaining + high-level idea; pick facet 6 instead of 4 if the proof's main teaching point is a reusable technique).
+   - Deep intensity: 3 facets, anchored on the local facet (default: facets 3 + 4 + 6 — chaining at one chosen line + high-level idea + technique).
+3. For the **chapter's central proof** (if any), facet 3 (chaining) at one user-chosen line is already included by the light default above; on the central proof, make the chaining line a *non-trivial* one (a line where a lemma or non-obvious inference is applied), since this is the move that distinguishes proof-reading from prose-reading.
 4. Log the selection as:
 
 ```yaml
 proof_protocol:
   - proof: "§3.2 Thm 3.4"
-    facets_to_check: [4, 6]
+    facets_to_check: [3]          # light: chaining is the default anchor
     is_central: false
-  - proof: "§4.1 Main Theorem"
-    facets_to_check: [3, 4, 6]
-    is_central: true
     chaining_line_choice: "user picks at execution"
+  - proof: "§4.1 Main Theorem"
+    facets_to_check: [3, 4, 6]    # deep: chaining (non-trivial line) + high-level idea + technique
+    is_central: true
+    chaining_line_choice: "user picks a line where a lemma is applied"
 ```
 
 ### Tutor phase (during proof reading)

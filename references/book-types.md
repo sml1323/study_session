@@ -1,12 +1,11 @@
 # Book Types and Default Session Patterns
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 A book gets a **two-coordinate classification**:
 
 1. **Primary type** (one of: methodology / problem-driven / conceptual / argument-driven / reference / math-proof-heavy) — drives the default session pattern (sequence + timing).
 2. **Genre axis** (orthogonal: narrative ↔ expository) — drives `paragraph_capture` density cap and reading granularity.
 
-A conceptual chapter on memory written like a story (Sapolsky on stress and brain) is `conceptual` × `narrative-leaning`; the same topic in Griffiths-style derivation prose is `conceptual` × `expository-leaning`. Same primary type, different reading patterns. The user can override per session, but the two-coordinate classification is the starting point.
+A conceptual chapter written like a story (Sapolsky on stress and brain) is `conceptual` × `narrative-leaning`; the same topic in Griffiths-style derivation prose is `conceptual` × `expository-leaning`. Same primary type, different reading patterns. The user can override per session, but the two-coordinate classification is the starting point.
 
 ## The narrative ↔ expository orthogonal axis
 
@@ -16,7 +15,7 @@ A conceptual chapter on memory written like a story (Sapolsky on stress and brai
 | **expository-leaning** | argument-by-claim + signal words (`however`, `therefore`, `in contrast`); structure-driven | track signal words; force per-paragraph or per-section summary on the load-bearing units; standard `paragraph_capture` cap 5-10 per chapter |
 | **mixed** | many books are mixed; classify by which lean dominates the chapter you're about to read, not the whole book | apply the dominant lean's pattern; flip the lean for individual chapters where it changes |
 
-Why this axis matters: narrative and expository content reward different reading moves. Applying expository defaults (signal-word tracking, per-paragraph capture, structure mapping) to a narrative chapter under-engages the chapter (the user spends effort on micro-structure that the chapter isn't using). Applying narrative defaults (theme tracking, low capture density) to an expository chapter under-processes the load-bearing argument structure. Classify both axes; the genre axis influences several Phase 2 prompts (see `references/generative-prompts.md` paragraph_capture).
+Why this axis matters: narrative and expository content reward different reading moves, so applying one lean's defaults to the other under-engages or under-processes the chapter. Classify both axes; the genre axis influences several Phase 2 prompts (see `references/generative-prompts.md` paragraph_capture).
 
 Genre lean is recorded in the chapter note frontmatter:
 
@@ -33,36 +32,15 @@ genre_lean: narrative       # narrative | expository | mixed
 
 **What learning looks like**: internalize a method (a checklist, a heuristic set, a sequence of moves), then apply it to external material. The book explains the method; the work happens elsewhere.
 
-**Sessions are not done when the chapter is read**. They're done when the method has been applied to a real outside example at least once.
-
-**Default pattern (35-50 min)**:
-- Phase 1 (5 min): PKA + prediction + which external example you'll apply this to
-- Phase 2 (25 min): read chapter; trace each method step; mental rehearsal on chosen example
-- End session here. Schedule Phase 3 for next sitting.
-- Phase 3 (10-15 min, delayed): closed-book method recall; apply method to the chosen external example; identify where it broke
-- Phase 4: invoke ARQ or Polya sub-routine on the external example to formalize the application
-
-**Method invocations during reading**:
-- ARQ → invoked on external arguments the user brings
-- Polya → invoked on external problems
+**Sessions are not done when the chapter is read**. They're done when the method has been applied to a real outside example at least once. (Phase 1-4 defaults: see Defaults summary table; total 35-50 min. Phase 2 ends the session; schedule Phase 3 for next sitting.)
 
 ### 2. problem-driven (textbook)
 
 **Examples**: Spivak *Calculus*, Polya Part III worked examples, Feynman exercises, K&R exercises, *Cracking the Coding Interview*.
 
-**What learning looks like**: problem-solving is the work. Reading is preparation; solving is learning.
+**What learning looks like**: problem-solving is the work. Reading is preparation; solving is learning. (Phase 1-4 defaults + method invocations: see Defaults summary table; total 40-60 min.)
 
-**Default pattern (40-60 min)**:
-- Phase 1 (5 min): problem-type prediction; which schemas/tools you have for this category; **check Productive Failure entry guard** (see `references/methods/math-text-reading.md` § "Productive Failure entry guard") before deciding the Phase 2 sequence
-- Phase 2 (35-45 min): **PF-first if entry guard passes** (give the user 15-30 min on a problem before any hint, then worked example if needed, then backward-fading per `references/methods/backward-fading.md`); **worked-example-first → backward-fading if entry guard fails** (any of the conditions miss — child learner, procedural drill, no prerequisite, no time budget, etc.). PF is not the unconditional default — the guard decides.
-- Phase 3 (10-15 min, delayed): closed-book problem variant generation; Schoenfeld 3-question reflection on what worked; Newman analysis if the problem was failed
-
-**Method invocations**:
-- Polya → primary loop, every problem
-- Schoenfeld 3-question → at every transition inside Polya execute
-- Newman → if problem was wrong on first attempt
-- backward-fading → after any worked example (whether shown by chapter or by hint level 3); always runs before unguided variant
-- math-text-reading PF entry guard → at Phase 1, decides whether Phase 2 enters PF mode
+**Phase 2 sequence detail**: **PF-first if the entry guard passes** (give the user 15-30 min on a problem before any hint, then worked example if needed, then backward-fading per `references/methods/backward-fading.md`); **worked-example-first → backward-fading if the entry guard fails** (any condition misses — child learner, procedural drill, no prerequisite, no time budget, etc.). PF is not the unconditional default — the entry guard (`references/methods/math-text-reading.md` § "Productive Failure entry guard"), checked at Phase 1, decides. backward-fading runs after any worked example (whether shown by chapter or by hint level 3), always before the unguided variant.
 
 **Special rule (PF window when entry guard passes)**: hints inside the productive failure window (first 15-30 min) require explicit user override. Auto-hint is disabled. The struggle is the desirable difficulty. When entry guard fails, this special rule does not apply — the chapter goes worked-example-first instead and there is no PF window to protect.
 
@@ -70,17 +48,7 @@ genre_lean: narrative       # narrative | expository | mixed
 
 **Examples**: Feynman *Lectures* body, Griffiths *Introduction to Electrodynamics*, Sapolsky *Behave*, Penrose *Road to Reality*.
 
-**What learning looks like**: concepts accumulate and interlock. You trace derivations, build a mental model, and revisit prior chapters as new concepts depend on them.
-
-**Default pattern (40-60 min)**:
-- Phase 1 (5-10 min): PKA dump on the chapter topic; advance organizer if the book provides one; prediction of what the chapter will derive
-- Phase 2 (30-40 min): read with single-line derivation tracing (do not skip steps); concept_define on every new term; next_predict on every derivation step (Bisra g=1.37)
-- Phase 3 (15 min, delayed): closed-book free recall + Feynman explanation + concept map sketch
-- Phase 4: cross-chapter — does this depend on / extend chapter X? If yes, retrieval quiz on X
-
-**Method invocations**:
-- Polya → invoked on chapter exercises if present
-- Cross-chapter retrieval quiz → mandatory before starting next chapter in same volume
+**What learning looks like**: concepts accumulate and interlock. You trace derivations, build a mental model, and revisit prior chapters as new concepts depend on them. (Phase 1-4 defaults: see Defaults summary table; total 40-60 min. Phase 2 next_predict on every derivation step is Bisra g=1.37. Cross-chapter retrieval quiz is mandatory before starting the next chapter in the same volume.)
 
 **Special rule**: derivation tracing must be active. If the user reads passively, prompt: "Pause. The last derivation step was [X]. Why does that follow?"
 
@@ -88,17 +56,7 @@ genre_lean: narrative       # narrative | expository | mixed
 
 **Examples**: Mill *On Liberty*, Sandel *Justice*, *Nature* / *Science* op-ed, philosophy papers, policy whitepapers.
 
-**What learning looks like**: claims, assumptions, alternative conclusions. Reading without ARQ-style breakdown leaves you at surface comprehension.
-
-**Default pattern (30-50 min)**:
-- Phase 1 (5 min): PKA + your prior position on the issue
-- Phase 2 (20-35 min): read with ARQ Core 7 always-on (issue, conclusion, reasons+evidence, assumptions, alternatives, judgment, self-explanation); ARQ Optional 5 conditionally (fallacy if nameable, statistics if cited, etc.)
-- Phase 3 (10-15 min, delayed): steelman the opposing view; record your position update before/after
-- Phase 4: transfer to a different case the same framework would handle
-
-**Method invocations**:
-- ARQ → primary, always-on
-- Schoenfeld 3-question → folded into ARQ self-explanation move
+**What learning looks like**: claims, assumptions, alternative conclusions. Reading without ARQ-style breakdown leaves you at surface comprehension. (Phase 1-4 defaults: see Defaults summary table; total 30-50 min. Phase 2 ARQ Core 7 = issue, conclusion, reasons+evidence, assumptions, alternatives, judgment, self-explanation; ARQ Optional 5 conditionally — fallacy if nameable, statistics if cited, etc. Schoenfeld 3-question folds into the ARQ self-explanation move.)
 
 **Special rule (echo chamber prevention)**: after the user articulates their judgment, force them to steelman the opposing view at full strength. If they refuse or do it weakly, push back. The session is not complete without this.
 
@@ -108,18 +66,9 @@ genre_lean: narrative       # narrative | expository | mixed
 
 **What learning looks like**: load-bearing content is **proofs, derivations, and formal definitions**, not expository prose. The dominant failure mode is *prose-skip*: skim the prose between symbols, miss the role each line plays in the proof. Telling a reader to "read in validation mode" or "read like a mathematician" does not change behavior — only concrete, line-level **micro-tasks** do (Panse, Alcock & Inglis 2018 eye-tracking).
 
-This type is distinct from `problem-driven`: a problem-driven chapter expects the user to *solve* problems; a math-proof-heavy chapter expects the user to *read* proofs as the load-bearing reading unit. Many advanced textbooks have both — classify by what the **chapter** is doing, not the book as a whole.
+This type is distinct from `problem-driven`: a problem-driven chapter expects the user to *solve* problems; a math-proof-heavy chapter expects the user to *read* proofs as the load-bearing reading unit. Many advanced textbooks have both — classify by what the **chapter** is doing, not the book as a whole. (Phase 1-4 defaults: see Defaults summary table; total 40-60 min.)
 
-**Default pattern (40-60 min)**:
-- Phase 1 (5-10 min): PKA + which proofs / derivations the chapter contains; identify proof structures (induction / contradiction / construction / direct / ε-δ / quantifier-heavy)
-- Phase 2 (30-45 min): per-proof, pick **1-2 micro-tasks** from the menu in `references/methods/math-text-reading.md`; for engineering diagrams, run the **two-pass rule** (30s component-naming pass before scrutiny pass); when user draws a diagram, label `plan` or `verify` purpose; **no prose-skip allowed** — every load-bearing line gets a verb
-- Phase 3 (15-20 min, delayed): closed-book reproduction of one proof's structure (not the symbols verbatim — the structural moves: "induction on N, base case is ..., inductive step uses hypothesis at line ..."); transfer to a NEW proof in the same family
-- Phase 4: cross-chapter — does this proof technique recur in earlier chapters? If yes, retrieval quiz on the prior instance
-
-**Method invocations**:
-- math-text-reading micro-tasks → primary loop, every proof in the chapter
-- Polya → invoked on chapter exercises if present (problem-solving sub-routine, distinct from proof-reading)
-- backward-fading → after any worked example or fully-shown proof, before unguided variant
+**Phase 2 detail**: per-proof, pick **1-2 micro-tasks** from the menu in `references/methods/math-text-reading.md`; for engineering diagrams, run the **two-pass rule** (30s component-naming pass before scrutiny pass); when the user draws a diagram, label `plan` or `verify` purpose; **no prose-skip allowed** — every load-bearing line gets a verb. backward-fading runs after any worked example or fully-shown proof, before the unguided variant.
 
 **Special rule**: do **not** use abstract reading-mode labels ("read this in validation mode"). Replace with concrete micro-tasks ("circle the inductive hypothesis", "predict the next line", "name the rule being invoked at line N"). Compliance with mode labels does not produce comprehension; behavioral verbs do.
 
@@ -152,7 +101,7 @@ When the skill encounters a book without a type in books.yml, classify both axes
 5. **Argues a thesis, references opposing views, ends with conclusions** → argument-driven.
 6. **Alphabetical or topic-indexed entries, no narrative spine** → reference.
 
-**math-proof-heavy vs conceptual**: a chapter with the same equations is `math-proof-heavy` if the symbols and lemmas are doing the load-bearing work (Spivak's proofs, Griffiths' explicit derivations) and `conceptual` if the prose is doing the load-bearing work and the equations are illustrative (Sapolsky, Penrose narrative chapters). When in doubt, ask: does skipping the prose between equations preserve the chapter's argument? If yes, math-proof-heavy. If no, conceptual.
+**math-proof-heavy vs conceptual**: a chapter with the same equations is `math-proof-heavy` if the symbols and lemmas are doing the load-bearing work and `conceptual` if the prose is doing the load-bearing work and the equations are illustrative. When in doubt, ask: does skipping the prose between equations preserve the chapter's argument? If yes, math-proof-heavy. If no, conceptual.
 
 If multiple types fit (a book can be hybrid — Polya is methodology + problem-driven + reference depending on Part), classify by Part. Polya:
 - Part I (the method): methodology

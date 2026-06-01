@@ -1,5 +1,4 @@
 # L2 / English Book Mode
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When the user reads in a non-native language (English book for a Korean user, etc.), this layer activates. The goal is **concept learning, not language endurance**. AI must not bypass user active processing by translating everything upfront.
 
@@ -17,7 +16,7 @@ Confirm activation once per book; persist as `l2_mode: on` in book metadata. Do 
 
 ## Vocabulary coverage tiers (95% / 98% two-tier)
 
-The first decision in L2 mode is **what tier the user is at for this specific book**, because that drives whether scaffolding is mandatory, optional, or off. The two thresholds (Laufer & Ravenhorst-Kalovski two-tier) are operational, not absolute cliffs — replication work shows the variance explained is smaller than the original single-source figure suggested. Treat these as defaults that the skill applies; surface to the user on activation.
+The first decision in L2 mode is **what tier the user is at for this specific book**, because that drives whether scaffolding is mandatory, optional, or off. The two thresholds (Laufer & Ravenhorst-Kalovski two-tier) are operational defaults, not absolute cliffs; surface to the user on activation.
 
 | Coverage estimate | Tier | Policy |
 |---|---|---|
@@ -61,10 +60,6 @@ narrow_reading_mode:
 ```
 
 When the user returns to the parent book, re-estimate coverage; expect a tier upgrade.
-
-### Extensive reading (separate from study sessions)
-
-Serious L2 learners benefit from a separate extensive reading (ER) block — light-intensity, fluency-prioritized, no Phase 3 protocol. ER is logged with `er_session: true` and does not contribute to chapter_metrics. ~30% of total L2 reading time as ER is a reasonable default for learners aiming to push coverage upward; the skill suggests this when the user has been in `must-scaffold` for ≥ 3 books.
 
 ## Core principles
 
@@ -179,21 +174,11 @@ Apply `references/citation-format.md` `quote_id` discipline to L2 quotes the sam
 
 ## Interaction with Session Intensity
 
-L2 mode caps maximum intensity by tier:
-
-- `must-scaffold` (< 95% coverage) → **light** only on first pass
-- `assisted` (95-98%) → **standard** maximum on first pass
-- `flow` (≥ 98%) → any intensity on first pass
-
-**Deep** intensity (60–90 min, ARQ Level 3, transfer attempt, detailed note) is **not** run on a first-pass L2 reading at any tier — language barrier already adds load; stacking deep method on top is the predictable form-fatigue collapse.
-
-**If the user explicitly requests deep on a re-read** (second pass after a first-pass L2 read), allow it — second pass means the language load is already discounted. Log `l2_pass: 2` for that chapter.
+L2 tier caps intensity per the table in "Vocabulary coverage tiers" above (must-scaffold → light, assisted → standard, flow → any); **deep** is never run on a first-pass L2 read. See `SKILL.md § Session Intensity` for the canonical intensity definitions. On an explicit re-read request (second pass), deep is allowed — log `l2_pass: 2`.
 
 ## Interaction with Calibrate (Phase 3)
 
-- Closed-book recall is conducted in the **user's native language** (Korean), not English. Recall language ≠ source language is fine; the test is concept recall, not language reproduction.
-- The Coverage Rubric in `references/calibration.md` applies to Korean recall the same way it applies to English recall.
-- Step B (diagnostic MCQ) options may be Korean, but if a core English term is being tested, present it bilingually in the option (`"rival cause (대안 원인)"`).
+Closed-book recall runs in the user's native language (Korean); the test is concept recall, not language reproduction. Phase 3 mechanics and the Coverage Rubric are canonical in `references/calibration.md`. Diagnostic MCQ options may be Korean, but present a tested core English term bilingually (`"rival cause (대안 원인)"`).
 
 ## Anti-patterns
 

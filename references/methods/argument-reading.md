@@ -1,11 +1,10 @@
 # Argument Reading — Argument-driven Chapter Sub-routine (5-step)
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: a chapter classified `argument-driven`, or a conceptual chapter on a politically/identity-laden topic where refutation-text would risk backfire. The sub-routine is a 5-step protocol designed to engage the chapter's argument as an argument (not as content to summarize), and to do it in the specific way that distinguishes top-tier critical readers from the median: structure first, then map, then dialogic engagement, then targeted re-reading. Plain repeated reading does not improve argument comprehension; structure-aware reading does.
 
 ## Why this sub-routine exists
 
-When a passage is read for surface comprehension, even skilled adult readers identify the central claim only at chance levels in some studies. When given explicit instruction in claim/reason/warrant structure first, identification jumps substantially and stays elevated on transfer. A second finding consistently replicates: plain re-reading on top of structure instruction adds essentially zero — the active ingredient is the structure scaffold, not the time-on-text. The 5-step protocol below turns those two findings into a sequence the user can run on every argument-driven chapter.
+When a passage is read for surface comprehension, even skilled adult readers identify the central claim only at chance levels in some studies. When given explicit instruction in claim/reason/warrant structure first, identification jumps substantially and stays elevated on transfer (Britt & Larson, argument-schema instruction). *[evidence: the chance-level baseline and the schema-instruction gain are sourced to Britt & Larson's argument-schema instruction work; not RCT-magnitude-portable, treat as directional.]* A second finding consistently replicates: plain re-reading on top of structure instruction adds essentially zero — the active ingredient is the structure scaffold, not the time-on-text. The 5-step protocol below turns those two findings into a sequence the user can run on every argument-driven chapter.
 
 ## When to invoke
 
@@ -55,7 +54,7 @@ If the user cannot identify the central claim after one structure pass, that is 
 
 Build a small node-and-edge map of the structure from Step 1. Hard limits:
 
-- **3-7 nodes total** (Cowan capacity bound; more than 7 means the chapter has been over-decomposed)
+- **3-7 nodes total** — Cowan's working-memory capacity bound is ~4 active chunks; a map of more than 4-5 load-bearing nodes is already pushing it, and crossing 5-7 is a soft *reduce* threshold (re-collapse to the load-bearing nodes), not a hard Cowan limit. More than 7 means the chapter has been over-decomposed. *[evidence: Cowan ~4 active-node bound is the capacity claim; the 5-7 cutoff is an operational reduce-threshold, not "the Cowan bound."]*
 - nodes: one per claim or reason
 - edges: labeled with `supports`, `requires`, `refutes`, `assumes`, `presupposes`
 - explicit-only — do not add inferred sub-arguments at this stage; the map is for the chapter's own structure
@@ -100,13 +99,13 @@ This step replaces the standard `failure-modes.md` Failure 6 (echo chamber) chec
 
 ### Step 5 — Context-stance reading + targeted re-reading
 
-After Steps 1-4, if any node in the argument map is still weakly understood (the user's reasoning at Step 4 surfaced gaps in specific reasons), do a **targeted re-reading** of just the relevant passages — not a full re-read of the chapter. Plain re-reading from the start adds essentially nothing on top of Step 1 + 2; targeted re-reading on identified gaps is what works.
+The Step 4 `gap` — the load-bearing objection the chapter does **not** answer, or answers weakest — **drives** this step. Re-read that passage **first**, before any weakly-understood map node: the unanswered steelman objection is where the argument is most exposed, so it is the highest-value target for a stance-driven re-read. Only after the gap passage do you re-read any remaining weakly-understood nodes from the Step 2 map. In all cases this is a **targeted re-reading** of just the relevant passages — not a full re-read of the chapter. Plain re-reading from the start adds essentially nothing on top of Step 1 + 2; targeted re-reading on identified gaps is what works.
 
 Set context and stance for the re-read:
 
-> "Re-read §X with this question: does the author's argument here actually support the claim in §Y, or is it support for a weaker / different claim? Read with that question in mind, not for general comprehension."
+> "Re-read §X (the passage carrying the objection the chapter left unanswered at Step 4) with this question: does the author's argument here actually rebut that objection, or is it support for a weaker / different claim? Read with that question in mind, not for general comprehension."
 
-Do not re-read sequentially. If the gap is in the chapter's response to a counterclaim, re-read that section. If the gap is in a key warrant, re-read the section that justifies it.
+Do not re-read sequentially. Order: (1) the section bearing the Step 4 gap objection, (2) then any key warrant or reason node still weakly understood. If the gap is in the chapter's response to a counterclaim, re-read that section first; if the gap is in a key warrant, re-read the section that justifies it next.
 
 ## Calibrate phase (Step 2b transfer for argument chapters)
 

@@ -1,5 +1,4 @@
 # State Schema — Single Source of Truth
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 This file is the **canonical SOT** for chapter status values and frontmatter fields used by `books.yml` and chapter notes. Any other reference, fixture, or eval must conform to this enum. The lint script `scripts/lint_state.py` enforces it.
 
@@ -92,7 +91,7 @@ Phase 3 metrics — populated when calibrate runs:
 | `learning_passed` | bool | `situation_model_transfer_score` meets the book-type gate. **The chapter_complete signal** (see Decision rule #4 in SKILL.md). |
 | `chapter_complete` | bool | **= `learning_passed`** (B1 split, 2026-05-17). Calibration health is tracked separately and does not hard-block this. |
 | `calibration_gap_abs` | int 0–100 or `null` | `\|score_prediction − actual_score\|` (Phase 3 Step 4a). `null` if either score is missing. |
-| `calibration_health` | enum | `well_calibrated` (abs ≤ 10) / `loose` (10 < abs ≤ 20) / `over_confident` (abs > 20, predicted > actual) / `under_confident` (abs > 20, predicted < actual) / `unknown` (gap not computable). See § "calibration_health enum" below. |
+| `calibration_health` | enum | values + triggers in § "calibration_health enum" below |
 | `confirm_next_chapter` | bool | `true` when `calibration_gap_abs > 30` — the next session's open should prompt the user for confirmation before advancing chapters. Default `false`. |
 | `confidence_self_report` | int 0–100 | captured **before** recall (Step 1) |
 | `confidence_accuracy_gap` | int | `confidence_self_report - situation_model_transfer_score * 100`; legacy diffuse-confidence gap, retained for trend |
@@ -115,7 +114,7 @@ The split between `chapter_complete` (= `learning_passed`) and `calibration_heal
 
 ### Backward compatibility
 
-Existing chapter notes (created before 2026-05-17) carry the pre-B1 single-gate `chapter_complete` definition (= SM AND abs_gap ≤ 20). They are **read-only under the new schema**: do not retroactively rewrite their frontmatter to add `learning_passed` / `calibration_health` / `confirm_next_chapter`. The lint script treats absence of B1 fields on a pre-B1 chapter note as expected, not as a violation. New chapter notes (Phase 3 runs after 2026-05-17) use the split schema.
+Pre-2026-05-17 chapter notes carry the pre-B1 single-gate `chapter_complete` definition and are read-only under the new schema (do not retro-add `learning_passed` / `calibration_health` / `confirm_next_chapter`; lint treats their absence as expected).
 
 Health and meta:
 
@@ -206,7 +205,7 @@ Persists across sessions. The skill reads `translation_mode` from `books.yml` at
 
 ## books.yml `chapter_metrics` — allowed and forbidden fields
 
-`books.yml` is re-cached on every `Edit` tool call. Long-form session narrative inside `chapter_metrics[N]` inflates `cache_create` on each save and historically accounted for 30–40% of session token cost (audited 2026-05-12: one 47-turn session burned $9.60 of cache_create against a 30 KB books.yml that had grown to hold per-session `progress` strings of 2–3 KB each).
+`books.yml` is re-cached on every `Edit` tool call, so long-form session narrative inside `chapter_metrics[N]` inflates `cache_create` on each save and historically accounted for 30–40% of session token cost.
 
 The fix is structural: `chapter_metrics[N]` carries *only* machine-readable signals; narrative spills to the chapter note body or to `books/<slug>/_archived/`.
 
@@ -262,27 +261,11 @@ The compose step at session end **must enforce this**: when populating `chapter_
 
 ### Compose-mode contract on `books.yml`
 
-The 2026-05-18 audit found a compose session that performed **7 Edits to `books.yml`**, several of which injected forbidden narrative qualifiers under `session_health.*` and per-session `_scoped` / `_lockin` / `_sub_task` variants. Both are anti-patterns. The contract now reads:
-
-1. **At most one `books.yml` Edit per session.** Batch every `chapter_metrics[N]` update into a single Edit at the end of compose. Each additional Edit causes `books.yml` to be re-cached.
-2. **Pre-Edit allowlist self-check.** Before the Edit, verify every new key is on the allowlist in this file's table above. Keys not on the allowlist belong in the chapter note body or in `_archived/books-yml-snapshot-<date>.md`.
-3. **session_health values are bool.** Hyphen-glued narrative tokens like `illusion: corrected-in-recall-session-9` are forbidden — the narrative goes to the chapter note body.
-4. **spaced_retrievals[].anchors is forbidden.** Keep only `{date, type, q_count, score}` per row; narrative anchor lists go to the chapter note body.
-5. **Verify with the lint script.** Run `python3 scripts/lint_state.py . --books-yml <path-to-books.yml>` after compose to catch any regression. Errors block — fix them in a second Edit only after spilling the narrative to the chapter note.
+Pre-Edit self-check: SKILL.md > Output: chapter note.
 
 ## Canonical section status enum (orthogonal to chapter status)
 
-Sections inside a chapter carry their own status, defined here as the SOT. This axis is *independent* of the chapter-level enum above — a chapter is `in-progress` while its sections are mostly `pending`. Full semantics, transitions, and the chapter-completion gate built on this enum live in `references/section-tracking.md`.
-
-| Status | Meaning |
-|---|---|
-| `pending` | Default; not yet processed |
-| `in-progress` | Mid-section session close; current chunk lives here |
-| `covered` | Closed-book recall + active margin notes both ran on the section's narrative |
-| `used-as-exercise` | Section's prose was used as training material for some method, but the section's own narrative claims were not processed via recall + active margin notes — **learning debt** |
-| `skipped` | Explicit user bypass; reason recorded in chapter-note Section progress block |
-
-`covered` and `used-as-exercise` are **not** interchangeable. Phase-3 advancement and any "next chapter" recommendation requires every section to be `covered` or `skipped`.
+The per-section status enum (`pending` / `in-progress` / `covered` / `used-as-exercise` / `skipped`), its semantics, transitions, and the chapter-completion gate built on it are owned by `references/section-tracking.md`. This axis is *independent* of the chapter-level enum above — a chapter is `in-progress` while its sections are mostly `pending`.
 
 Top-level `books.yml`:
 

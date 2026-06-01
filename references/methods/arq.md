@@ -1,5 +1,4 @@
 # ARQ — Browne & Keeley Critical Questions Method
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: chapter contains a non-trivial argument; user wants to break down a paper, op-ed, or claim. Argument-driven book type uses ARQ as primary method during Phase 2 of the PDP cycle.
 
@@ -63,13 +62,19 @@ Use this table to pick the right Level / Optional field when something specific 
 |---|-------|-----------------|--------|
 | 1 | issue | "What is the issue / question at issue?" | ARQ Q1 |
 | 2 | conclusion | "What is the author's conclusion?" | ARQ Q1 |
-| 3 | reasons + evidence | "Why do they say so? What evidence?" (merged because they are entangled in source text) | ARQ Q2 + Q7, ARG worksheet §I |
-| 4 | assumptions (factual + value) | "What facts does the author take for granted? What values does the author take for granted?" | ARQ Q4 + Q5 |
-| 5 | alternative_conclusions | "What other reasonable conclusions could the same evidence support?" | ARQ Q11 |
-| 6 | judgment (5-option) | 강한 동의 / 부분 동의 / 부분 반대 / 반대 / 판단 보류 | ARG worksheet §VII |
-| 7 | self_explanation_one_line | "왜 이게 결론인가?" — one sentence | Dunlosky 2013 targeted SE |
+| 3 | reasons | "Why do they say so? Separate the reasons from the conclusion." (reasons/conclusion EXTRACTION only — not yet evaluating quality) | ARQ Q2, ARG worksheet §I |
+| 4 | evidence_quality | "How good is the evidence? — sample / authority / analogy. Is the sample adequate? Is the authority relevant? Does the analogy hold?" (mandatory evidence-QUALITY evaluation, distinct from extraction) | ARQ Q7 |
+| 5 | value_assumptions | "What values does the author take for granted? Where do the author's values conflict with a competing value someone could reasonably hold instead?" (value-conflict elicitation) | ARQ Q4 |
+| 6 | descriptive_assumptions | "What facts about the world does the author take for granted?" (separate from value assumptions in field 5) | ARQ Q5 |
+| 7 | alternative_conclusions | "What other reasonable conclusions could the same evidence support?" | ARQ Q11 |
+| 8 | judgment (5-option) | 강한 동의 / 부분 동의 / 부분 반대 / 반대 / 판단 보류 | ARG worksheet §VII |
+| 9 | self_explanation_one_line | "왜 이게 결론인가?" — one sentence | Dunlosky 2013 targeted SE |
 
-**Why 5-option judgment**: forced-choice prevents the squishy middle of free-form judgment. Bisra g=0.55 self-explanation effect is preserved by the one-line targeted SE in field 7 (van Peppen 2018: generic SE backfires; targeted is the working form).
+**Field 3 vs 4 — extraction vs evaluation**: field 3 is *extraction* (separate the load-bearing reasons from the conclusion); field 4 is a distinct *evaluation* of how good that evidence actually is (sample adequacy, authority relevance, analogy fit). Do not merge them — a reader can extract the reasons cleanly and still fail to notice that the evidence is a single anecdote or an irrelevant authority. Field 4 is mandatory at Level 3, not optional.
+
+**Field 5 vs 6 — value vs descriptive**: value assumptions (what the author takes to be *good*, field 5) are systematically skipped while descriptive assumptions (what the author takes to be *true*, field 6) are easy; keeping them as separate fields forces the value-conflict elicitation that the merged form let readers slide past.
+
+**Why 5-option judgment**: forced-choice prevents the squishy middle of free-form judgment. The one-line targeted SE in field 9 carries the self-explanation move (van Peppen 2018: generic SE backfires, targeted SE is the working form — so the *direction* is targeted > generic; do not claim a specific effect magnitude transfers from any single study).
 
 ## Optional 5 (run on trigger)
 
@@ -98,12 +103,17 @@ Example delivery for Core 7:
 ### 결론
 저자의 결론은?
 
-### 이유 + 근거
-왜 그렇게 말하는가? 어떤 근거를 제시하는가?
+### 이유
+왜 그렇게 말하는가? 이유를 결론과 분리해서 추출.
 
-### 가정
-- 사실 가정: 저자가 당연시하는 사실?
-- 가치 가정: 저자가 당연시하는 가치?
+### 근거의 질
+근거가 얼마나 좋은가? — 표본 / 권위 / 유추. 표본은 충분한가? 권위는 적절한가? 유추는 성립하는가?
+
+### 가치 가정
+저자가 당연시하는 가치? 그 가치가 다른 합리적 가치와 충돌하는 지점은?
+
+### 사실 가정
+저자가 당연시하는 사실(세계에 대한)?
 
 ### 대안 결론
 같은 근거로 다른 합리적 결론이 가능한가?
@@ -138,7 +148,8 @@ For other book types:
 ## Anti-patterns
 
 - ❌ **Running all 12 fields on every argument**. Form fatigue. Use trigger discipline for Optional 5.
-- ❌ **Verbatim summary of the author's argument in the "이유 + 근거" field**. Verbatim summary is low-utility per Dunlosky. Restate in your own words.
+- ❌ **Verbatim summary of the author's argument in the "이유" field**. Verbatim summary is low-utility per Dunlosky. Restate in your own words.
+- ❌ **Skipping the evidence-quality evaluation (field 4)**. Extracting the reasons is not the same as judging whether the evidence is any good. Field 4 is mandatory at Level 3.
 - ❌ **Fallacy hunting without specific naming**. Either the fallacy is namable and the move identifiable, or skip the field.
 - ❌ **Free-form judgment instead of 5-option**. The forced choice is the commitment device.
 - ❌ **Skipping self_explanation_one_line because "the conclusion already explains itself"**. The point is the user articulating the *because*, not paraphrasing the conclusion.
@@ -156,10 +167,10 @@ arq_extracts:
   - target: "Section 4.2 — author's argument for X"
     issue: "..."
     conclusion: "..."
-    reasons_evidence: "..."
-    assumptions:
-      facts: "..."
-      values: "..."
+    reasons: "..."                      # field 3 — extraction
+    evidence_quality: "..."             # field 4 — sample/authority/analogy evaluation
+    value_assumptions: "..."            # field 5 — incl. the value-conflict
+    descriptive_assumptions: "..."      # field 6 — facts taken for granted
     alternative_conclusions: "..."
     judgment: "부분 동의"
     self_explanation_one_line: "..."

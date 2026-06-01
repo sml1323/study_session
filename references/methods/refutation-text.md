@@ -1,7 +1,8 @@
 # Refutation Text — Conceptual Chapter Sub-routine
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
-When invoked: a chapter classified `conceptual` (any sub-genre — physics, biology, social science, philosophy of science, etc.) where the topic plausibly carries widespread misconceptions in its audience. The sub-routine generates the misconception → correction structure as a learning activity, even when the chapter itself is written in plain expository style. Strong evidence base across science, math, and social-science topics; persists at 1-month delay.
+When invoked: a chapter classified `conceptual` (any sub-genre — physics, biology, social science, philosophy of science, etc.) where the topic plausibly carries widespread misconceptions in its audience. The sub-routine generates the misconception → correction structure as a learning activity, even when the chapter itself is written in plain expository style.
+
+**Evidence tiers (read before quoting magnitudes)**: the strong evidence base — robust across science/math/social-science topics, persists at 1-month delay, robust across age and prior knowledge — is for **consumed** refutational text (the learner *reads* text written in refutation form). This sub-routine's distinctive move is the learner **generating** the refutation structure when the chapter is plain expository. The generated form is **plausibly at least as strong** as consuming refutation text and **shares the KReC mechanism** (co-activation + suppression) plus the generation effect — but it does **not** automatically inherit the consumed-text RCT magnitudes or the verified 1-month / cross-age numbers. Claim consumed-text robustness for consumed text; claim "mechanism-shared, plausibly ≥" for learner-generated paragraphs.
 
 ## Why this sub-routine exists
 
@@ -45,21 +46,24 @@ During reading, the user marks any passage where the chapter explicitly contradi
 
 > "나는 [misconception-1을 짧게]로 알았는데, 저자는 [the chapter's correction]을 명시. 그 이유는 [the chapter's reason / mechanism]."
 
-If the chapter does not explicitly refute the misconception but the corrected view can be inferred from the chapter content, write the same-format note as an inference-flavored margin note instead. The point is to name the contrast between prior belief and chapter content, not to require the chapter to be written in refutation form.
+**KReC co-activation rule (mandatory)**: the margin note must restate the misconception **verbatim, immediately adjacent to the correction** — both in the same note, the misconception named first, the correction second. KReC suppression only works when the misconception's representation is co-activated *with* the competing correction; a correction written without the misconception beside it does not suppress anything. Do not paraphrase the misconception away or write the correction alone.
+
+If the chapter does not explicitly refute the misconception but the corrected view can be inferred from the chapter content, write the same-format note as an inference-flavored margin note instead — **and the verbatim-misconception-adjacent-to-correction rule still applies** (the inference fallback changes the source of the correction, not the co-activation requirement). The point is to name the contrast between prior belief and chapter content, not to require the chapter to be written in refutation form.
 
 If the chapter contradicts a misconception that the user did **not** list in Phase 1 (the chapter surfaced a misconception the user didn't know they had), add it to `prior_misconceptions` retroactively and write the same-format margin note — this is high-value learning and should be logged.
 
 ### Phase 3 (Calibrate) — Refutation paragraph generation
 
-After Step 2a (textbase recall) and Step 2b (situation-model transfer), add one obligatory writing step:
+After Step 2a (textbase recall) and Step 2b (situation-model transfer), add one obligatory writing step. The prompt elicits **why the misconception was believed** *before* the correction — surfacing the prior belief's own rationale is what co-activates it for suppression (KReC), so it comes first:
 
-> "각 misconception에 대해 짧은 refutation 단락 작성: '나는 X라고 알고 있었는데, 실제로는 Y. 그 이유는 Z.' 챕터 §locator 명시."
+> "각 misconception에 대해: 먼저 '나는 왜 X라고 믿었나? (X가 그럴듯해 보였던 이유)' 한 줄. 그 다음 짧은 refutation 단락: '나는 X라고 알고 있었는데, 실제로는 Y. 그 이유는 Z.' 챕터 §locator 명시."
 
 Capture as:
 
 ```yaml
 refutation_paragraphs:
-  - misconception: "<m1 from Phase 1>"
+  - misconception: "<m1 from Phase 1, verbatim>"
+    prior_belief_rationale: "<why X seemed plausible — elicited BEFORE the correction>"
     correction: "<chapter's view>"
     reason: "<the mechanism the chapter gives>"
     chapter_locator: "§3.2"
@@ -72,8 +76,8 @@ Each refutation paragraph becomes a high-value retrieval card automatically — 
 
 ## Robustness and limits
 
-- **Robust across delay**: the effect persists at 1-month follow-up, so the spaced retrieval items derived from refutation paragraphs do real work over time.
-- **Robust across age and prior knowledge**: works at most expertise levels.
+- **Robust across delay (consumed text)**: for *consumed* refutational text the effect persists at 1-month follow-up, which is why the spaced retrieval items derived from refutation paragraphs are worth scheduling over time. The learner-generated paragraph is expected to behave at least as well (mechanism-shared + generation effect) but the 1-month number is not measured for the generated form — treat the persistence as plausible, not certified.
+- **Robust across age and prior knowledge (consumed text)**: consumed refutation text works at most expertise levels; the same range is plausible for the generated form but not separately verified.
 - **Backfire risk on identity-laden topics**: do not invoke on politically or morally contested topics (use the argument-reading sub-routine instead).
 - **Latent persistence**: because misconceptions are suppressed not erased, the 1-week and 1-month re-engagement matter. Without re-engagement, the original misconception can re-emerge.
 

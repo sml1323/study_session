@@ -1,12 +1,11 @@
 # Hint Escalation — Event-Based, Not Time-Based
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When invoked: every help moment in tutor mode. The level (0-4) chosen, the trigger that authorized escalation, and the user's response to the hint are all logged. This file is the canonical specification of *when* a hint is allowed and *how* the next escalation gates open.
 
 The failure mode this protocol is built against: **hint-as-shortcut**. Time-based hint rules ("if 5 minutes pass with no progress, give a hint") produce hint-spam: the user learns to wait out the timer and consume the answer without engaging the problem. Aleven et al. 2016 (intelligent tutoring system meta) and Razzaq & Heffernan 2010 found that:
 
 - Hint *availability* alone correlates with abuse (rapid clicking through hints to the bottom level).
-- Time spent on each hint distinguishes learning from abuse: < 10 seconds on a hint correlates with non-learning; ~20 seconds correlates with use.
+- Time spent on each hint distinguishes learning from abuse: spending only a few seconds correlates with non-learning; spending enough time to actually read and process the hint correlates with use. The original studies cited round numbers (~9s vs ~19s), but those were specific to short tutoring-system hints — the operative principle is *did the learner spend enough time to process a hint of this length*, so the skill scales the threshold to hint length rather than hard-coding a flat cutoff (see Rule 3).
 - Event-triggered, on-demand hints with a paraphrase gate produce learning gains; time-triggered or proactive hints do not.
 
 The skill therefore enforces three rules around every hint event.
@@ -43,7 +42,7 @@ Concrete sequence:
 4. **If paraphrase matches the hint's intent**: user attempts the problem with the hint applied. If still stuck, the next-level hint is now available on a new explicit-request trigger.
 5. **If paraphrase is missing, surface-only, or wrong**: skill says "Re-read the hint and try again — what are the words actually telling you to do?" The next escalation is **blocked** until the paraphrase passes.
 
-This implements the 9-vs-19-second finding: the gate forces the user to spend processing time on the hint, which is the difference between learning and abuse.
+This implements the processing-time finding: the gate forces the user to spend genuine processing time on the hint (scaled to its length, per Rule 3), which is the difference between learning and abuse.
 
 If the user types only "ok" or moves directly to "next hint please", the gate is not satisfied.
 
@@ -62,10 +61,17 @@ hint_event:
   next_action: "attempted_problem" | "requested_next_hint" | "abandoned"
 ```
 
-**Abuse signal**: `time_on_hint_seconds < 10` AND `next_action == "requested_next_hint"`. When detected:
+**Abuse signal**: the time spent is too short *for the length of this hint* AND `next_action == "requested_next_hint"`. The threshold is **relative to hint length, not a flat <10s** — a one-line schema-lookup hint can be genuinely processed in a few seconds, while a multi-line worked-example hint cannot. Estimate the minimum plausible processing time from the hint's length and request a paraphrase to confirm. A practical rule: require roughly **the time it takes to read the hint plus think about it** — e.g. on the order of the hint's word count read at a deliberate (not skimming) rate, with a small floor (a few seconds) for the shortest hints. If `time_on_hint_seconds` is below that hint-length-scaled estimate, treat it as an abuse signal. When detected:
 
-1. The next escalation is **refused** with a one-line reason: "That hint had less than 10 seconds of attention; sit with it before the next one."
+1. The next escalation is **refused** with a one-line reason: "That hint had less attention than it takes to read and think about it; sit with it before the next one."
 2. The session-end `session_health.hint_abuse` flag is set if this fires more than once per chapter.
+
+Log the estimated minimum alongside the actual so the signal is auditable:
+
+```yaml
+  time_on_hint_seconds: 6
+  min_plausible_seconds: 18   # scaled to this hint's length; abuse if actual < this
+```
 
 ## The hint level ladder (with event-trigger gating)
 
@@ -81,7 +87,7 @@ This replaces the time-window ladder. Each level has a specific trigger conditio
 
 **Productive failure window** (problem-driven chapters): inside the first 15-30 minutes of a problem, levels 2-4 are rate-limited. Level 1 (re-read) is always available. The window itself is event-triggered, not time-triggered: it begins when the user starts the problem and ends when the user explicitly says "I am stuck and want a level-2+ hint" or 30 minutes have elapsed (this is the only time-bounded gate in the protocol, and it is a *cap* on struggle, not a *trigger* for help).
 
-After level 3 (worked example) is shown, the **backward-fading completion-problem sequence** runs before any further unguided attempts (see `references/methods/backward-fading.md`). Going from "saw worked example" directly to "tried unguided variant and got it" without fading is the worked-example-fluency-illusion failure mode.
+After level 3 (worked example) is shown, the **backward-fading completion-problem sequence** runs before any further unguided attempts (see `references/methods/backward-fading.md`). Fading triggers after **ANY** worked example, not only the level-3 hint path: a **chapter-presented** worked example triggers the same fade sequence (this is stated identically in `references/methods/backward-fading.md`). Going from "saw worked example" directly to "tried unguided variant and got it" without fading is the worked-example-fluency-illusion failure mode.
 
 ## What the skill says when refusing a hint
 
@@ -93,6 +99,15 @@ When a hint is requested without an authorized trigger or with the gate unsatisf
 - "No new evidence since your last attempt — what specifically did you try? If you've tried something and it failed, name the failure first."
 
 The refusal is data: log it as `hint_refused: { reason, level_requested }`. A pattern of refusals on the same trigger is a calibration cue that the user is treating hints as the path of least resistance, which is exactly what the protocol is designed to surface.
+
+**On repeated refusal, coach the metacognition — don't just log it.** When the user keeps requesting hints that get refused (e.g. the same trigger fails two or more times), do not merely record the refusal. Add a **metacognitive help-seeking coaching move** (Roll, Aleven et al. — teaching learners *when* and *how* to ask for help is itself an instructional target, not just hint-gating). Teach the user to ask *well*: require them to **name their specific stuck point first** before any further hint will be considered.
+
+> "Let's change how you're asking for help. Don't ask for a hint yet — first tell me exactly where you're stuck: which step, what you've already tried, and what specifically you can't get past. A good help request names the stuck point. Once you've done that, we'll decide what kind of hint actually fits."
+
+Korean delivery:
+> "도움 요청하는 방식을 바꿔보자. 힌트를 먼저 달라고 하지 말고, 정확히 어디서 막혔는지부터 말해줘 — 어느 단계인지, 이미 뭘 시도했는지, 무엇을 못 넘어가고 있는지. 좋은 도움 요청은 막힌 지점을 짚는 것에서 시작해. 그걸 말하고 나면 어떤 힌트가 맞을지 같이 정하자."
+
+This converts a path-of-least-resistance pattern into a help-seeking skill: the learner practices *diagnosing their own stuck point*, which is the prerequisite for asking a well-formed (and learning-productive) question. Log the coaching event as `help_seeking_coached: { trigger, stuck_point_named: true | false }`.
 
 ## Anti-patterns
 

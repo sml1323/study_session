@@ -1,21 +1,8 @@
 # Translation-Read Mode (`--llm-translate`)
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 When the user reads a non-native book via a Korean translation (LLM-generated or officially published) instead of the original source, this mode activates. The goal is **concept learning at native-language reading speed**, accepting the nuance loss in exchange for completion velocity, while preserving the chunk-boundary recall that is the actual PDP learning event.
 
-This mode is **mutually exclusive with L2 mode** (`references/l2-mode.md`). Activating one forces the other off. The rationale: L2 mode's paragraph loop steps 1-2 (read English original → write Korean summary from memory) is *undefined* when the user already reads Korean — there is no second language to translate from.
-
-## Why this mode exists (the explicit trade-off)
-
-The motivating case: a `methodology` book like Browne & Keeley *Asking the Right Questions* (`ARQ`) at L2 must-scaffold tier, where the user is pacing at ~10 hours per 10 pages. At that velocity the book cannot finish in a realistic time horizon, AND the chapter arc decays out of working memory between sessions (pace itself is a retention variable — too slow erodes the integrated mental model the book is teaching).
-
-The exchange this mode accepts:
-
-- **Preserved (80–90% of value)**: the book's *language-independent cognitive tools*. For ARQ this is the 10 critical questions (issue / reasons / ambiguous words / value & descriptive assumptions / fallacies / evidence / rival causes / statistics / omitted information / reasonable conclusions). For Polya it is the 4-step heuristic shape. These transfer through translation with negligible loss because they are *moves of thought*, not turns of phrase.
-- **Sacrificed**: (a) the loaded-language register of meta-chapters that *are about* English rhetoric (ARQ Ch.5 on loaded language is the canonical example), (b) the side-effect of building L2 signal-word vocabulary (`therefore` / `however` / `nevertheless` etc.) that L2 mode's bucket B grants. Neither is the book's central learning goal.
-- **Retained as non-negotiable**: chunk-boundary closed-book recall in the user's L1 (Korean). The PDP loop's learning event is recall, not reading. Reading a translation without recall is passive consumption and produces no measurable retention — that *is* the documented failure mode this mode must guard against.
-
-This trade-off is *opinionated*: if the user is reading the book primarily *to* practice L2, this mode is the wrong tool — stay in L2 mode and accept the slower pace as part of the goal. This mode is for users whose *primary* goal is the conceptual content and whose L2 endurance is a velocity constraint, not a learning target.
+This mode is **mutually exclusive with L2 mode** (`references/l2-mode.md`). Activating one forces the other off.
 
 ## When this mode applies
 
@@ -43,13 +30,11 @@ Subsequent sessions on this book read `translation_mode` from `books.yml` and ap
 
 ## Mutex with L2 mode — enforcement
 
-The two modes cannot coexist. The enforcement points:
+The two modes cannot coexist; the mutex rationale is canonical in `references/l2-mode.md`. Enforcement points specific to this mode:
 
 - **On `--llm-translate` activation**: force `l2_mode: off` in the same edit.
-- **On book metadata write**: if both `translation_mode.active: true` AND `l2_mode: on` are about to be written, refuse the edit and surface the conflict to the user. They must pick one.
+- **On book metadata write**: if both `translation_mode.active: true` AND `l2_mode: on` are about to be written, refuse the edit and surface the conflict — the user must pick one.
 - **On session entry**: if a book somehow has both set (legacy state, manual edit), prefer `translation_mode.active: true` (the more recent mode), force `l2_mode: off`, and log the auto-correction.
-
-The reason this matters: L2 mode's anti-pattern table forbids "translating the passage before the user attempts a summary" because that destroys the active processing the L2 paragraph loop is designed to preserve. Translation-read mode *deliberately accepts* that pattern because the user reads the translation *as their primary text*, not as a crutch around a primary English text. The two stances are incompatible and must not silently coexist.
 
 ## What turns OFF in this mode
 
@@ -153,21 +138,6 @@ Others:
 | Closed-book recall | Korean |
 | Phase 3 calibrate prompts | Korean |
 | Method sub-routine prompts (ARQ critical questions, Polya 4 steps, etc.) | Preserve the core meaning per the method's reference file; deliver in Korean. If the canonical wording's force comes from the English phrasing (e.g., a specific ARQ critical question), include the English phrase parenthetically once per chapter. |
-
-## Interaction with other policies
-
-- **Medium policy (`references/medium-policy.md`)**: orthogonal. The 4-cell pagination × device-class matrix applies independently — translation-read is about *source language*, medium is about *display / device*. A user can read an LLM translation on a paginated tablet (recommended cell) or on a phone (triage cell) with the medium recommendation logic unchanged.
-- **AI policy (`references/ai-policy.md`)**: orthogonal. The 3 AI policy modes (scaffold / refuse-chat / refuse-all) apply independently. Note: if the `translation_mode.source` is `llm`, the *translation itself* is an upstream AI artifact, but that's a generation event outside the session — within the session, AI policy controls in-session AI use.
-- **Spacing policy (`references/spacing-policy.md`)**: unchanged. Spaced retrieval intervals, daily-floor commitment, behavioral retrieval counting all apply.
-- **Failure-mode signals (`references/failure-modes.md`)**: unchanged. The 6 failure-mode flags still fire; recall-skip in this mode trips the `surface` / `illusion` flags exactly as it would in any other mode.
-- **Section tracking (`references/section-tracking.md`)**: unchanged. Section-level status enum and chapter-completion gate work identically.
-
-## What this mode is *not*
-
-- Not a Generalized "non-native language" mode. It is single-flag, English-source-only as of v1. Future generalization (`--de-translate`, `--ja-translate`, etc.) is deferred — start narrow.
-- Not a hybrid (some chapters in translation, others in original). Scope is book-level. If the user wants per-chapter mixing, the activation flow's `translation_loss_chapters` field is the only supported "hybrid" — and even there, the local L2 switch is per-chapter opt-in, not a structural hybrid.
-- Not a translation-quality measurement. The skill does not evaluate whether the translation is faithful. That is the user's responsibility — they chose the translation source.
-- Not a permanent commitment. The user can deactivate (manually edit `books.yml`, or via future `--llm-translate=off` toggle) at any chapter boundary. Deactivation flips the book back to whatever its previous mode was (L2 or default).
 
 ## Cross-references
 

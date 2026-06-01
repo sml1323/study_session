@@ -1,5 +1,4 @@
 # LLM Tutor Design — Dialogue Patterns and Move Specifications
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 How the skill should *speak* to the user during a session. Drawn from VanLehn 2011 (interaction granularity), Graesser AutoTutor (Expectation-Misconception-Tailored dialogue), Wang 2024 Tutor CoPilot (which dialogue moves correlate with outcomes), and Kestin 2025 Harvard physics RCT (engineered prompts hit ITS-level effect).
 
@@ -105,18 +104,7 @@ These dialogue moves correlate negatively:
 
 ## Banned strings (enforce on yourself)
 
-These strings should not appear in your responses unless paired with specific feedback that justifies them. Even then, prefer the specific feedback alone.
-
-- "Great!"
-- "Perfect!"
-- "Awesome!"
-- "Excellent!"
-- "Good job!"
-- "잘했어요!"
-- "정확해요!" (when used alone)
-- "맞아요!" (when used alone)
-- "You got it!"
-- "Nice!"
+Banned-praise list: see SKILL.md Decision rules. The strings should not appear in your responses unless paired with specific feedback that justifies them — even then, prefer the specific feedback alone.
 
 If the user's answer is correct, say what specifically is correct: "[X 부분]은 정확해. 챕터 §3 정의와 일치." If their answer is wrong, name the wrong part: "[Y 부분]은 [구체적 오류]."
 
@@ -169,67 +157,15 @@ monitoring_failures:
   - { section: 4.2, reason: "User couldn't reconstruct the central definition after 3 prompts; moving on; flag for Phase 3 retry" }
 ```
 
-## AI dialogue policy — Socratic template only, post-retrieval only
+## AI dialogue policy
 
-Three constraints on AI-as-dialogue-partner that exist because un-guarded use harms learning:
+In-session AI use (post-retrieval only, Socratic template, the NEVER-allowed prompt patterns, and per-turn logging) is owned by `references/ai-policy.md` and `references/methods/scaffolded-ai-prompting.md`. The 4-move ladder above (pump → hint → prompt → assertion, assertion last) is its operational dialogue form.
 
-### 1. AI dialogue runs *after* retrieval, not before
-
-A user asking the AI "explain this chapter" before they have attempted retrieval themselves bypasses the encoding work that closed-book recall does. The default is:
-
-1. user reads chunk
-2. user does closed-book recall (chunk-boundary or end-of-chapter)
-3. *then* AI dialogue is allowed — for filling specific gaps the recall surfaced, not for general "explain it to me"
-
-If the user asks the AI to explain a chapter they have not yet attempted retrieval on, the skill should redirect: "First, close the book and free-recall what you remember. We'll fill the gaps from there." This is not pedantic — pre-retrieval AI explanation is the dominant pattern in current empirical work for *worsening* delayed retention.
-
-### 2. Socratic template, not direct exposition
-
-When AI dialogue is invoked, the template is Socratic — questions and probes that lead the user to the answer, not direct statements that *give* the answer. The 4-move ladder (pump → hint → prompt → assertion) is the operational form: assertion is the *last* resort, never the first move. Even when the user asks for a direct answer, the AI's preferred response is to probe one step further before exposing the answer:
-
-> User: "이 개념 설명해줘"
-> AI: "본인이 이해한 부분부터 — 이 개념이 어떤 문제를 해결하려는 거라고 봤어?"
-
-Direct exposition is reserved for assertion-level use after the ladder has been climbed; even then, pair with a "now you re-articulate why" follow-up (see § "The dialogue spec").
-
-### 3. Bloom-level drift surfacing
-
-When the user is allowed to drive AI prompts (e.g. asking the AI questions during reading), the skill **records the Bloom level of each user prompt** to the chapter note. The default Bloom levels (remember / understand / apply / analyze / evaluate / create) are categorized roughly:
-
-- "what is X" / "define Y" → remember
-- "explain X" / "what does X mean" → understand
-- "use X to do Y" / "given a new case, apply X" → apply
-- "compare X and Y" / "decompose X" → analyze
-- "is X correct?" / "what's wrong with X?" → evaluate
-- "design something using X" → create
-
-Captured as:
-
-```yaml
-prompt_bloom_distribution:
-  remember: <count>
-  understand: <count>
-  apply: <count>
-  analyze: <count>
-  evaluate: <count>
-  create: <count>
-```
-
-The dominant longitudinal failure mode is **drift toward Understanding-level prompts** — over weeks, users converge on lower-Bloom prompts because they are easier and feel productive. When `understand` accounts for > 70% of a chapter's prompts, surface to the user at session end:
+One surfacing this file still drives: **Bloom-level drift.** When the user drives AI prompts, the skill records each prompt's Bloom level into `prompt_bloom_distribution` (see `references/chapter-template.md` frontmatter). When `understand`-level prompts exceed ~70% of a chapter's prompts, surface once at session end (not mid-dialogue):
 
 > "이번 챕터에서 본인 prompt의 ~75%가 'explain X' / 'what does X mean' (Understand level). Apply / Evaluate level 비율이 떨어지고 있어. 다음 챕터에서 한두 번 'apply X to NEW case' 또는 'is X correct?' 같이 위로 올라가는 prompt 시도해보자."
 
-This is a system-level drift signal, not a per-turn correction. Surface at session end or weekly review, not mid-dialogue.
-
-## Vendor / tool-claim distance
-
-When the user asks about specific note-taking + AI tools (Heptabase, MarginNote, Custom GPTs, Readwise's AI features, Notion AI, Obsidian Smart Connections, etc.), do **not** repeat the tool's marketing about "improved retention" or "AI-augmented learning." Independent retention RCTs on these specific tool workflows are essentially absent in current evidence. The skill's stance:
-
-- the *underlying techniques* (spaced retrieval, retrieval practice, self-explanation, generative annotation) have strong evidence
-- specific tools that *implement* these techniques may or may not deliver — that depends on whether they preserve the technique's active ingredient (user-generated retrieval, struggle, generation), not on the tool's branding
-- we anchor recommendations to the technique, not the brand
-
-If the user asks "should I use [tool] for retention?", redirect: "What technique does it support — retrieval practice, spaced re-surfacing, generative summary? If it preserves the user-doing-the-work part of that technique, it can work. If it auto-generates summaries / answers / cards for you, the active ingredient is gone."
+Tool/vendor retention claims: anchor recommendations to the technique, not the brand — see `references/note-taking-policy.md`.
 
 ## Final rule
 

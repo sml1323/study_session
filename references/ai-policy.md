@@ -1,19 +1,12 @@
 # AI Policy — Single Source of Truth for AI Usage in the Skill
 
-Evidence labels: see `references/evidence-labels.md`. The retention-loss range (11–20pp) below is `rct-strong` (8-study convergence); IOED diagnosis bands and the 3-mode structure are `operational-heuristic`.
-
 When invoked: any session that involves an external AI tool (ChatGPT / Claude / NotebookLM / Gemini / Perplexity / Custom GPT / Claude Project / etc.). This file specifies the **3 allowed modes** (high-stakes default; user may override per chapter), the **per-chapter declaration mechanic**, the **per-turn AI usage log**, the **IOED counter gate**, and the **Newport strict-abstention path** as a first-class option.
 
 This is the cross-cutting policy file referenced by SKILL.md. The per-template prompt format lives in `references/methods/scaffolded-ai-prompting.md`; the calibration gate lives in `references/calibration.md`. This file is the policy spine that the others hang on.
 
 ## The empirical floor
 
-Eight studies (Bastani 2024 SSRN/SCALE — *not* "Bastani 2025 PNAS"; corrected per A2 fact-check / Barcaui 2025 n=120 / Benedek-Sziklai 2025 / Georgiou 2025 / Kosmyna MIT 2025 n=54 EEG / Lee Microsoft CHI 2025 n=319 / Aslanov 2025 n=102 / MDPI 2025) converge:
-
-- **Free-form chat with an LLM during learning produces measurable retention damage**: −11 to −20 percentage points on delayed exam vs. no-AI controls. Bastani's Turkish HS RCT (SCALE 2024 working paper) showed practice +48% in-session but exam −17% after AI access removed. Barcaui's 45-day delayed test: 57.5% (ChatGPT) vs 68.5% (traditional). Benedek-Sziklai: −20pp on paper test vs prior years. *[evidence: rct-strong — 8-study convergence on the retention-loss direction and magnitude.]*
-- **Scaffolded prompting neutralizes the damage**: Bastani's GPT Tutor (scaffolded prompt) condition showed no exam decline. MDPI 2025 reproduced on a different population: structured prompting reduced offloading + improved critical reasoning + improved reflection, while unguided AI did not. *[evidence: rct-strong — Bastani 2024 + MDPI 2025 are RCTs; the neutralization is the load-bearing claim.]*
-- **Mechanism is consistent**: cognitive offloading + IOED amplification (Aslanov) + EEG brain-connectivity decline (Kosmyna) + retrieval skipping. The harm is not in *seeing* AI output; it is in *not having to do the load-bearing thinking* before/while reading the output. *[evidence: observational — Aslanov 2025 and Kosmyna 2025 are observational/quasi-experimental; the mechanism convergence is the strength.]*
-- **Frontiers 2026 systematic review** (n=136 articles 2023-2025): no published intervention beats **no-AI** for high-baseline readers on retention or critical-thinking outcomes. Hybrid (AI + peer + instructor) beats AI-alone but does not flip the offloading sign for high-baseline readers. *[evidence: observational — systematic review aggregating mixed-design primary studies.]*
+Eight studies (Bastani 2024 + Barcaui / Benedek-Sziklai / Georgiou / Kosmyna / Lee / Aslanov / MDPI 2025, plus Frontiers 2026 review) converge: free-form chat with an LLM during learning costs −11 to −20pp on delayed exams vs no-AI controls, and no published intervention beats no-AI for high-baseline readers. Scaffolded prompting (Bastani GPT Tutor, MDPI 2025) neutralizes the damage — it is damage-prevention, not net gain — because the harm is in *not doing the load-bearing thinking*, not in seeing AI output. Study-level details: wiki.
 
 This skill therefore treats free-form chat as a **high-stakes default refusal** during deep-reading work (per-chapter user override allowed), treats scaffolded prompting as **damage-prevention not net gain**, and supports **strict abstention** as a first-class choice rather than an extreme position.
 
@@ -25,7 +18,7 @@ Every chapter declares one of these at plan time. Stored as `ai_policy.mode` in 
 
 No AI use during any phase of the chapter. The chapter's Phase 1 / 2 / 3 / 4 all happen with the learner's own cognition + chapter source + chapter notes.
 
-**Why offered as a first-class choice**: Newport's *Slow Productivity* (2024) and his deep-reading critique frame AI summaries as actively bypassing two of the four cognitive rewards of slow reading — distraction-resistance training, comfort with ambiguity. For learners who treat reading as a cognitive resistance training practice (not just information acquisition), this is the right mode. The Frontiers 2026 evidence supports it: no published intervention beats no-AI for high-baseline readers.
+**Why offered as a first-class choice**: AI summaries bypass the cognitive-resistance rewards of slow reading (Newport), and no published intervention beats no-AI for high-baseline readers (Frontiers 2026).
 
 **Default when**: high-baseline reader / high-stakes chapter / chapter is methodology or argument-driven / learner explicitly picks Newport stance.
 
@@ -35,7 +28,7 @@ AI is allowed in Phase 1 (orientation / plan) and Stage 1-2 of `references/metho
 
 The AI is used for "what is this chapter about?" / "what are the 5 most important things to read?" / "what's the prerequisite I should review first?" — never for "explain section 3 to me" or "summarize the whole chapter."
 
-**Why this mode exists**: practitioner convergence (NotebookLM 2025-2026 ethnography, Konik 2025 method, CodeMap finding) shows AI is most useful for triage and orientation; it is least useful (and most damaging) for deep reading. The skill respects the practitioner pattern by allowing it scoped.
+**Why this mode exists**: practitioner convergence shows AI is most useful for triage/orientation and most damaging for deep reading, so it is allowed only scoped to orientation.
 
 **Default when**: chapter is dense / paper / unfamiliar field / long codebase / learner needs to decide what to read deeply.
 
@@ -43,7 +36,7 @@ The AI is used for "what is this chapter about?" / "what are the 5 most importan
 
 AI is allowed at any phase, but **only via the scaffolded prompting template** in `references/methods/scaffolded-ai-prompting.md`. Free-form chat is blocked at the dialogue level. Every AI turn is logged with the IOED follow-up question.
 
-**Why this mode exists**: Bastani GPT Tutor + MDPI 2025 + Konik 2025 demonstrate that template-restricted AI use does not produce the offloading harm that free chat does. For learners who actively use AI (Konik-style) in their normal workflow, this mode keeps them aligned with the empirical floor without forcing them to abstain.
+**Why this mode exists**: template-restricted AI use does not produce the offloading harm that free chat does (Bastani GPT Tutor, MDPI 2025), keeping active-AI learners aligned with the empirical floor without forcing abstention.
 
 **Default when**: learner explicitly uses AI as part of their workflow and is committed to scaffolded discipline.
 

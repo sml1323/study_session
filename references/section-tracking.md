@@ -1,13 +1,10 @@
 # Section-Level Chapter Tracking
-<!-- TODO evidence-tag - see references/evidence-labels.md; this files thresholds/policies are not yet labeled -->
 
 The chapter is the *unit of completion*, but its interior is a sequence of sections. Tracking only `current_chapter` lets the skill mistakenly recommend "next chapter" when six conceptual sections of the current one are still unread. This file specifies how the skill records, advances, and gates on section state.
 
 ## Why section state is needed
 
-The bug pattern that motivated this: a chapter with 7 conceptual sections, the user worked through sections 1.1–1.3, and the skill — seeing only `current_chapter: 1` — surfaced "Ch.2 가자?" as the next move. The remaining six sections of Ch.1 were invisible to the skill. The fix is to give the skill a structural view of the chapter so "어디까지 했나" is verifiable, not inferred from vibes.
-
-The cost is one ToC scan per book at init (best-effort). The benefit is every subsequent session-start gets an unambiguous answer to "what comes next".
+A structural view of the chapter makes "어디까지 했나" verifiable rather than inferred from vibes, at the cost of one best-effort ToC scan per book at init.
 
 ## Schema — `chapter_structure` in `books.yml`
 
@@ -103,16 +100,7 @@ This protects against a known fluency-illusion path: the user feels they underst
 
 ## Status transitions at chunk close
 
-At the end of every chunk, the skill updates section status:
-
-| Chunk shape | Section status set to |
-|---|---|
-| Closed-book recall + active margin notes both ran on the section's narrative | `covered` |
-| Section's prose was used as training material; narrative ¶ not processed | `used-as-exercise` |
-| Session ended mid-section (no clean close) | `in-progress` |
-| User said "이 섹션 건너뛸래" | `skipped` (record the reason in Section progress) |
-
-If a chunk crosses multiple sections, update each section by what actually happened to *its own content*. A chunk that fully covered 1.4 and started 1.5 leaves 1.4 = `covered` and 1.5 = `in-progress`.
+At the end of every chunk, the skill updates section status per the "Set by" column of the section status enum above. If a chunk crosses multiple sections, update each section by what actually happened to *its own content*. A chunk that fully covered 1.4 and started 1.5 leaves 1.4 = `covered` and 1.5 = `in-progress`.
 
 ## Init flow — when `chapter_structure` is built
 
@@ -144,19 +132,7 @@ The lazy path is the operating mode when init-time extraction fails entirely. It
 
 ## Chapter-note synchronization
 
-The chapter note's body carries a `## Section progress` block that mirrors `chapter_structure[current_chapter]`:
-
-```markdown
-## Section progress
-- [x] 1.1 Critical Thinking to the Rescue (covered, Session 2)
-- [x] 1.2 The Sponge and Panning-for-Gold (covered, Session 3-4)
-- [△] 1.3 An Example of Panning-for-Gold (used-as-exercise, Session 5 Round 3 — narrative ¶ 미처리, debt)
-- [ ] 1.4 Panning for Gold: Asking Critical Questions
-- [ ] 1.5 The Myth of the Right Answer
-- [-] 1.6 Thinking and Feeling (skipped — user said "이 섹션은 익숙해서 건너뛸래")
-```
-
-Box conventions: `[x]` = covered, `[△]` = used-as-exercise (debt), `[ ]` = pending or in-progress (annotate inline if `in-progress`), `[-]` = skipped.
+The chapter note's body carries a `## Section progress` block that mirrors `chapter_structure[current_chapter]`. The block's schema and box conventions live in `references/chapter-template.md` (it owns the note body schema).
 
 **`books.yml` is the source of truth.** When the chapter-note Section progress drifts (e.g., a manual edit), the next session sync writes from `books.yml` to the note, not the other way. The note version is convenience read-out for the user, not a parallel state store.
 
@@ -168,13 +144,7 @@ Box conventions: `[x]` = covered, `[△]` = used-as-exercise (debt), `[ ]` = pen
 
 ## Regression test cases
 
-These cases gate any future change to section tracking. See `evals/section-tracking/` for fixtures.
-
-1. **ToC extraction succeeds end-to-end.** ARQ-style chapter with 7 sections; init-time PDF outline extraction populates `chapter_structure` correctly; the user's confirmation prompt lists all 7 titles.
-2. **`used-as-exercise` debt surfaces.** A chunk that uses section 1.3's gun-control passage as ARQ training material leaves 1.3 = `used-as-exercise`, and the next-chunk recommendation explicitly proposes processing 1.3's own narrative ¶ before anything else.
-3. **Ambiguous "다음 phase" stays in chapter.** With 1.4–1.7 still pending, the user says "다음 phase 가자". The skill interprets it as "next section within Ch.1" and recommends 1.4, *not* phase-3 / Ch.2.
-4. **Phase-3 gate honors section completeness.** `phase-3-pending` is set only when *every* section in the chapter is `covered` or `skipped`. A chapter with one `used-as-exercise` section blocks phase-3 transition.
-5. **Lazy fallback path works.** A book whose PDF has no outline registers without `chapter_structure`. Entering Ch.1 triggers the lazy mini-extraction; if heuristic extraction is uncertain, the user is asked to paste the chapter's first page; section list is saved to `books.yml` after confirmation.
+Fixtures: `evals/section-tracking/`.
 
 ## Cross-references
 
