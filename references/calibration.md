@@ -124,8 +124,8 @@ When operating: if the user objects to the split (e.g., "my actual exam is 80% r
 |---|---|---|
 | ≤ 10 | `well_calibrated` | Surface as positive: "Predicted X, actual Y, gap Z — well-calibrated." |
 | 11-20 | `loose` | Surface neutrally: "Predicted X, actual Y, gap Z — calibration is loose; watch the trend." |
-| > 20, predicted > actual | `over_confident` | Surface as illusion signal: "Predicted X, actual Y, gap Z — over-confident on this chapter. Recommended: 24-hr Step 2b retry on a fresh scenario; next session opening will confirm chapter advance before moving on." Set `confirm_next_chapter: true`. **Does not hard-block `chapter_complete`** (B1 split — see below). |
-| > 20, predicted < actual | `under_confident` | Surface as positive: "Predicted X, actual Y, gap Z — under-confident; you did better than you thought. Trend watch only." Set `confirm_next_chapter: true` (still flag for next-session confirmation since the gap is large). |
+| > 20, predicted > actual | `over_confident` | Surface as illusion signal: "Predicted X, actual Y, gap Z — over-confident on this chapter. Recommended: 24-hr Step 2b retry on a fresh scenario." `confirm_next_chapter` is set **only** when `abs_gap > 30` (see § B1 split below), not at this boundary. **Does not hard-block `chapter_complete`** (B1 split — see below). |
+| > 20, predicted < actual | `under_confident` | Surface as positive: "Predicted X, actual Y, gap Z — under-confident; you did better than you thought. Trend watch only." `confirm_next_chapter` fires **only** when `abs_gap > 30` (see § B1 split below), not at this boundary. |
 | score missing | `unknown` | Step 2b skipped or score_prediction not captured. No gap diagnostic; `chapter_complete` falls back to `learning_passed` only. |
 
 *All rows: evidence: operational-heuristic. The ≤10 / 11-20 / >20 partition is a first-cut chosen for actionability; Ratnayake 2023 names the ±10pt direction but does not publish the 11-20 vs >20 split.*

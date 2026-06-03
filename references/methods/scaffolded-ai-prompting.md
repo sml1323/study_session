@@ -62,7 +62,7 @@ When the learner says "I'll just ask ChatGPT" / "let me check with Claude" / "I'
 4. **Score the IOED gap** if the learner attempted the follow-up question:
    - If they can answer it correctly on a NEW case → low IOED, AI use was scaffold-shaped
    - If they cannot, or paraphrase the AI's answer back → high IOED, mark `ioed_amplified: true` for this turn
-   - Cumulative `ioed_gap_avg` across turns becomes a Phase 3 calibrate input (see `references/calibration.md` § "AI-mediated chapter Step 2b retry")
+   - Cumulative `ioed_gap_avg` across turns becomes a Phase 3 calibrate input (see `references/ai-policy.md` § "IOED counter gate (calibrate Phase 3)")
 
 ## What is NEVER allowed
 
@@ -94,6 +94,6 @@ If the learner picks `ai_policy: strict-no-ai` at plan time (per `references/ai-
 ## Cross-references
 
 - `references/ai-policy.md` — overall AI policy (3 modes, IOED gate, Newport abstention path) that this template lives inside
-- `references/calibration.md` § Step 2b retry — how IOED gap from AI usage interacts with chapter_complete promotion
+- `references/ai-policy.md` § "IOED counter gate (calibrate Phase 3)" — how IOED gap from AI usage interacts with chapter_complete promotion
 - `references/methods/code-reading.md` — Stage 1-2 are the only stages where AI is allowed under triage-only policy
 - `references/note-taking-policy.md` — popular-system reframe map; AI tools that are part of those systems (Konik's LLM middle layer) get reframed as scaffolded-prompting use, not endorsed as systems
