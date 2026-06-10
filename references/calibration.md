@@ -2,6 +2,35 @@
 
 Phase 3 is the **measurement step**. Without it, learning is invisible and self-report substitutes for evidence — and self-reports of understanding are systematically miscalibrated against delayed recall. The skill should not mark a chapter complete without Phase 3. [evidence: placeholder — exact citation pending; the previously cited "Yang 2023, r=0.18" was not externally verifiable; replace with a verified metacomprehension source before next major release.]
 
+## Contents
+
+- The delay: cross-session by default
+- The Phase 3 sequence
+  - Step 1: confidence_check + score_prediction (BOTH before recall)
+  - Step 2a: textbase recall
+  - Step 2b: situation-model transfer
+  - Step 3: gap_calibration (textbase scoring)
+  - Step 4: calibration gaps (two computed gaps, ±10pt and confidence)
+  - Step 5: feynman_explain
+  - Step 6: concept_map_build (optional but recommended)
+  - Step 6b: categorization_re_test (when applicable)
+  - Step 7: self_test_generate
+- Coverage Rubrics (graded separately for textbase and situation model)
+  - Textbase recall rubric (`textbase_recall_coverage`, 0.0–1.0)
+  - Situation-model transfer rubric (per Step 2b transfer question)
+  - Pass threshold by book type
+  - What happens below threshold
+  - What happens at situation_model_transfer_score = 1.0
+- Re-reading policy (default: single read + retrieval; re-read targeted only)
+  - When re-reading is allowed
+  - When re-reading is *not* allowed
+- What "complete" means
+- Multiple pending chapters
+- Metrics that go on books.yml after each chapter
+- Long-term progress signals
+- Spaced re-engagement (Phase 4)
+- Edge cases
+
 ## The delay: cross-session by default
 
 Karpicke & Blunt 2011 (Science) compared retrieval practice vs concept mapping. Retrieval won by ~50% on a *delayed* test, but on an *immediate* test the gap was much smaller. The delay is what creates the calibration mechanism. *[evidence: rct-strong — Karpicke & Blunt 2011, Science]*

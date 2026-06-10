@@ -4,7 +4,7 @@ When invoked: at plan phase, decide what reading medium the user should default 
 
 The R10 v3 patch (and earlier rounds) framed medium choice as a 4-axis decision. The R11 v4 patch sharpens this: Clinton-Lisell & Litzinger 2025 (network meta n=56 / 79 effect sizes) localizes the screen-vs-paper effect to **scrolling specifically**, with paginated digital reading dropping to g = 0.03–0.12 vs paper (no reliable difference). Frontiers 2025 distractions meta (n=32 studies / 124 experiments) shows distraction interference is medium-invariant once a distractor is present (Hedges' g = −0.64) — the e-ink advantage is upstream from display physics, in **distraction availability**. The v4 reframing is therefore: collapse the messy device taxonomy into a **2-axis (pagination_mode × device_class) 4-cell matrix** and surface the cell label (recommended / allowed / triage-only) at plan time.
 
-This file is referenced from `SKILL.md` § "The PDP master loop" (PLAN PHASE) and from `references/pdp-loop.md`.
+This file is referenced from `SKILL.md` § "PDP spine" (PLAN step) and from `references/pdp-loop.md`.
 
 ## The 4 axes (background — the matrix below runs first)
 

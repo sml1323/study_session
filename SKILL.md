@@ -8,6 +8,8 @@ description: Use for guided book/chapter study, math/science problem-solving (Po
 
 This is a runtime manual. The reasoning, evidence, full policies, and edge-case handling live in `references/`. Load only what the current situation requires.
 
+**Path resolution**: this skill's root is `${CLAUDE_SKILL_DIR}` (Claude Code renders this to an absolute path at load). Resolve every `references/...` and `scripts/...` path in this file against that root — never against the current working directory. If the path above appears as an unexpanded CLAUDE_SKILL_DIR placeholder (non-Claude-Code harness), resolve against the directory containing this SKILL.md.
+
 ## Argument Parsing
 
 ```
@@ -23,12 +25,18 @@ This is a runtime manual. The reasoning, evidence, full policies, and edge-case 
 - **Bare invocation** (`/study-session` alone): scan `~/study-journal/books.yml`; if any `phase-3-pending` chapter is older than 5 days, downgrade to a 3-question quiz; otherwise run calibrate as the opening warmup on the oldest in-window pending chapter; if nothing pending, ask the user what to do.
 - **Free-form intent**: see `When to invoke` below for the trigger lexicon.
 - **`--review` flag family**: full branch logic (per chapter status) lives in `references/review-routing.md`. Natural-language equivalents ("ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈") route through the same logic.
-- **`--llm-translate` flag**: book-level persistent mode for reading a non-native book via Korean translation (LLM or official). On first invocation per book, plan phase asks `translation_mode.source` once and persists to `books.yml`; subsequent sessions inherit. Forces `l2_mode: off` (mutually exclusive — L2 paragraph loop steps 1-2 are undefined when the user reads Korean directly). Vocabulary policy off; chunk-boundary recall preserved (non-negotiable, in Korean); intensity uncapped. Full protocol: `references/translation-mode.md`.
+- **`--llm-translate` flag**: book-level persistent translation-read mode (LLM or official translation). First invocation per book asks `translation_mode.source` once in plan phase and persists to `books.yml`; subsequent sessions inherit. Mutex with `l2_mode` (forces `l2_mode: off`). Full protocol: `references/translation-mode.md`.
 - **`--help`**: print this `## Argument Parsing` block, do not enter a mode.
 
 If just `/study-session` is invoked and `books.yml` is empty / missing, run setup (`references/setup.md`) and ask what book to study.
 
-> **Runtime assumption — Claude Code PostToolUse hook.** The audit contract (Required-read gates + `scripts/log_reference_read.sh` + `scripts/analyze_references.py`) depends on Claude Code's PostToolUse hook to log every `Read` of a reference file. In Codex or other CLI environments without an equivalent hook, the deterministic read-audit cannot run; a shell-based read-audit replacement is deferred to a separate iteration. Until then, on those environments, the skill's body-level invocation discipline (Required-read gates) still applies but the audit signal is reduced to "model self-reports the Reads it did" rather than "hook log is the ground truth." Compose-mode `references_touched` / `methods_invoked` cannot be system-emitted without the hook log.
+## Session-open snapshot (injected at load)
+
+Claude Code executes the line below at skill load and replaces it with its output — current `phase-3-pending` candidates from `books.yml`, with line numbers, before any Read. The snapshot is a routing *hint* and may be truncated (output capped at 40 lines): RESOLVE must still confirm against `books.yml` before selecting the opening calibrate chapter. If the block is empty, there are no pending chapters **or** `books.yml` is missing — distinguish by opening `books.yml`. If the block instead shows an unexecuted literal line (exclamation mark followed by a backtick-quoted grep command — non-Claude-Code harness), ignore it and scan `books.yml` manually.
+
+!`grep -n -B3 -A5 'phase-3-pending' ~/study-journal/books.yml 2>/dev/null | head -40`
+
+> **Runtime assumption — Claude Code PostToolUse hook.** The read-audit contract (`scripts/log_reference_read.sh` + `scripts/analyze_references.py`) depends on Claude Code's PostToolUse hook logging every reference `Read`. On harnesses without an equivalent hook (e.g. Codex CLI), Required-read gates still apply, but the audit signal degrades to model self-report and compose-mode `references_touched` / `methods_invoked` cannot be system-emitted.
 
 ## Core principle
 
@@ -43,19 +51,19 @@ A chapter produces two distinct representations: **textbase** (what the chapter 
 - User wants ARQ breakdown of any text, or Polya/Schoenfeld walkthrough of a problem
 - User asks for closed-book recall, retrieval quiz, chapter review
 - "어제 어디까지", "내 노트 검토", "복습 퀴즈", weekly review / exam prep
-- **Review-routing surfaces**: "ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈", "Polya Ch.3 review", or the explicit `--review --book <slug> --chapter <N>` / `--review --due` / `--review --scope chapter` flag. Routes by chapter status to Phase 3 calibrate, spaced retrieval, Step 2b retry, in-chapter recap, or conversion (per `references/review-routing.md`).
+- **Review-routing surfaces**: "ARQ Ch.4 복습하자", "어제 거 다시 보자", "복습 퀴즈", or the explicit `--review` flags — routes by chapter status per `references/review-routing.md`.
 
 If unsure, run the skill — it self-routes between modes. Missed invocations skip real learning value.
 
 ## Setup (first run only)
 
-Verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install). Populate `~/study-journal/books.yml` from `assets/books.yml.template`. On first registration of a book, attempt best-effort ToC extraction (PDF outline → Contents-page scan → header-inference) to populate `chapter_structure`; on failure, fall back to lazy per-chapter extraction at first entry — full protocol in `references/section-tracking.md`. Confirm with the user before the actual session. Full bootstrap + reference-audit hook install (`scripts/install-hook.sh`, setup.md Step 8 — skip it and the read-audit pipeline silently no-ops): Read `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values: `references/state-schema.md`.
+Verify `~/study-journal/` exists; if absent, bootstrap via `scripts/init.sh`. Convert any EPUB books to PDF (`scripts/convert-epub.sh` — requires `pandoc` or Calibre, do not auto-install). Populate `~/study-journal/books.yml` from `assets/books.yml.template`. On first registration of a book, attempt best-effort ToC extraction to populate `chapter_structure`; on failure, fall back to lazy per-chapter extraction — full protocol: `references/section-tracking.md`. Confirm with the user before the actual session. Full bootstrap + reference-audit hook install (`scripts/install-hook.sh`, setup.md Step 8 — skip it and the read-audit pipeline silently no-ops): Read `references/setup.md`. Chapter notes live at `~/study-journal/books/<book-slug>/ch-NN-<title>.md`, indexed by `books.yml`. Canonical state values: `references/state-schema.md`.
 
 ## The four modes
 
 A session moves through four surface modes — **plan → tutor → calibrate → compose**. The plan/tutor/calibrate body scales with `intensity` (light / standard / deep — see "Session intensity" below); the *learning core* (chunk-boundary recall, situation-model transfer, delayed retrieval) never scales down.
 
-Each mode below names *when it runs* and *what it owns*, but not *how its body unfolds*. The internal sequence (which probe runs in which order, what `chapter_complete` requires beyond the gate name, what the chapter note auto-fill looks like) lives only in the referenced files — SKILL.md intentionally omits the body so the only way to drive a mode correctly is to Read its reference in the current session.
+Each mode below names *when it runs* and *what it owns*, but not *how its body unfolds* — mode bodies are intentionally absent from SKILL.md, so the only way to drive a mode correctly is to Read its reference in the current session (see Required-read gates).
 
 | Mode | When it runs | What it owns |
 |------|--------------|--------------|
@@ -70,15 +78,15 @@ Required Read per situation: see Required-read gates > Situation → required Re
 
 ## PDP spine
 
-Always run in this order. The step names below are *navigation only* — the internal body of each step (probe order, gate definitions, stale-handling, threshold tables, per-book-type variations) is in `references/pdp-loop.md` and the per-step reference. Read the relevant reference before driving a step; reconstructing the step body from memory is the documented drift pattern.
+Always run in this order. Step names are *navigation only* — each step's body lives in `references/pdp-loop.md` and the per-step reference; Read the relevant one before driving a step.
 
-1. **RESOLVE context** — open `books.yml`; check for `phase-3-pending` chapters and stale ones (handling: `references/pdp-loop.md`, `references/calibration.md § stale-calibrate-downgrade`).
+1. **RESOLVE context** — start from the *Session-open snapshot* above for `phase-3-pending` candidates, then confirm against `books.yml` before acting on them (the snapshot is a hint and may be truncated); check staleness (handling: `references/pdp-loop.md`, `references/calibration.md § "The delay" stale-calibrate rule`).
 2. **PLAN** — book classification + medium + AI policy + expectations (driven by intensity; references in *The four modes* table).
 3. **TUTOR** — chunked reading + chunk-boundary closed-book recall *before* active margin notes + method sub-routines (driven by chapter content; per-method references in *Method sub-routines* table).
 4. **End of Phase 2** — set status + timestamp and close session (allowed values: `references/state-schema.md`).
 5. **CALIBRATE** (next session opening) — full per-step protocol, ordering rule (confidence/score_prediction BEFORE recall), and `chapter_complete` gate live in `references/calibration.md`.
 6. **APPLY** (optional) — one transfer attempt to a different domain.
-7. **COMPOSE** — auto-fill chapter note (`references/chapter-template.md`); update `books.yml` (`references/state-schema.md`); run `python3 scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>` so `references_touched` / `methods_invoked` reflect the deterministic hook-log Reads; schedule spaced re-engagement (`references/spacing-policy.md`).
+7. **COMPOSE** — auto-fill chapter note (`references/chapter-template.md`); update `books.yml` (`references/state-schema.md`); run `python3 ${CLAUDE_SKILL_DIR}/scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>` so `references_touched` / `methods_invoked` reflect the deterministic hook-log Reads; schedule spaced re-engagement (`references/spacing-policy.md`).
 
 ## Decision rules
 
@@ -86,11 +94,11 @@ These protect the learning signal. Don't paraphrase them. Each rule's full reaso
 
 1. **Mode priority**: `calibrate > tutor > plan > compose`. If user explicitly asks for a lower-signal mode, do it; otherwise lean upward.
 2. **Phase 3 default = next-session warmup.** End the session at the end of Phase 2 with `status: phase-3-pending`. Same-session calibrate is opt-in only: requires explicit user request **and** `now − phase_2_ended_at ≥ 30 min` (working-memory contamination floor). Below 30 min, refuse with the remaining time.
-3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → 1–2 active margin notes (prose). Annotate-first is the dominant fluency-illusion pattern. Recall-probe rows use *numeric* labels (`R1`, `R2`, …) — never single letters tied to category first letters — because numeric labels are append-only-safe across sessions. Margin notes are prose with no enforced prefix; categorization happens at chapter end during conversion, not at write time. (Per-note P/I/M/E/Q prefixes were dropped in Cut B; the 5 moves survive as examples of active margin notes — Pressley & Afflerbach 1995.) **Before generating active margin notes OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the move examples, the per-book-type `R1..Rn` schema, the worked tables, and the legacy-prefix migration policy live only there.
-4. **`chapter_complete` = `learning_passed` (SM transfer ≥ book-type gate).** Textbase recall is advisory. Calibration health is tracked *separately* and no longer hard-blocks `chapter_complete`; a large gap can flag a *recommended* Step 2b retry plus a next-session advance-confirmation. The `calibration_health` enum values, the exact `abs_gap` thresholds, and the `confirm_next_chapter` trigger live only in `references/calibration.md` + `references/state-schema.md` — do not quote them from memory (see the Pre-invocation self-check gate below). If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. Per-book-type SM thresholds + the B1 split rationale: `references/calibration.md`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
-5. **Hints are event-based, on-demand, paraphrase-gated** — proactive or time-based hint-offering is the documented dependency-amplification pattern (Roll & Aleven 2011 help abuse). Each escalation asks the user to paraphrase the previous hint before next-level unlocks. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
+3. **Recall before annotation.** At every chunk boundary: close the book → 30–60s closed-book recall → reopen → 1–2 active margin notes (prose, no enforced prefix). Annotate-first is the dominant fluency-illusion pattern. **Before generating active margin notes OR a recall-probe table, Read `references/annotation-typology.md` AND `references/generative-prompts.md` in this session** — the label schema (`R1..Rn` numeric rows), move examples, conversion contract, and legacy-prefix migration policy live only there.
+4. **`chapter_complete` = `learning_passed` (SM transfer ≥ book-type gate).** Textbase recall is advisory; calibration health is tracked *separately* and does not hard-block. The `calibration_health` enums, exact `abs_gap` thresholds, per-type SM gates, and `confirm_next_chapter` trigger live only in `references/calibration.md` + `references/state-schema.md` — do not quote them from memory. If user says "Ch.X 끝났어" before Phase 3 runs, do not promote — status stays `phase-3-pending`. **Do not skip Phase 3.** If user pushes hard, log `phase_3_skipped: true` and proceed; do not pretend the chapter is complete.
+5. **Hints are event-based, on-demand, paraphrase-gated** — proactive or time-based hint-offering is the documented dependency-amplification pattern. After any worked example, run **backward-fading** (`references/methods/backward-fading.md`) before any unguided variant. Full hint protocol: `references/methods/hint-escalation.md`.
 6. **No generic praise. This is the SOLE canonical banned-praise list — other references point here.** Banned (do not use unless immediately paired with specific justifying feedback; even then prefer the specific feedback alone): "Great!", "Perfect!", "Awesome!", "Excellent!", "Excellent question", "Good job!", "Nice!", "You got it!", "잘했어요", "정확해요!" (when used alone), "맞아요!" (when used alone). Replace with specific feedback: "[X]는 정확. [Y]는 [구체적 오류]." Tutor-design rationale + replacement patterns: `references/llm-tutor-design.md`.
-7. **Methods are sub-routines, not forms — and their bodies live only in their reference.** Step counts (e.g., "Polya 4 steps", "Newman 5 stages", "Schoenfeld 3 Qs", "Browne–Keeley criticals"), prompt wording, and gates are *not* in SKILL.md by design — quoting any of them from memory is the documented hallucination pattern. Invoke a method only after Reading `references/methods/<method>.md` in the current session; preserve the core meaning of canonical prompts (check the reference for the exact wording, then translate if needed for delivery). Depth scales with intensity (see *Session intensity*).
+7. **Methods are sub-routines, not forms — bodies live only in their reference.** Invoke a method only after Reading `references/methods/<method>.md` in the current session (full contract: *Method sub-routines* section below). Depth scales with intensity (see *Session intensity*).
 8. **Chapter-completion gate is section-level.** Advancement to `phase-3-pending` (and any "next chapter" recommendation) requires every section in the chapter to be `covered` or `skipped`. `pending` / `in-progress` / `used-as-exercise` blocks the gate. `used-as-exercise` is learning debt — surface it and recommend processing the section's narrative ¶ as the next chunk before any phase advance. If the user says "다음 phase 가자" / "Ch.X 끝났어" while uncovered sections remain, interpret it as "next section within the current chapter", not a phase advance — only honor a literal next-chapter request when uncovered is empty. Schema, status enum, init flow (lazy-first ToC extraction), chapter-note sync: `references/section-tracking.md`.
 
 Cross-cutting policies (load when triggered):
@@ -108,7 +116,7 @@ Cross-cutting policies (load when triggered):
 
 Phase 3 is the measurement step. The cross-session gap (often overnight) is naturally above the 30-min working-memory floor and is what the retrieval-practice literature actually measures. This default also collapses Phase 3 calibrate and `prior_chapter_recall` into one opening ritual.
 
-**On any session open (cold or resume)**: scan `books.yml` for `status: phase-3-pending`; if any, oldest in-window chapter runs calibrate as the opening move before today's stated goal. Mechanics, same-session opt-in path, stale-calibrate downgrade (5+ days → 3-question quiz), multiple-pending handling: `references/calibration.md`.
+**On any session open (cold or resume)**: the *Session-open snapshot* surfaces `status: phase-3-pending` candidates; confirm the full set in `books.yml`, then the oldest in-window chapter runs calibrate as the opening move before today's stated goal. Mechanics, same-session opt-in path, stale-calibrate downgrade (5+ days → 3-question quiz), multiple-pending handling: `references/calibration.md`.
 
 ## Book type classification
 
@@ -122,7 +130,7 @@ Classify both axes on first session per book; confirm with the user; store in `b
 
 ## Method sub-routines
 
-Invoked from within the tutor phase when chapter content calls for them. **Preserve core meaning of canonical prompts** — check the Reference file for the exact wording and translate for delivery as needed; paraphrased rewordings that drift from the original cognitive move (e.g., "summarize" in place of "anticipate") weaken the effect. Each method's full body (steps, prompts, gates, examples) lives only in its Reference file; SKILL.md intentionally omits the canonical shape so the only way to invoke a method correctly is to Read its Reference in the current session. Reconstructing a method body from memory drifts in ways that look right but aren't.
+Invoked from within the tutor phase when chapter content calls for them. **Preserve core meaning of canonical prompts** — check the Reference for the exact wording, translate for delivery as needed; paraphrases that drift from the original cognitive move (e.g., "summarize" for "anticipate") weaken the effect. Each method's full body (steps, prompts, gates, examples — including step counts like "Polya 4 steps" / "Newman 5 stages") lives only in its Reference file; SKILL.md intentionally omits the canonical shape, so the only correct invocation path is Reading the Reference in the current session. Reconstructing a method body from memory drifts in ways that look right but aren't.
 
 | Sub-routine | When to invoke | Reference (REQUIRED Read this session before invoke) |
 |---|---|---|
@@ -166,7 +174,7 @@ Top-level invariants:
 - **End of Phase 2** sets `status: phase-3-pending` (or `phase-2-pending-conversion` if conversion deferred) + `phase_2_ended_at: <ISO8601>`.
 - **`session_health`** captures all six failure-mode flags after every session (see `references/failure-modes.md`).
 - **Concept-level tracking** is trigger-deferred — populate `concept_candidates: [...]` in frontmatter; bootstrap separate `~/study-journal/concepts/` files only after the activation trigger (≥ 2 chapters AND ≥ 5 candidates).
-- **`books.yml` is metadata-only AND Edited at most once per session.** During compose, write only enums / numbers / dates / status maps / short anchors into `chapter_metrics[N]`. Long-form session narrative (progress strings, `*_recall_notes`, `*_progress_archive`, `section_progress_notes`, `next_session_warmup_anchors`, `*_note` health qualifiers, `counter_feedback_event`, narrative `misconceptions_active`, per-session narrative key variants like `*_session_N_scoped` / `*_session_N_lockin`) goes into the chapter note body — never into `books.yml`. Reason: `books.yml` is re-cached on every Edit; narrative there inflates `cache_create` ~30–40% of session token cost. Full allow/forbid list: `references/state-schema.md § books.yml chapter_metrics — allowed and forbidden fields`.
+- **`books.yml` is metadata-only AND Edited at most once per session.** During compose, write only enums / numbers / dates / status maps / short anchors into `chapter_metrics[N]`. Long-form session narrative goes into the chapter note body — never into `books.yml`. Reason: `books.yml` is re-cached on every Edit; narrative there inflates `cache_create` ~30–40% of session token cost. Full allow/forbid list: `references/state-schema.md § books.yml chapter_metrics — allowed and forbidden fields`.
 
   **Pre-Edit self-check** (run before EVERY `books.yml` Edit during compose):
     1. Is this the only `books.yml` Edit this session? Compose mode batches *all* `chapter_metrics[N]` updates into a single Edit. Multiple per-session Edits is an anti-pattern — observed 2026-05-18 to burn ~5KB extra cache_create per redundant Edit.
@@ -174,13 +182,13 @@ Top-level invariants:
     3. `session_health.*` keys: enum/bool only. Narrative qualifiers like `illusion: <hyphen-glued-narrative>` are forbidden — the enum value is `true | false`; the narrative belongs in the chapter note Session-N block.
     4. `spaced_retrievals[].anchors` (narrative list) is forbidden in `books.yml`. Keep only `{date, type, q_count, score}` per row.
 
-  After the single Edit, optionally run `python3 scripts/lint_state.py . --books-yml ~/study-journal/books.yml` to catch any violations before the session closes.
+  After the single Edit, run `python3 ${CLAUDE_SKILL_DIR}/scripts/lint_state.py ${CLAUDE_SKILL_DIR} --books-yml ~/study-journal/books.yml` as a **mandatory** compose step. Only close the session when the lint passes; on violations, fix `books.yml` (move offending values to the chapter note body) and re-run.
 
 ## Required-read gates
 
 The skill's runtime contract: **the canonical spec is the file, not your memory of it, and not the one-line summaries in this SKILL.md.** Method bodies, hint ladders, schemas, and gates evolve; reconstructing them from memory drifts in ways the SKILL.md summary will not catch because the summary "sounds right."
 
-**Default to SKILL.md alone. Read exactly ONE reference at the moment you ENTER its situation — never pre-load a batch at session start.** The point is to Read on *entry* to a situation. A heavy chapter typically pulls 3–4 method files plus 2–3 policy files across 60 min; a light chapter often pulls 0–1. If a situation lists two required Reads and you've only Read one this session, Read the second before proceeding — don't cite both and hope.
+**Default to SKILL.md alone. Read exactly ONE reference at the moment you ENTER its situation — never pre-load a batch at session start.** The point is to Read on *entry* to a situation. A heavy chapter typically pulls 3–4 method files plus 2–3 policy files across 60 min; a light chapter often pulls 0–1. If a situation lists two required Reads and you've only Read one this session, Read the second before proceeding — don't cite both and hope. After the canonical full Read of a file this session, targeted re-lookups in that same file may use `grep -n` or a section-scoped Read (files >300 lines carry a `## Contents` TOC for navigation) — but grep alone never satisfies a gate.
 
 Before doing any of the following, `Read` the canonical reference in the **current session**:
 
@@ -195,14 +203,7 @@ SKILL.md summaries and prior-session reads do not satisfy the gate. If you have 
 
 This is not a politeness rule; it is the audit contract. The PostToolUse hook (`scripts/log_reference_read.sh`) records every Read; `scripts/analyze_references.py` cross-checks chapter-note declarations against the hook log and surfaces `declared_not_read` as drift.
 
-**Pre-invocation self-check**: Before naming a method, ladder, gate, numbered protocol, schema label, marginalia prefix, or policy mode in the body, verify you Read its canonical file in this session. Concrete trigger lexicon (non-exhaustive):
-
-- *Method names with step counts*: "Newman 5-stage", "Polya 4-step", "Schoenfeld 3 Qs", "Browne–Keeley criticals", "ARQ depth 0–3", "backward-fading fade-1/2/3", "Tao 7 moves"
-- *Hint protocol*: "L0–L4 ladder", "paraphrase gate", "level-4 reflection", "time-on-hint"
-- *Calibration*: "abs_gap ≤ 20", "score_prediction", "SM transfer score", "textbase recall", "stale-calibrate downgrade", "learning_passed", "calibration_health", "over_confident / under_confident / well_calibrated / loose / unknown", "confirm_next_chapter"
-- *Marginalia / probe*: "active margin note", "predict / infer / monitor / evaluate / question example list", "R1 / R2 / R3 recall-probe row", "recall_probe_schema", "legacy `P:` / `R-P` prefix migration"
-- *AI policy*: "ai_policy mode", "scaffold / refuse-chat / refuse-all", "scaffolded AI prompt template", "Context / Request / Constraint"
-- *Annotation / state*: "section_progress status enum", "used-as-exercise", "phase-2-pending-conversion"
+**Pre-invocation self-check**: Before naming a method, ladder, gate, numbered protocol, schema label, marginalia prefix, or policy mode in the body, verify you Read its canonical file in this session. Trigger lexicon (non-exhaustive): step-counted method names ("Newman 5-stage", "Polya 4-step", "Browne–Keeley criticals"), hint-protocol terms ("L0–L4 ladder", "paraphrase gate"), calibration terms ("abs_gap ≤ 20", "learning_passed", `calibration_health` enums), marginalia/probe labels ("R1/R2 recall-probe row", legacy `P:` / `R-P` prefix migration), AI-policy modes ("scaffold / refuse-chat / refuse-all"), and state enums ("used-as-exercise", "phase-2-pending-conversion").
 
 ### Situation → required Read
 
@@ -249,14 +250,12 @@ Do **not** write a `📚 refs:` / `🛠 methods:` footer in the response. Refere
 **Mechanism**: a PostToolUse hook (`scripts/log_reference_read.sh`, registered in `~/.claude/settings.json`) records every `Read` of a study-session reference/method file into `~/study-journal/.session-log/<KST-date>.jsonl`. At **compose** time, run:
 
 ```
-python3 scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>
+python3 ${CLAUDE_SKILL_DIR}/scripts/analyze_references.py --emit-frontmatter --chapter <chapter-note-path>
 ```
 
 This filters the log to the current session and dedupe-appends the actual Reads into the chapter note's `references_touched` / `methods_invoked`. Idempotent; safe to re-run. Standalone work outside a chapter (cold-start setup, plan phase, standalone Polya) has no chapter note to append to — the session log is the only record.
 
-**For body-level references** (citing a method or rule mid-response, not in a footer): the same contract still holds — the canonical spec is the file, not your memory. See `Required-read gates` below for which situations require a Read in the current session before invoking a spec.
-
-Audit: `scripts/analyze_references.py` (default mode) partitions all reads into `read_and_declared` / `read_not_declared` / `declared_not_read` / `unknown_or_context_carried`. `declared_not_read` is the drift signal. Full field definitions: `references/state-schema.md § Frontmatter fields`.
+Audit: `scripts/analyze_references.py` (default mode) partitions all reads into `read_and_declared` / `read_not_declared` / `declared_not_read` / `unknown_or_context_carried`. `declared_not_read` is the drift signal. Full field definitions: `references/state-schema.md § Frontmatter fields — chapter note`.
 
 ## Operational examples
 

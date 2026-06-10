@@ -11,6 +11,37 @@ Each prompt has:
 
 ---
 
+## Contents
+
+- Phase 1 — Pre-reading
+  - pka_dump
+  - prediction
+  - goal_question
+- Phase 2 — During-reading
+  - chunk_size + interim_recall (mandatory at intensity ≥ standard)
+    - recall_probe_schema — book-type-specific probe categories (numeric labels)
+  - concept_define
+  - next_predict
+  - monitoring_check
+  - paragraph_capture (selective, with genre cap)
+  - graphic_organizer_required (intensity ≥ standard)
+  - selective_annotation (active margin notes — bare highlights are deprecated)
+- Phase 3 — Post-reading (DELAYED — not immediate)
+  - closed_book_recall
+  - gap_calibration
+  - score_prediction (the ±10pt calibration GATE input)
+  - confidence_check
+  - feynman_explain
+  - concept_map_build
+  - self_test_generate
+- Phase 4 — Cross-chapter / Apply
+  - prior_chapter_recall
+  - interleave_compare
+  - transfer_attempt
+- Wording rules
+- Anti-patterns (DO NOT use)
+- Quick sequence reference
+
 ## Phase 1 — Pre-reading
 
 ### pka_dump

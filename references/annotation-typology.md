@@ -2,7 +2,7 @@
 
 Highlighting alone — selecting passages without an accompanying generative move — does not improve comprehension on standardized testing. The signal that *does* predict learning is the *constructive* move that follows the highlight: a margin question, a paraphrase, an objection, an inferred connection. This file specifies what an "active margin note" is, the order in which it must come (recall first), and the chapter-end conversion contract.
 
-This file is referenced from `SKILL.md` § "Generative prompts" and from `references/generative-prompts.md` § "selective_annotation".
+This file is referenced from `SKILL.md` § "Decision rules" (rule 3 — recall before annotation) and from `references/generative-prompts.md` § "selective_annotation".
 
 > **History note (Cut B simplification, 2026-05-21).** The pre-Cut-B per-note prefix system (P/I/M/E/Q, bundled as the skill-coined "PIMEQ" acronym) was dropped because write-time prefix classification added cognitive overhead without retention benefit; the 5 moves (predict/infer/monitor/evaluate/question, from Pressley & Afflerbach 1995) survive as examples and all categorization moved to chapter end.
 
@@ -24,7 +24,7 @@ These are **examples, not enforced labels**. The user writes prose; the note doe
 
 ## Order — recall first, annotate second
 
-Annotation must come **after** the chunk-boundary closed-book recall (see `references/generative-prompts.md` interim_recall and SKILL.md § "Things to avoid"). The order matters because the dominant failure mode is "annotate-while-reading-fluently → mark looks meaningful → don't actually struggle to retrieve → fluency illusion". The fix is structural:
+Annotation must come **after** the chunk-boundary closed-book recall (see `references/generative-prompts.md` interim_recall and SKILL.md § "Decision rules" rule 3). The order matters because the dominant failure mode is "annotate-while-reading-fluently → mark looks meaningful → don't actually struggle to retrieve → fluency illusion". The fix is structural:
 
 ```
 1. Read chunk (5-10 min).
@@ -99,5 +99,5 @@ Pre-Cut-B notes may carry `P:`/`I:`/`M:`/`E:`/`Q:` margin prefixes or `R-P`/`R-I
 
 - `references/generative-prompts.md` — `selective_annotation` prompt (active margin notes; bare highlights deprecated as default); `recall_probe_schema` (numeric `R1..Rn` convention with per-book-type category words as subscripts)
 - `references/calibration.md` — Step 2b transfer questions can be drawn from margin notes that recorded questions or evaluations (Pressley & Afflerbach's question / evaluate moves are the highest-leverage source for self-test items)
-- `SKILL.md` § "Things to avoid" — annotate-before-recall ban, raw-highlight-as-final ban
+- `SKILL.md` § "Decision rules" — rule 3: annotate-before-recall ban (raw-highlight-as-final ban: this file § "Order — recall first, annotate second")
 - `references/state-schema.md` — `session_health.label_migration` enum; `phase-2-pending-conversion` status (the lifecycle position for chapters with raw margin notes still to convert)

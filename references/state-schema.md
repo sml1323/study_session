@@ -4,6 +4,26 @@ This file is the **canonical SOT** for chapter status values and frontmatter fie
 
 If a status value is not in this enum, it does not exist. Do not invent new states; if the lifecycle needs a new state, add it here first, then propagate.
 
+## Contents
+
+- Canonical chapter status enum
+  - Removed / deprecated
+  - State transitions (diagram)
+- Frontmatter fields — chapter note
+  - `calibration_health` enum
+  - Backward compatibility
+  - Recall-table label convention
+- Frontmatter fields — `books.yml`
+- `translation_mode` field
+- books.yml `chapter_metrics` — allowed and forbidden fields
+  - Allowed (metadata-only)
+  - Forbidden (move to chapter note body or `_archived/`)
+  - Migration when a `books.yml` has already grown long-form
+  - Compose-mode contract on `books.yml`
+- Canonical section status enum (orthogonal to chapter status)
+- Lint contract
+- Cross-references
+
 ## Canonical chapter status enum
 
 A chapter is always in **exactly one** of the following states:
@@ -294,7 +314,7 @@ Exit code 0 = clean; non-zero = violations found.
 
 ## Cross-references
 
-- `SKILL.md` — uses these states in the spine and the "Things to avoid" rules
+- `SKILL.md` — uses these states in the spine and the Decision rules
 - `references/chapter-template.md` — full body schema; frontmatter mirrors this file
 - `references/calibration.md` — Step 2a/2b mechanics, gate thresholds, status transitions in calibrate
 - `references/annotation-typology.md` — defines when `phase-2-pending-conversion` applies

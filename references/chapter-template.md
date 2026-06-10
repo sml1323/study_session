@@ -2,6 +2,16 @@
 
 The chapter note is the *byproduct* of the session, auto-filled by the compose mode from session traces. The user does not face a blank form — the skill captures answers during the session and writes them out.
 
+## Contents
+
+- File location
+- Frontmatter schema (full)
+- Body sections
+- Append-only conventions
+- Compose mode auto-fill rules
+- Reading the note for resume
+- Cross-references
+
 ## File location
 
 ```

@@ -71,7 +71,7 @@ ON skill_invoked(maybe_book, maybe_chapter, maybe_mode):
       reviewer move:
         identify which expectations are satisfied
         identify any misconception that fired
-        give specific feedback (not generic praise — see "Things to avoid")
+        give specific feedback (not generic praise — see SKILL.md § "Decision rules" rule 6, the canonical banned-praise list)
         if missing or wrong, escalate: pump → hint → prompt → assertion
         log hint level invoked (0-4)
       if section contains an argument: invoke ARQ extract (references/methods/arq.md)
